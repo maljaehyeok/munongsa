@@ -222,6 +222,28 @@
     @media(max-width:520px){.nav{gap:7px}.nav a{display:inline-flex!important;font-size:11px}.topbar>div{display:none}}
     .profile-status{margin:0 0 18px;color:#59695d;font-size:12px;line-height:1.7}
     .match-note{display:block;color:#526b57;font-size:12px;line-height:1.65;margin-top:3px;font-weight:500}
+    /* Give every summary child an explicit track; profile notes must not size the action column. */
+    .compact-open{grid-template-columns:minmax(0,1fr) max-content;align-items:start}
+    .compact-open>strong{grid-column:1;grid-row:2}
+    .compact-open>.match-note{grid-column:1;grid-row:3}
+    .compact-open>.compact-hint{grid-column:2;grid-row:2 / 4;align-self:center}
+    .compact-open>*{min-width:0;max-width:100%}
+    .compact-open strong,.compact-open .tag,.match-note{white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
+    .layout>*,.result-top>*,.card,.equipment-examples{min-width:0}
+    .count{white-space:normal;overflow-wrap:anywhere}
+    .modal-box{overflow-wrap:anywhere}.support-detail-list dd{min-width:0}
+    @media(max-width:700px){
+      .compact-open{grid-template-columns:minmax(0,1fr);gap:10px;align-items:start}
+      .compact-open>strong,.compact-open>.match-note,.compact-open>.compact-hint{grid-column:1;grid-row:auto}
+      .compact-open>.compact-hint{justify-content:flex-start;margin-top:4px;flex-wrap:wrap}
+      .compact-hint b{white-space:normal;overflow-wrap:anywhere}
+      .card-bottom,.card-actions{flex-wrap:wrap}
+    }
+    @media(max-width:520px){
+      .topbar{height:auto;min-height:62px;flex-wrap:wrap;gap:8px;padding-block:12px}
+      .brand{flex-shrink:0}.nav{flex-wrap:wrap;row-gap:8px}
+      .support-detail-list div{grid-template-columns:minmax(0,1fr);gap:4px}
+    }
   </style>
 </head>
 <body>
