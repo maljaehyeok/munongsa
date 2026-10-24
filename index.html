@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>무농사 | 나에게 맞는 농업 정보</title>
+  <style>
+    :root{--forest:#173c2d;--green:#26734d;--mint:#eaf4ed;--leaf:#68ad78;--ink:#17221c;--muted:#68756e;--line:#e2e8e3;--paper:#f7f8f6;--white:#fff;--gold:#966b18}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:"Malgun Gothic",system-ui,sans-serif;font-size:16px}
+    a{color:inherit;text-decoration:none}button,input,select{font:inherit}.topbar{height:68px;background:#101714;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 5vw;position:sticky;top:0;z-index:5}
+    .brand{font-size:25px;font-weight:900;letter-spacing:-1.2px}.brand i{font-style:normal;color:#8acb92}.nav{display:flex;align-items:center;gap:30px;font-size:14px}.nav a:hover{color:#a7d8ad}.nav .active{color:#9dd5a6;font-weight:800}
+    .hero{background:linear-gradient(110deg,#193e2d 0%,#497b55 58%,#81996d 100%);color:#fff;padding:48px 5vw 52px}.hero-inner{max-width:1320px;margin:auto}.eyebrow{font-size:14px;letter-spacing:.03em;opacity:.9}.hero h1{font-size:44px;line-height:1.2;letter-spacing:-1.7px;margin:12px 0}.hero p{font-size:17px;line-height:1.7;margin:0;max-width:660px;color:#f1f6f0}.hero-note{display:inline-flex;gap:8px;align-items:center;margin-top:24px;background:#ffffff20;border:1px solid #ffffff42;padding:10px 14px;border-radius:10px;font-size:13px}
+    .page{max-width:1320px;width:90%;margin:30px auto 54px}.section-title{display:flex;justify-content:space-between;align-items:end;margin:0 0 17px}.section-title h2{font-size:23px;letter-spacing:-.6px;margin:0}.section-title p{color:var(--muted);font-size:14px;margin:0}
+    .layout{display:grid;grid-template-columns:330px 1fr;gap:22px;align-items:start}.filters,.results{background:var(--white);border:1px solid var(--line);border-radius:16px;box-shadow:0 6px 24px #1222180a}.filters{padding:23px;position:sticky;top:86px}.filters h2{font-size:20px;margin:0 0 6px}.filters-intro{font-size:13px;color:var(--muted);line-height:1.6;margin:0 0 17px}.field{padding:14px 0;border-top:1px solid #edf0ed}.field label{font-size:14px;font-weight:800;display:block;margin-bottom:8px}.field select{width:100%;border:1px solid #ccd6cf;border-radius:9px;background:white;padding:12px 11px;color:var(--ink)}.apply{width:100%;padding:13px;border:0;border-radius:10px;background:var(--forest);color:white;font-weight:800;margin-top:8px;cursor:pointer}.apply:hover{background:#245b40}.filter-tip{font-size:12px;line-height:1.6;color:var(--muted);background:#f3f7f3;border-radius:9px;padding:12px;margin:13px 0 0}
+    .results{padding:22px}.result-top{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:16px}.result-top h2{font-size:21px;margin:0 0 4px}.result-top p{color:var(--muted);font-size:13px;margin:0}.count{font-size:13px;color:var(--muted);white-space:nowrap}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.card{border:1px solid var(--line);border-radius:13px;padding:19px;display:flex;flex-direction:column;min-height:295px;transition:transform .15s,box-shadow .15s}.card:hover{transform:translateY(-2px);box-shadow:0 9px 24px #18251c12}.tag{display:inline-flex;align-self:flex-start;align-items:center;background:var(--mint);color:var(--forest);padding:6px 10px;border-radius:99px;font-size:12px;font-weight:800}.tag.warning{background:#fff4df;color:#815d17}.card h3{font-size:19px;letter-spacing:-.4px;line-height:1.45;margin:14px 0 8px}.card .desc{font-size:14px;line-height:1.65;color:#56635b;margin:0 0 13px}.facts{border-top:1px solid #edf0ed;padding-top:11px;font-size:13px;line-height:1.8;color:#445148;margin-top:auto}.facts b{color:var(--ink)}.card-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:15px}.source-label{font-size:11px;color:#7a857e}.details{border:0;background:#1c392b;color:white;border-radius:8px;padding:10px 13px;font-size:13px;font-weight:800;cursor:pointer}.details:hover{background:#2a6546}.empty{grid-column:1/-1;border:1px dashed #b8c8bd;background:#f8faf8;padding:28px;border-radius:12px;color:var(--muted);line-height:1.7}
+    .categories{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:26px 0}.category{background:white;border:1px solid var(--line);border-radius:13px;padding:18px;display:flex;gap:14px;align-items:center}.category-icon{width:44px;height:44px;border-radius:12px;background:var(--mint);display:grid;place-items:center;font-size:22px}.category strong{display:block;font-size:15px}.category small{display:block;color:var(--muted);font-size:12px;margin-top:4px}
+    .notice{margin-top:20px;border-left:4px solid #8ebf96;background:#f0f6f1;padding:14px 16px;color:#46574b;font-size:13px;line-height:1.65;border-radius:0 9px 9px 0}.footer{border-top:1px solid var(--line);padding:22px 5vw 32px;color:var(--muted);font-size:12px;line-height:1.7}.modal{display:none;position:fixed;inset:0;background:#111a16a8;z-index:10;padding:20px;overflow:auto}.modal.show{display:grid;place-items:center}.modal-box{background:white;width:min(660px,100%);border-radius:16px;padding:26px;box-shadow:0 20px 60px #0004}.modal-head{display:flex;justify-content:space-between;gap:18px;align-items:start}.modal-head h2{margin:12px 0 6px;font-size:24px}.close{border:0;background:#edf2ee;border-radius:50%;width:38px;height:38px;cursor:pointer;font-size:20px}.modal-box p,.modal-box li{line-height:1.7;color:#4c5a51;font-size:14px}.modal-box h3{margin-top:24px}.cite{background:#f2f6f3;padding:13px;border-radius:9px;font-size:12px;color:#5d6a61;line-height:1.7}
+    @media(max-width:900px){.layout{grid-template-columns:1fr}.filters{position:static}.cards{grid-template-columns:1fr}.nav{gap:13px}.nav a:nth-child(3),.nav a:nth-child(4){display:none}.categories{grid-template-columns:1fr}.hero h1{font-size:37px}.page{width:94%}.results{padding:16px}}
+    /* 읽기 편한 화면: 과한 색·그림자를 줄이고 글자와 선택 영역을 키웁니다. */
+    body{background:#fff;font-size:16px;line-height:1.6;color:#171a18}
+    .topbar{background:#191b1a;height:64px;padding:0 4.5vw}.brand{font-size:24px}.nav{font-size:15px;gap:32px}
+    .hero{background:#f2f5f1;color:#171a18;padding:38px 5vw 40px;border-bottom:1px solid #e7ebe7}.eyebrow{color:#246441;opacity:1;font-weight:800}
+    .hero h1{font-size:40px;line-height:1.35;margin:10px 0 8px;color:#151916}.hero p{font-size:17px;line-height:1.8;color:#45524a}
+    .hero-note{background:#e5efe7;border:1px solid #d8e5da;color:#28563b;font-size:14px;font-weight:700}
+    .page{max-width:1360px;width:92%;margin:34px auto 56px}.section-title h2{font-size:25px}.section-title p{font-size:15px;color:#515c55}
+    .layout{grid-template-columns:350px 1fr;gap:24px}.filters,.results{box-shadow:none;border-color:#dfe4df;border-radius:12px}
+    .filters{padding:25px;top:82px}.filters h2{font-size:22px}.filters-intro{font-size:14px;color:#4f5b53;line-height:1.75}
+    .field{padding:16px 0}.field label{font-size:15px}.field select{min-height:50px;padding:12px;font-size:15px;border-color:#aeb9b1}
+    .apply{min-height:50px;font-size:16px;background:#171a18}.apply:hover{background:#333936}
+    .filter-tip{font-size:13px;color:#414d45;background:#f1f4f1;line-height:1.75}
+    .results{padding:25px}.result-top{padding-bottom:19px}.result-top h2{font-size:23px}.result-top p,.count{font-size:14px;color:#4d5951}
+    .cards{gap:18px}.card{border-color:#d9dfda;border-radius:11px;box-shadow:none;min-height:310px;padding:22px;transition:border-color .15s}.card:hover{transform:none;box-shadow:none;border-color:#789b80}
+    .tag{font-size:13px;padding:6px 11px}.card h3{font-size:21px;line-height:1.5;margin:16px 0 9px}.card .desc{font-size:15px;line-height:1.8;color:#46524a}
+    .facts{font-size:14px;line-height:1.9;color:#424d46;border-color:#e3e7e3}.card-bottom{margin-top:17px}.source-label{font-size:12px;color:#59645d}.details{min-height:42px;padding:10px 16px;font-size:14px;background:#202522}
+    .categories{gap:16px;margin:30px 0}.category{border-radius:11px;min-height:86px;padding:19px}.category strong{font-size:16px}.category small{font-size:13px;color:#4f5c53}
+    .notice{font-size:14px;line-height:1.8;border-left-color:#397b50;background:#f3f6f3;color:#35443a;padding:16px 18px}.footer{font-size:13px;color:#4f5b53}
+    .empty{font-size:15px;color:#3f4b43;line-height:1.8}button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid #29734d;outline-offset:3px}
+    @media(max-width:900px){.hero h1{font-size:34px}.layout{grid-template-columns:1fr}.filters{position:static}.results{padding:18px}.page{width:94%}}
+    .layout{grid-template-columns:390px minmax(0,1fr)}
+    .filters{max-height:calc(100vh - 98px);overflow-y:auto}
+    .field input,.field select{width:100%;min-height:48px;border:1px solid #aeb9b1;border-radius:9px;background:#fff;padding:11px 12px;color:var(--ink)}
+    .field .hint{display:block;margin-top:6px;color:#58645c;font-size:12px;line-height:1.55}
+    .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .profile-summary{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 17px}
+    .profile-chip{display:inline-flex;padding:6px 10px;background:#f0f4f0;border:1px solid #e2e8e3;border-radius:99px;font-size:12px;color:#35453a}
+    .status-pill{display:inline-flex;align-self:flex-start;border-radius:99px;padding:5px 9px;font-size:12px;font-weight:800;background:#edf3ee;color:#275c3c}
+    .status-pill.closed{background:#f1f1ef;color:#4e554f}
+    .status-pill.check{background:#fff3dc;color:#735311}
+    .card-actions{display:flex;gap:9px;align-items:center}
+    .source-link{font-size:13px;color:#245b40;text-decoration:underline;font-weight:700}
+    .no-save{display:flex;gap:8px;align-items:flex-start;background:#f4f6f4;border-radius:8px;padding:10px 12px;margin-top:12px;color:#48564d;font-size:12px;line-height:1.6}
+    .modal-box .status-pill{margin-top:10px}
+    .profile-avatar{display:flex;align-items:center;gap:14px;padding:14px;margin:8px 0 4px;background:#f5f7f4;border:1px dashed #aeb9b1;border-radius:12px}
+    .avatar-placeholder{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;flex:none;background:#e5eee5;border:2px solid #d4e2d5;font-size:28px}
+    .profile-avatar strong{display:block;font-size:14px}.profile-avatar small{display:block;margin-top:4px;color:#566259;font-size:12px;line-height:1.5}
+    .region-card{display:flex;align-items:center;gap:12px;margin-top:10px;padding:12px;background:#f3f7f3;border-radius:10px}
+    .region-mascot{font-size:31px;line-height:1}.region-card strong{display:block;font-size:13px}.region-card small{display:block;color:#58645c;font-size:12px;margin-top:3px}
+    .categories{grid-template-columns:repeat(4,minmax(0,1fr))}
+    @media(max-width:900px){.categories{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:520px){.categories{grid-template-columns:1fr}}
+    .category{cursor:pointer}.category.active{border-color:#315f40;background:#f0f6f1;box-shadow:inset 0 0 0 1px #315f40}
+    .equipment-group{grid-column:1/-1}.equipment-group h3{font-size:17px;margin:6px 0 0;padding:12px 0 4px;border-bottom:1px solid var(--line)}
+    .data-note{grid-column:1/-1;border-radius:9px;padding:13px 15px;background:#fff7e8;color:#684d1c;font-size:13px;line-height:1.7}
+    @media(max-width:900px){.layout{grid-template-columns:1fr}.filters{max-height:none}.field-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:520px){.field-grid{grid-template-columns:1fr}.nav{gap:12px}.nav a:nth-child(2){display:none}.hero{padding:30px 5vw}.hero h1{font-size:31px}}
+    /* Visual refinement: quieter surfaces, clearer hierarchy, and simple category marks. */
+    :root{--forest:#244a35;--green:#356b49;--mint:#edf3ed;--ink:#202923;--muted:#5c6961;--line:#e2e8e2;--paper:#f7f8f5}
+    body{font-family:"Pretendard","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;letter-spacing:-.015em}
+    .topbar{background:#202923;box-shadow:0 1px 0 #ffffff12}
+    .brand{letter-spacing:-.06em}.brand i{color:#a9c89a}
+    .hero{background:linear-gradient(120deg,#f1f4ef 0%,#f7f8f5 70%);padding-top:46px;padding-bottom:48px}
+    .hero h1{letter-spacing:-.055em;line-height:1.3}
+    .hero-note{border-radius:999px;background:#e8efe6;border-color:#dce7d9;color:#355640}
+    .page{margin-top:38px}.section-title{margin-bottom:20px}.section-title h2{letter-spacing:-.045em}
+    .filters,.results{border-radius:16px;box-shadow:0 8px 30px #1b2a2010}
+    .filters{border-color:#e5e9e4}.results{padding:28px}
+    .filters h2,.result-top h2,.card h3,.modal-head h2{letter-spacing:-.045em}
+    .field{border-color:#eef1ed}.field label{color:#2d3931}
+    .field select,.field input{border-radius:11px;border-color:#d2dbd3;transition:border-color .15s,box-shadow .15s}
+    .field select:focus,.field input:focus{outline:none;border-color:#63866b;box-shadow:0 0 0 3px #63866b20}
+    .apply,.details{border-radius:10px;background:#263c2e;transition:background .15s,transform .15s}
+    .apply:hover,.details:hover{background:#355b40}.apply:active,.details:active{transform:translateY(1px)}
+    .result-top{border-color:#e8ece7}.result-top p{line-height:1.7}
+    .cards{gap:16px}.card{border-radius:15px;border-color:#e2e8e2;padding:23px;min-height:300px;background:linear-gradient(180deg,#fff 0%,#fdfefd 100%)}
+    .card:hover{border-color:#9bb49e;box-shadow:0 8px 24px #2035270c}
+    .tag{background:#edf3ed;color:#365843;border-radius:7px;letter-spacing:.01em}
+    .tag.warning{background:#f7f0e2;color:#80652d}
+    .card h3{font-size:22px;line-height:1.42;margin:17px 0 10px}
+    .card .desc{font-size:15px;line-height:1.85;color:#4e5b52}
+    .facts{font-size:14px;line-height:1.85;color:#526057}
+    .card-bottom{gap:12px;align-items:flex-end}.source-label{line-height:1.6}
+    .category{border-radius:14px;border-color:#e4e9e3;min-height:92px;transition:border-color .15s,background .15s,transform .15s}
+    .category:hover{border-color:#a6bba8;background:#fbfcfa;transform:translateY(-2px)}
+    .category.active{border-color:#719078;background:#f1f5ef}
+    .category-icon{position:relative;flex:0 0 46px;width:46px;height:46px;border-radius:13px;background:#edf3ed;color:#365843;font-size:0}
+    .category-icon::before{font-size:21px;font-weight:500;line-height:1}
+    .category:nth-child(1) .category-icon::before{content:"▦"}
+    .category:nth-child(2) .category-icon::before{content:"₩"}
+    .category:nth-child(3) .category-icon::before{content:"＋"}
+    .category:nth-child(4) .category-icon::before{content:"▤"}
+    .category strong{font-size:16px;letter-spacing:-.035em}.category small{line-height:1.55}
+    .notice{border-radius:0 12px 12px 0;background:#f3f6f2}
+    .modal-box{border-radius:20px;padding:30px;box-shadow:0 28px 90px #0003}
+    @media(max-width:900px){.results{padding:19px}.hero{padding-top:32px;padding-bottom:34px}.hero h1{font-size:34px}.category{min-height:76px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+    /* New presentation: editorial hero, quick category navigation, and calm card surfaces. */
+    :root{--forest:#183b2b;--green:#3d7651;--mint:#e9f1e8;--ink:#1b2820;--muted:#68766d;--line:#e3e9e2;--paper:#f5f6f1;--white:#fff;--gold:#9b6c22}
+    body{background:var(--paper);font-family:"Pretendard","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;letter-spacing:-.02em}
+    .topbar{height:72px;padding-inline:max(5vw,calc((100vw - 1360px)/2));background:#15291f}
+    .brand{font-size:26px;letter-spacing:-.07em}.brand i{color:#b3d38a}
+    .nav{gap:34px}.nav a{font-size:14px;color:#e0e9e1}.nav .active{color:#c2df9a}
+    .hero{position:relative;isolation:isolate;overflow:hidden;padding:66px 5vw 72px;background:linear-gradient(115deg,#193c2b 0%,#27583c 55%,#507449 100%);color:#fff}
+    .hero::after{content:"";position:absolute;z-index:-1;width:540px;height:540px;right:max(2vw,calc((100vw - 1460px)/2));top:50%;transform:translateY(-50%);border-radius:50%;background:radial-gradient(circle at 50% 50%,#d8e5b426 0 25%,transparent 25.5% 37%,#d8e5b41c 37.5% 38%,transparent 38.5% 52%,#d8e5b415 52.5% 53%,transparent 53.5%);box-shadow:inset 0 0 0 1px #ffffff12}
+    .hero-inner{max-width:1360px;position:relative}.eyebrow{display:inline-flex;padding:7px 12px;border:1px solid #ffffff38;border-radius:99px;background:#ffffff12;color:#d8e9ce;font-size:13px;font-weight:700;letter-spacing:.01em}
+    .hero h1{max-width:760px;margin:20px 0 16px;color:white;font-size:clamp(38px,4.2vw,58px);line-height:1.22;letter-spacing:-.065em}
+    .hero p{max-width:650px;color:#e4ede5;font-size:16px;line-height:1.9}
+    .hero-note{margin-top:26px;padding:9px 13px;border-radius:8px;border-color:#ffffff30;background:#ffffff12;color:#eef5e8;font-size:13px}
+    .page{width:min(1360px,92%);margin:42px auto 64px}.section-title{margin:0 0 20px;align-items:center}.section-title h2{font-size:27px;letter-spacing:-.055em}.section-title p{font-size:14px;line-height:1.7;color:#657269}
+    .categories{grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin:0 0 22px}
+    .category{position:relative;min-height:110px;padding:19px 18px;border-radius:15px;border:1px solid #e3e8df;background:#fff;gap:13px;box-shadow:0 5px 18px #26352508;transition:transform .18s,border-color .18s,box-shadow .18s,background .18s}
+    .category:hover{transform:translateY(-3px);border-color:#a6bba5;box-shadow:0 11px 26px #26352512;background:#fff}
+    .category.active{border-color:#598064;background:#edf4eb;box-shadow:inset 0 0 0 1px #598064,0 8px 22px #2635250b}
+    .category-icon{width:46px;height:46px;flex:0 0 46px;border-radius:14px;background:#e6efe3;color:#315d3d;font-family:Georgia,serif;font-size:22px;font-weight:700}
+    .category-icon::before{content:none}
+    .category:nth-child(2) .category-icon{background:#f2eddf;color:#83652e}.category:nth-child(3) .category-icon{background:#e8efed;color:#376b61}.category:nth-child(4) .category-icon{background:#edf0e4;color:#66713c}
+    .category strong{font-size:16px;letter-spacing:-.04em}.category small{margin-top:5px;font-size:12px;line-height:1.5;color:#69766d}
+    .category-arrow{position:absolute;right:15px;top:14px;color:#849188;font-size:15px;opacity:.7}
+    .layout{grid-template-columns:minmax(300px,350px) minmax(0,1fr);gap:20px;align-items:start}
+    .filters,.results{border:1px solid #e3e8e1;border-radius:17px;background:#fff;box-shadow:0 8px 28px #1d2b2009}
+    .filters{top:88px;max-height:calc(100vh - 104px);padding:22px;scrollbar-color:#c5d0c5 transparent;scrollbar-width:thin}
+    .filters h2{font-size:21px;letter-spacing:-.05em}.filters-intro{font-size:13px;line-height:1.75;color:#68746b}
+    .profile-avatar{padding:13px;background:#f4f6f1;border:1px solid #e8ece5;border-radius:13px}
+    .field{padding:14px 0;border-color:#edf0eb}.field label{font-size:14px;color:#29372e}.field .hint{color:#748077;font-size:11px;line-height:1.65}
+    .field input,.field select{min-height:47px;border:1px solid #d5ddd3;border-radius:10px;background:#fff;padding:10px 12px;font-size:14px;color:#26342b}
+    .field input:focus,.field select:focus{outline:none;border-color:#6d9270;box-shadow:0 0 0 3px #6d927018}
+    .region-card{border:1px solid #e8eee5;background:#f3f6ef;border-radius:12px;padding:12px}
+    .apply{margin-top:10px;min-height:51px;border-radius:11px;background:#244632;font-size:15px;letter-spacing:-.02em;box-shadow:0 5px 12px #24463220}
+    .apply:hover{background:#315c40}.no-save{background:#f4f6f3;color:#56645a;border-radius:10px;font-size:11px}
+    .filter-tip{background:#f7f5ed;color:#70644c;border-radius:10px;font-size:12px;line-height:1.7}
+    .results{min-height:430px;padding:26px}.result-top{padding-bottom:18px;border-color:#e9ede7}
+    .result-top h2{font-size:24px;letter-spacing:-.055em}.result-top p{font-size:13px;line-height:1.7;color:#69766d}.count{padding:7px 10px;border-radius:99px;background:#f1f4ef;color:#526256;font-size:12px}
+    .profile-chip{padding:7px 11px;border:1px solid #e4e9e2;background:#f6f8f4;color:#4d5d50;font-size:11px}
+    .cards{gap:14px}.card{position:relative;overflow:hidden;min-height:305px;padding:22px;border:1px solid #e4e9e3;border-radius:14px;background:#fff;box-shadow:0 4px 14px #22322206;transition:transform .18s,border-color .18s,box-shadow .18s}
+    .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#a5bd9b;opacity:0;transition:opacity .18s}
+    .card:hover{transform:translateY(-2px);border-color:#b8c9b6;box-shadow:0 12px 26px #2232220d}.card:hover::before{opacity:1}
+    .tag{padding:6px 10px;border-radius:6px;background:#edf3eb;color:#3d6546;font-size:11px;letter-spacing:.015em}.tag.warning{background:#f8f0e2;color:#81612a}
+    .card h3{font-size:20px;line-height:1.48;letter-spacing:-.05em;margin:15px 0 8px}.card .desc{font-size:14px;line-height:1.8;color:#5d6a60}
+    .facts{margin-top:auto;padding-top:13px;border-color:#edf0eb;font-size:12px;line-height:1.8;color:#647067}.facts b{color:#26372b}
+    .card-bottom{gap:10px;margin-top:14px;align-items:center}.source-label{font-size:10px;line-height:1.5;color:#7a857c}.source-link{font-size:12px;color:#326143}
+    .details{flex:none;padding:9px 12px;border-radius:8px;background:#284d35;font-size:12px}
+    .status-pill{font-size:11px}.empty{border-color:#d7e1d5;border-radius:14px;background:#f7f9f5;font-size:14px}
+    .equipment-group h3{font-size:16px;letter-spacing:-.03em;color:#34553c}.data-note{border-radius:12px;background:#f7f3e8;color:#6c5933;font-size:12px}
+    .notice{margin-top:23px;padding:17px 20px;border-left-color:#64885e;border-radius:0 13px 13px 0;background:#eaf0e7;color:#48574a;font-size:12px;line-height:1.8}
+    .footer{padding:24px max(5vw,calc((100vw - 1360px)/2)) 34px;background:#eef1eb;color:#667267;font-size:12px}
+    .modal{backdrop-filter:blur(5px);background:#17251dcc}.modal-box{width:min(700px,100%);max-height:calc(100vh - 40px);overflow:auto;padding:30px;border:1px solid #ffffffaa;border-radius:18px;box-shadow:0 28px 90px #07150d55}
+    .modal-head h2{font-size:26px;letter-spacing:-.05em}.modal-box h3{font-size:17px;letter-spacing:-.035em}.modal-box p,.modal-box li{font-size:14px;line-height:1.85}.cite{padding:16px;border:1px solid #e9eee8;border-radius:12px;background:#f3f6f1}
+    button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #83a77d;outline-offset:3px}
+    @media(max-width:1050px){.layout{grid-template-columns:minmax(275px,320px) minmax(0,1fr)}.categories{gap:10px}.category{padding:15px 13px}.category-arrow{right:11px;top:9px}.results{padding:20px}}
+    @media(max-width:800px){.hero{padding:48px 5vw 54px}.hero::after{width:330px;height:330px;right:-130px;top:56%}.hero h1{font-size:clamp(34px,7vw,48px)}.page{width:93%;margin-top:30px}.layout{grid-template-columns:1fr}.filters{position:relative;top:auto;max-height:none}.categories{grid-template-columns:repeat(2,minmax(0,1fr))}.category{min-height:88px}.results{min-height:0}}
+    @media(max-width:520px){.topbar{height:62px;padding-inline:5vw}.brand{font-size:22px}.nav{gap:13px}.nav a{font-size:12px}.nav a:nth-child(2){display:none}.hero{padding:40px 5vw 46px}.hero h1{font-size:34px}.hero p{font-size:14px}.page{width:92%;margin-top:25px}.section-title h2{font-size:22px}.section-title p{font-size:12px}.categories{gap:8px}.category{min-height:82px;padding:12px 10px;gap:9px}.category-icon{width:38px;height:38px;flex-basis:38px;border-radius:11px;font-size:19px}.category strong{font-size:14px}.category small{font-size:10px}.category-arrow{right:8px;top:6px;font-size:12px}.filters{padding:17px}.results{padding:16px}.result-top{align-items:flex-start}.result-top h2{font-size:20px}.cards{grid-template-columns:1fr}.card{min-height:270px;padding:19px}.modal{padding:10px}.modal-box{padding:21px}.footer{padding-inline:5vw}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+    /* Clearer flow: choose a category, set filters, then scan results. */
+    .page{max-width:1440px;margin-top:30px}
+    .section-title{margin-bottom:14px}
+    .categories{margin:0 0 22px;gap:12px}
+    .category{min-height:82px;padding:15px 17px}
+    .category-arrow{display:none}
+    .layout{display:flex;flex-direction:column;gap:18px}
+    .filters,.results{width:100%;position:static;max-height:none;overflow:visible}
+    .filters{padding:22px 24px}
+    .filters h2{margin-bottom:3px}
+    .filters-intro{margin-bottom:10px}
+    .profile-avatar{display:none}
+    .filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:16px;align-items:start}
+    .filters h2,.filters-intro,.apply,.no-save,.filter-tip{grid-column:1/-1}
+    .filters .field,.filters .field-grid{min-width:0}
+    .filters .field{padding:12px 0}
+    .filters .field-grid{gap:10px}
+    .filters .field-grid .field{padding:12px 0}
+    .filters .field-grid:has(#area){grid-column:span 2}
+    .filters .apply{margin-top:4px}
+    .filter-actions{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin-top:4px}
+    .filter-actions .apply{width:auto;min-height:0;grid-column:auto;margin-top:0;padding:9px 14px;font-size:14px;box-shadow:none}
+    .reset-filters{width:auto;min-height:0;padding:7px 10px;border:0;border-radius:8px;background:transparent;color:#56645a;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s,color .15s}
+    .reset-filters:hover{background:#f0f4ef;color:#263c2e}
+    .results{padding:24px}
+    .result-top{align-items:center}
+    .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .card{min-height:260px}
+    @media(max-width:1000px){.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.filters h2,.filters-intro,.apply,.no-save,.filter-tip{grid-column:1/-1}.filters .field-grid:has(#area){grid-column:span 2}}
+    @media(max-width:700px){.page{width:94%;margin-top:22px}.categories{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.category{min-height:74px;padding:12px}.layout{gap:14px}.filters{padding:18px;grid-template-columns:1fr}.filters h2,.filters-intro,.apply,.no-save,.filter-tip,.filters .field-grid:has(#area){grid-column:1}.filters .field-grid{grid-template-columns:1fr 1fr}.results{padding:17px}.cards{grid-template-columns:1fr}.card{min-height:0}.result-top{align-items:flex-start}}
+    @media(max-width:420px){.categories{grid-template-columns:1fr}.filters .field-grid{grid-template-columns:1fr}.result-top{display:block}.count{display:block;margin-top:8px}}
+    /* Search results start as calm, clickable summaries; details live in the dialog. */
+    .cards{grid-template-columns:1fr;gap:10px}
+    .compact-card{min-height:0;padding:0;border-radius:13px;overflow:hidden}
+    .compact-open{width:100%;min-height:96px;padding:17px 20px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 16px;align-items:center}
+    .compact-open .tag{grid-column:1/-1;font-size:11px;padding:4px 8px}
+    .compact-open strong{font-size:18px;line-height:1.45;letter-spacing:-.035em}
+    .compact-hint{display:flex;align-items:center;justify-content:space-between;gap:16px;color:#66736a;font-size:13px;line-height:1.55}
+    .compact-hint b{flex:none;color:#356b49;font-size:12px}
+    .compact-open:hover,.compact-open:focus-visible{background:#f7faf6}
+    .compact-open:focus-visible{outline:3px solid #568060;outline-offset:-3px}
+    .equipment-group{margin-top:18px}
+    .equipment-group h3{margin-bottom:8px}
+    .equipment-examples{grid-column:1/-1;border:1px solid #e3e9e2;border-radius:14px;background:#fbfcfa;padding:0 16px 12px}
+    .equipment-examples summary{cursor:pointer;list-style:none;padding:16px 2px;color:#355640;font-weight:800}
+    .equipment-examples summary::-webkit-details-marker{display:none}
+    .equipment-examples summary::after{content:'＋';float:right;font-size:18px}
+    .equipment-examples[open] summary::after{content:'−'}
+    .equipment-examples .data-note{margin:0 0 8px}
+    .equipment-examples .equipment-group{margin-top:10px}
+    @media(max-width:700px){.compact-open{padding:15px;min-height:0}.compact-open strong{font-size:16px}.compact-hint{font-size:12px}.compact-hint b{font-size:11px}}
+    @media(max-width:900px){.nav a:nth-child(3),.nav a:nth-child(4),.nav a:nth-child(5){display:inline-flex}}
+    @media(max-width:520px){.nav{gap:7px}.nav a{display:inline-flex!important;font-size:11px}.topbar>div{display:none}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top">무농사<i> 🌱</i></a>
+    <nav class="nav" aria-label="주요 메뉴"><a class="active" href="#top" data-nav-home>홈</a><a href="#results" data-nav-category="support">지원사업</a><a href="#results" data-nav-category="bank">은행</a><a href="#results" data-nav-category="equipment">농업장비</a><a href="#results" data-nav-category="cultivation">재배기술</a></nav>
+    <div aria-hidden="true">⌕</div>
+  </header>
+  <section class="hero" id="top"><div class="hero-inner"><div class="eyebrow">스마트농업 정보를 찾는 일이 조금 더 쉬워지도록</div><h1>내 스마트농업에 필요한 정보를<br>한눈에, 무농사</h1><p>시설 스마트팜과 노지 스마트농업 정보를 한곳에서 찾아보세요.<br>재배 방식과 지역, 작물에 맞춰 장비·은행·지원사업·재배기술을 안내합니다.</p><div class="hero-note">🌿 일반 농사 전반이 아닌, 스마트농업 정보에 집중합니다</div></div></section>
+  <main class="page">
+    <div class="section-title"><div><h2>내 스마트농업에 맞는 정보 찾아보기</h2><p style="margin-top:6px">시설 스마트팜 또는 노지 스마트농업을 선택하고 조건에 맞는 자료를 찾아보세요.</p></div></div>
+    <div class="categories" id="categories"><button type="button" class="category active" data-category="equipment"><span class="category-icon" aria-hidden="true">▦</span><span><strong>농업장비</strong><small>스마트팜·노지 농기계</small></span><span class="category-arrow">↗</span></button><button type="button" class="category" data-category="bank"><span class="category-icon" aria-hidden="true">₩</span><span><strong>은행</strong><small>농업 관련 금융 정보</small></span><span class="category-arrow">↗</span></button><button type="button" class="category" data-category="support"><span class="category-icon" aria-hidden="true">＋</span><span><strong>지원사업</strong><small>대상·조건·신청 안내</small></span><span class="category-arrow">↗</span></button><button type="button" class="category" data-category="cultivation"><span class="category-icon" aria-hidden="true">▤</span><span><strong>재배기술</strong><small>작물별 재배 정보</small></span><span class="category-arrow">↗</span></button></div>
+    <section class="layout" id="results">
+      <form class="filters" id="filterForm"><h2>내 스마트농업 조건</h2><p class="filters-intro">재배 방식과 작물 등 내 상황을 선택하면 관련 스마트농업 정보를 찾아볼게요. 프로필 사진은 화면 틀만 마련해 두었어요.</p>
+        <div class="profile-avatar"><div class="avatar-placeholder" aria-hidden="true">👨‍🌾</div><div><strong>프로필 사진</strong><small>사진 등록은 준비 중이에요.<br>회원가입 없이 둘러볼 수 있습니다.</small></div></div>
+        <div class="field"><label for="applicant">어떤 유형에 해당하나요?</label><select id="applicant"><option value="individual">개인 농업인</option><option value="young">청년농업인</option><option value="prospective">영농 예정자·예비 청년농</option><option value="organization">농업법인·생산자단체</option><option value="municipality">지자체·시군 컨소시엄</option></select><span class="hint">사업마다 개인 신청인지 단체 신청인지가 달라요.</span></div>
+        <div class="field-grid">
+          <div class="field"><label for="age">나이</label><input id="age" type="number" min="15" max="100" placeholder="예: 32"><span class="hint">선택 입력 · 청년 대상 판단에 참고</span></div>
+          <div class="field"><label for="experience">영농 경력</label><select id="experience"><option value="unknown">모름 / 선택 안 함</option><option value="planned">영농 예정</option><option value="under1">1년 미만</option><option value="1to3">1년 이상~3년 이하</option><option value="over3">3년 초과</option></select></div>
+        </div>
+        <div class="field"><label for="region">주요 농업지역</label><div class="field-grid"><select id="region" aria-label="시·도 선택"><option value="all">시·도 선택</option><option value="전북">전북특별자치도</option><option value="전남">전라남도</option><option value="경북">경상북도</option><option value="강원">강원특별자치도</option><option value="충남">충청남도</option><option value="충북">충청북도</option><option value="경남">경상남도</option><option value="제주">제주특별자치도</option><option value="경기">경기도</option></select><select id="district" aria-label="시·군·구 선택"><option value="all">시·군·구 선택</option></select></div><span class="hint">지역을 선택하면 해당 지역 자료를 살펴봅니다. 실제 적용 범위는 각 자료의 출처를 확인하세요.</span></div>
+        <div class="field"><label for="crop">재배 작물</label><select id="crop"><option value="all">아직 정하지 않았어요</option><option value="rice">벼</option><option value="garlic">마늘</option><option value="onion">양파</option><option value="apple">사과</option><option value="cabbage">배추</option><option value="radish">무</option><option value="other">그 외 작물</option></select></div>
+        <div class="field"><label for="cultivation">스마트농업 방식</label><select id="cultivation"><option value="all">두 방식 모두 보기</option><option value="facility">시설 스마트팜</option><option value="openfield">노지 스마트농업</option></select><span class="hint">일반 노지 재배 정보는 범위에서 제외하고, 스마트 기술을 적용한 정보만 다룹니다.</span></div>
+        <div class="field-grid">
+          <div class="field"><label for="area">재배 규모 (ha)</label><input id="area" type="number" min="0" step="0.01" placeholder="예: 1.5"><span class="hint">1ha = 약 3,025평</span></div>
+          <div class="field"><label for="budget">장비 예산 (만원)</label><input id="budget" type="number" min="0" step="10" placeholder="예: 500"><span class="hint">미정이면 비워두세요</span></div>
+        </div>
+        <div class="filter-actions"><button class="apply" type="submit">내 조건으로 찾아보기</button><button class="reset-filters" id="resetFilters" type="button">초기화</button></div>
+        <div class="no-save"><span aria-hidden="true">🔒</span><span>입력한 정보는 이 화면의 시연 필터에만 사용돼요. 현재 서버에 저장하거나 실제 자격을 판정하지 않습니다.</span></div>
+        <p class="filter-tip">조건에 맞는 자료가 없으면 억지로 추천하지 않아요. 결과는 신청 자격 확정이 아니라 공식 자료를 찾아보기 위한 안내입니다.</p>
+      </form>
+      <div class="results">
+        <div class="result-top"><div><h2 id="resultTitle">내 조건에 맞는 정보</h2><p id="resultMessage">조건을 입력하고 버튼을 눌러보세요.</p></div><span class="count" id="count">자료 0건</span></div>
+        <div class="profile-summary" id="profileSummary" aria-live="polite"></div>
+        <div class="cards" id="cards"></div>
+      </div>
+    </section>
+    <div class="notice"><b>서비스 범위</b> 무농사는 시설 스마트팜과 노지 스마트농업의 장비·금융·지원사업·재배기술 정보를 다룹니다. 일반 노지 재배 전반의 정보는 이번 프로젝트 범위에서 제외합니다. 실제 신청 자격과 일정은 해당 사업의 최신 공고와 담당 기관 안내를 확인하세요.</div>
+  </main>
+  <footer class="footer">무농사 · 스마트농업 정보를 조건별로 찾기 위한 큐레이션 플랫폼 시제품<br>시설 스마트팜과 노지 스마트농업을 구분하고, 확인한 자료의 출처와 기준일을 표시합니다.</footer>
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-box"><div class="modal-head"><div><span class="tag warning" id="modalTag">사업 정보</span><h2 id="modalTitle"></h2><span class="status-pill" id="modalStatus"></span></div><button class="close" id="closeModal" aria-label="닫기">×</button></div><p id="modalSummary"></p><h3>대상과 확인할 조건</h3><ul id="modalEligibility"></ul><h3>지원 내용·일정</h3><p id="modalSupport"></p><p id="modalSchedule"></p><div class="cite" id="modalSource"></div></div></div>
+  <script>
+    // 이 페이지의 사업 자료는 시연용 예시이며, 제출 전 최신 공식 공고를 다시 확인합니다.
+    let programs=[];
+    const cards=document.getElementById('cards'),count=document.getElementById('count'),message=document.getElementById('resultMessage');
+    const labels={all:'전체 유형',individual:'개인 농업인',young:'청년농업인',prospective:'영농 예정자·예비 청년농',organization:'농업법인·생산자단체',municipality:'지자체·시군 컨소시엄',rice:'벼',garlic:'마늘',onion:'양파',apple:'사과',cabbage:'배추',radish:'무',other:'그 외 작물',전북:'전북특별자치도',전남:'전라남도',경북:'경상북도',강원:'강원특별자치도',충남:'충청남도',충북:'충청북도',경남:'경상남도',제주:'제주특별자치도',경기:'경기도'};
+    const districts={전북:['전주시','군산시','익산시','정읍시','남원시','김제시','완주군','진안군','무주군','장수군','임실군','순창군','고창군','부안군'],전남:['목포시','여수시','순천시','나주시','광양시','담양군','곡성군','구례군','고흥군','보성군','화순군','장흥군','강진군','해남군','영암군','무안군','함평군','영광군','장성군','완도군','진도군','신안군'],경북:['포항시','경주시','김천시','안동시','구미시','영주시','영천시','상주시','문경시','경산시','의성군','청송군','영양군','영덕군','청도군','고령군','성주군','칠곡군','예천군','봉화군','울진군','울릉군'],강원:['춘천시','원주시','강릉시','동해시','태백시','속초시','삼척시','홍천군','횡성군','영월군','평창군','정선군','철원군','화천군','양구군','인제군','고성군','양양군'],충남:['천안시','공주시','보령시','아산시','서산시','논산시','계룡시','당진시','금산군','부여군','서천군','청양군','홍성군','예산군','태안군'],충북:['청주시','충주시','제천시','보은군','옥천군','영동군','증평군','진천군','괴산군','음성군','단양군'],경남:['창원시','진주시','통영시','사천시','김해시','밀양시','거제시','양산시','의령군','함안군','창녕군','고성군','남해군','하동군','산청군','함양군','거창군','합천군'],제주:['제주시','서귀포시'],경기:['수원시','용인시','고양시','화성시','남양주시','평택시','파주시','이천시','안성시','포천시','여주시','양평군']};
+    const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    function readProfile(){return {applicant:document.getElementById('applicant').value,age:document.getElementById('age').value,experience:document.getElementById('experience').value,region:document.getElementById('region').value,district:document.getElementById('district').value,crop:document.getElementById('crop').value,area:document.getElementById('area').value,budget:document.getElementById('budget').value,cultivation:document.getElementById('cultivation').value}}
+    function matches(p,x){
+      if(x.applicant!=='all'&&!p.audiences.includes(x.applicant)){
+        if(!(p.id==='youth'&&x.applicant==='individual'&&x.age!==''&&Number(x.age)>=18&&Number(x.age)<=39)) return false;
+      }
+      if(p.needAge&&x.age!==''&&(Number(x.age)<18||Number(x.age)>39)) return false;
+      if(p.needYouthCareer&&x.experience==='over3') return false;
+      if(p.cultivationModes&&!p.cultivationModes.includes('both')&&x.cultivation!=='all'&&!p.cultivationModes.includes(x.cultivation)) return false;
+      if(p.regions&&x.region!=='all'&&!p.regions.includes('all')&&!p.regions.includes(x.region)) return false;
+      if(p.districts&&x.district!=='all'&&!p.districts.includes(x.district)) return false;
+      if(p.cropCodes&&x.crop!=='all'&&!p.cropCodes.includes(x.crop)) return false;
+      return true;
+    }
+    function cardHtml(p,x){const tag=p.id==='district'?'조직·지자체 대상':p.category;return compactCard(p.title,tag,p.summary,'program',p.id)}
+    let activeCategory='equipment';
+    let equipment=[
+      {group:'센싱 및 관측 장비 · Data',name:'토양 수분·EC·pH 측정 센서 키트',mode:['facility','openfield'],use:'토양·배지 상태를 측정해 관수·양액 관리 판단에 활용',crop:'작물·재배방식에 맞는 센서 규격 확인',budget:'센서 수·설치 범위별 견적 필요'},
+      {group:'센싱 및 관측 장비 · Data',name:'소형 기상관측장비 (AWS)',mode:['facility','openfield'],use:'온도·습도·일사량·강우 등 재배 환경 관측',crop:'설치 위치와 필요한 관측 항목 확인',budget:'관측 센서 구성별 견적 필요'},
+      {group:'자동화 및 제어 장비 · Actuation',name:'토양 수분 연동 자동 드립 관수·관비 제어기',mode:['openfield','facility'],use:'수분 조건에 따라 관수·관비를 자동 제어하는 구성',crop:'작물의 관수 방식과 재배 면적에 맞춰 설계',budget:'관수 구역·배관·제어기 포함 견적 필요'},
+      {group:'자동화 및 제어 장비 · Actuation',name:'스마트 밸브 및 양액 공급 장치',mode:['facility','openfield'],use:'구역별 급액·양액 공급을 제어하는 장비 구성',crop:'재배 작물·베드·관수 구역에 맞는 규격 확인',budget:'밸브 수·양액기 사양별 견적 필요'},
+      {group:'무인·작업 기계 · Machinery',name:'병해충 예찰 및 방제용 농업용 드론',mode:['openfield'],use:'넓은 재배지의 예찰·방제 작업을 보조',crop:'작물·지역별 사용 가능 조건과 조종 자격 확인',budget:'기체·부속·운영 방식별 견적 필요'},
+      {group:'무인·작업 기계 · Machinery',name:'소형 자율주행 트랙터·관리기 연동 패키지',mode:['openfield'],use:'작업 경로와 농기계 연동을 통한 반복 작업 보조',crop:'포장 형태·작업 폭·작물 줄 간격 확인',budget:'기계 본체·자율주행 옵션별 견적 필요'}
+    ];
+    let guidelineEquipment=[
+      {group:'기초 기반',name:'용수·전기·통신·관배수 기반',use:'사업 예정지의 스마트농업 기반 여건을 점검하고 조성하는 항목입니다.',evidence:'농식품부 2026 노지 육성지구 선정 발표: 용수·배수시설 및 무선통신망 기반 확충',url:'https://www.mafra.go.kr/bbs/home/792/595318/download.do'},
+      {group:'데이터·관수 제어',name:'데이터 수집·분석 및 최적 관수 제어',use:'지침과 시행계획에서 노지 스마트농업의 기초 솔루션 방향으로 제시합니다.',evidence:'농식품부 2026 스마트농업 시행계획: 관수제어·자율주행키트와 데이터 수집·분석',url:'https://www.mafra.go.kr/bbs/home/791/594105/download.do'},
+      {group:'맞춤형 특화 솔루션',name:'병해충 예찰·환경 제어·생육정보 측정',use:'현장 문제와 사업 계획에 따라 검토하는 특화 솔루션 영역입니다.',evidence:'농식품부 2026 노지 육성지구 선정 발표: 병해충 사전 감시 등 컨소시엄 솔루션',url:'https://www.mafra.go.kr/bbs/home/792/595318/download.do'},
+      {group:'시설·장비 스마트화',name:'자동 관수·관비 장비 및 스마트 농기계',use:'지침의 주요 시설·장비 범주에 포함된 항목입니다.',evidence:'농식품부 2026 노지 사업 시행지침 및 스마트농업 시행계획',url:'https://www.mafra.go.kr/bbs/home/791/594105/download.do'},
+      {group:'센서 기반 모니터링',name:'토양 수분 센서·병해충 예찰정보',use:'농식품부의 2026 스마트농업 시행계획에서 노지 교육·체험 및 데이터 활용 항목으로 확인됩니다.',evidence:'토양수분센서·병해충 예찰정보·수집 데이터 활용',url:'https://www.mafra.go.kr/bbs/home/791/594105/download.do'}
+    ];
+    let catalogData=null;
+    function installCatalog(data){
+      catalogData=data;
+      const sourceById=Object.fromEntries(data.sources.map(s=>[s.id,s]));
+      programs=(data.supportPrograms||[]).map(p=>{const source=sourceById[p.sourceId];const extraSource=p.extraSourceId?sourceById[p.extraSourceId]:null;return {...p,source:source?.title||'출처 확인 필요',url:source?.url,extraUrl:extraSource?.url,extraSource:extraSource?.title}});
+      const groupFor=id=>id.includes('SENSOR')||id.includes('WEATHER')?'센싱 및 관측 장비 · Data':id.includes('DRIP')||id.includes('VALVE')?'자동화 및 제어 장비 · Actuation':'무인·작업 기계 · Machinery';
+      equipment=data.candidateExamples.map(i=>({id:i.id,group:groupFor(i.id),name:i.title,mode:i.cultivationModes,use:i.whyNotVerified,crop:'작물·재배방식에 맞는 적용 여부 확인',budget:'제품·설치 범위별 견적 확인',source:sourceById[i.sourceId]}));
+      guidelineEquipment=data.verifiedGuidelineItems.map(i=>({group:i.category,name:i.title,use:i.summary,evidence:i.evidence,url:sourceById[i.sourceId]?.url,sourceTitle:sourceById[i.sourceId]?.title,publisher:sourceById[i.sourceId]?.publisher}));
+    }
+    function compactCard(title,tag,summary,kind,key){return `<article class="card compact-card"><button class="compact-open" type="button" data-info-kind="${esc(kind)}" data-info-key="${esc(key)}"><span class="tag">${esc(tag)}</span><strong>${esc(title)}</strong><span class="compact-hint"><b aria-hidden="true">자세히 보기　↗</b></span></button></article>`}
+    function equipmentHtml(item,x,index){const applicability=item.mode.length===2?'시설·노지 공통':item.mode.includes('facility')?'시설 스마트팜':'노지 스마트농업';const mode=x.cultivation==='all'?applicability:(x.cultivation==='facility'?'시설 스마트팜':'노지 스마트농업');return compactCard(item.name,`팀 검토 예시 · ${mode}`,item.use,'equipment',index)}
+    function catalogRecordHtml(item){const statuses={'official-context-confirmed':'공식 운영 사례','official educational material · not farm-specific prescription':'공식 교육자료','2026 plan reference · lender and eligibility check required':'2026 시행계획 참고','2026 guidance · local intake and financial review required':'2026 사업안내'};return compactCard(item.title,statuses[item.status]||item.status||'자료',item.summary,'catalog',item.id)}
+    function openInfoModal(kind,key){let title='',tag='',summary='',eligibility=[],support='',schedule='',sourceText='',url='',extraUrl='';if(kind==='program'){openModal(key);return}if(kind==='catalog'){const item=catalogData?.sampleRecords.find(i=>i.id===key);if(!item)return;const source=catalogData.sources.find(s=>s.id===item.sourceId);title=item.title;tag=item.category;summary=item.summary;eligibility=[`대상: ${item.audience||'확인 필요'}`,`지역·품목: ${item.region||'전국'} · ${item.crop||'품목별 확인'}`,`주의: ${item.limitations||'세부 내용은 원문 확인'}`];support=item.keyTerms||'별도 요약 수치 없음. 원문에서 세부 기준을 확인하세요.';schedule='신청·운영 일정은 해당 기관의 최신 공고를 확인하세요.';sourceText=source?.title||'출처 확인 필요';url=source?.url||''}
+      if(kind==='guideline'){const item=guidelineEquipment[Number(key)];if(!item)return;title=item.name;tag=`공식 자료에서 확인 · ${item.group}`;summary=item.use;eligibility=['노지 스마트농업 시행계획·지침에서 확인된 범주입니다.','개별 사업 적용과 장비 사양은 사업계획 및 현장 조건에 따라 달라집니다.'];support=item.evidence||'공식 자료에서 확인한 범주입니다.';schedule='제품·기종 또는 개별 농가 지원이 확정된다는 뜻은 아닙니다.';sourceText=item.sourceTitle||'농식품부 2026 시행계획';url=item.url||''}
+      if(kind==='equipment'){const item=equipment[Number(key)];if(!item)return;const x=readProfile();title=item.name;tag=`팀 검토 예시 · ${item.group}`;summary=item.use;eligibility=[`선택 작물: ${x.crop==='all'?'미선택':labels[x.crop]||x.crop} · ${item.crop}`,`재배 규모: ${x.area?`${x.area}ha 입력 · 수량·배치 검토 필요`:'면적별 수량·배치 검토 필요'}`,`예산: ${x.budget?`${x.budget}만원 입력 · `:''}${item.budget}`];support='팀 검토용 장비 예시이며, 특정 제품의 공식 권장이나 지원 확정 정보가 아닙니다.';schedule='구매 전에 작물·재배방식·현장 조건에 맞는 규격과 견적을 확인하세요.';sourceText='무농사 팀 검토 아이디어'}
+      document.getElementById('modalTag').textContent=tag;document.getElementById('modalTitle').textContent=title;const status=document.getElementById('modalStatus');status.textContent='상세 정보';status.className='status-pill';document.getElementById('modalSummary').textContent=summary;document.getElementById('modalEligibility').innerHTML=eligibility.map(v=>`<li>${esc(v)}</li>`).join('');document.querySelector('#modal h3:nth-of-type(2)').textContent=kind==='equipment'?'적용 전에 확인할 점':'세부 정보';document.getElementById('modalSupport').textContent=support;document.getElementById('modalSchedule').textContent=schedule;document.getElementById('modalSource').innerHTML=`<b>출처</b><br>${esc(sourceText)}${url?`<br><a class="source-link" href="${esc(url)}" target="_blank" rel="noopener">원문 보기 ↗</a>`:''}<br><br>자료의 적용 범위와 최신 여부를 원문에서 확인하세요.`;document.getElementById('modal').classList.add('show');document.getElementById('closeModal').focus()}
+    function draw(){const x=readProfile();const chips=[];if(x.applicant!=='all')chips.push(labels[x.applicant]);if(x.age)chips.push(`${x.age}세`);if(x.experience!=='unknown')chips.push(x.experience==='planned'?'영농 예정':x.experience==='under1'?'경력 1년 미만':x.experience==='1to3'?'경력 1~3년':'경력 3년 초과');if(x.region!=='all')chips.push(labels[x.region]||x.region);if(x.district!=='all')chips.push(x.district);if(x.crop!=='all')chips.push(labels[x.crop]||x.crop);if(x.area)chips.push(`${x.area}ha`);if(x.budget)chips.push(`예산 ${x.budget}만원`);if(x.cultivation!=='all')chips.push(x.cultivation==='facility'?'시설 스마트팜':'노지 스마트농업');document.getElementById('profileSummary').innerHTML=chips.map(t=>`<span class="profile-chip">${esc(t)}</span>`).join('');
+      document.querySelectorAll('[data-category]').forEach(b=>b.classList.toggle('active',b.dataset.category===activeCategory));document.querySelectorAll('[data-nav-category]').forEach(b=>b.classList.toggle('active',b.dataset.navCategory===activeCategory));document.querySelector('[data-nav-home]')?.classList.toggle('active',!location.hash||location.hash==='#top');
+      if(activeCategory==='equipment'){document.getElementById('resultTitle').textContent='농업장비·스마트농업 솔루션';const list=equipment.filter(i=>x.cultivation==='all'||i.mode.includes(x.cultivation));const groups=[...new Set(list.map(i=>i.group))];const verified=x.cultivation==='facility'?[]:guidelineEquipment;count.textContent=`공식 자료 ${verified.length}건 · 장비 예시 ${list.length}종`;message.textContent='관심 있는 항목을 누르면 적용 범위와 근거, 출처를 확인할 수 있어요.';const confirmed=verified.length?`<div class="data-note">공식 지침에서 확인한 스마트농업 솔루션 범주</div>`+verified.map((i,index)=>compactCard(i.name,'공식 자료에서 확인 · 노지',i.use,'guideline',index)).join(''):'';const examples=`<details class="equipment-examples"><summary>팀 검토 장비 예시 보기 (${list.length}종)</summary><div class="data-note">제품 추천이나 지원 확정 정보가 아닌 검토용 예시입니다.</div>`+groups.map(g=>`<div class="equipment-group"><h3>${esc(g)}</h3></div>`+list.filter(i=>i.group===g).map(i=>equipmentHtml(i,x,equipment.indexOf(i))).join('')).join('')+'</details>';cards.innerHTML=confirmed+examples;return}
+      document.getElementById('resultTitle').textContent=activeCategory==='support'?'지원사업 자료':activeCategory==='bank'?'은행·농업 금융 자료':'재배기술 자료';if(activeCategory!=='support'){if(!catalogData){count.textContent='데이터 목록 연결 대기';message.textContent='데이터 목록을 불러오지 못했어요.';cards.innerHTML='<div class="empty">이 화면을 VS Code의 Live Server로 열어 data/smart-agriculture-catalog.json을 불러와 주세요.</div>';return}const target=activeCategory==='bank'?'은행·정책금융':'재배기술';let found=catalogData.sampleRecords.filter(i=>i.category.includes(target));const x=readProfile();if(x.cultivation!=='all')found=found.filter(i=>i.cultivationMode==='both'||i.cultivationMode===x.cultivation);if(x.district!=='all')found=found.filter(i=>i.region.includes(x.district)||i.region.includes('전국')||i.region.includes('일반'));if(x.crop!=='all'){const crop=labels[x.crop]||x.crop;found=found.filter(i=>i.crop.includes(crop)||i.crop.includes('일반')||i.crop.includes('품목'))}count.textContent=`데이터 목록 ${found.length}건`;message.textContent='각 카드에 출처와 적용 범위·주의사항을 표시합니다. 신청이나 구매 전에는 원문을 확인해 주세요.';cards.innerHTML=found.length?found.map(catalogRecordHtml).join(''):'<div class="empty">현재 데이터 목록에서 조건에 맞는 자료를 찾지 못했어요. 자료가 없다는 뜻이 실제 지원·재배가 불가능하다는 뜻은 아닙니다.</div>';return}
+      const found=programs.filter(p=>matches(p,x));count.textContent=`자료 ${found.length}건`;message.textContent=found.length?'입력한 조건에 관련된 자료예요. 신청 전에 세부 조건을 확인해 주세요.':'선택한 조건과 맞는 자료를 아직 찾지 못했어요.';cards.innerHTML=found.length?found.map(p=>cardHtml(p,x)).join(''):'<div class="empty">조건에 맞는 자료가 없다는 뜻이 실제 지원 불가라는 뜻은 아니에요.<br>다른 대상 유형을 선택하거나 전체 사업을 살펴보고, 관할 기관에 확인해 주세요.</div>'}
+    function openModal(id){const p=programs.find(item=>item.id===id);if(!p)return;document.getElementById('modalTag').textContent=p.category+(p.id==='district'?' · 조직·지자체 대상':'');document.getElementById('modalTitle').textContent=p.title;const status=document.getElementById('modalStatus');status.textContent=p.status;status.className=`status-pill ${p.statusType==='closed'?'closed':p.statusType==='check'?'check':''}`;document.getElementById('modalSummary').textContent=p.summary;document.getElementById('modalEligibility').innerHTML=`<li>${esc(p.eligibility)}</li><li>선택한 지역·작물에 대한 세부 공고가 다를 수 있습니다.</li>`;document.getElementById('modalSupport').textContent=p.support;document.getElementById('modalSchedule').textContent=p.schedule;let links=p.url?`<a class="source-link" href="${esc(p.url)}" target="_blank" rel="noopener">공식 자료 확인 ↗</a>`:'제공받은 사업 지침서 요약';if(p.extraUrl)links+=`　<a class="source-link" href="${esc(p.extraUrl)}" target="_blank" rel="noopener">품목별 판매 일정 ↗</a>`;document.getElementById('modalSource').innerHTML=`<b>출처</b><br>${esc(p.source)}<br>${links}<br><br>이 결과는 조건 탐색을 위한 안내이며 신청 가능 여부를 확정하지 않습니다.`;document.getElementById('modal').classList.add('show');document.getElementById('closeModal').focus()}
+    function closeModal(){document.getElementById('modal').classList.remove('show')}
+    document.getElementById('filterForm').addEventListener('submit',e=>{e.preventDefault();draw()});document.getElementById('resetFilters').addEventListener('click',()=>{document.getElementById('filterForm').reset();updateRegion();document.getElementById('applicant').dispatchEvent(new Event('change'));});document.querySelector('.nav').addEventListener('click',e=>{const home=e.target.closest('[data-nav-home]');if(home){document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));home.classList.add('active');return}const link=e.target.closest('[data-nav-category]');if(link){e.preventDefault();activeCategory=link.dataset.navCategory;history.replaceState(null,'','#categories');draw();document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'})}});document.getElementById('categories').addEventListener('click',e=>{const button=e.target.closest('[data-category]');if(button){activeCategory=button.dataset.category;draw();document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'})}});cards.addEventListener('click',e=>{const info=e.target.closest('[data-info-kind]');if(info){openInfoModal(info.dataset.infoKind,info.dataset.infoKey);return}const btn=e.target.closest('[data-detail]');if(btn)openModal(btn.dataset.detail)});document.getElementById('closeModal').addEventListener('click',closeModal);document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+    const regionSelect=document.getElementById('region'),districtSelect=document.getElementById('district');
+    function updateRegion(){const r=regionSelect.value;districtSelect.innerHTML='<option value="all">시·군·구 선택</option>'+(districts[r]||[]).map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join('');draw()}
+    regionSelect.addEventListener('change',updateRegion);districtSelect.addEventListener('change',draw);
+    document.getElementById('applicant').addEventListener('change',e=>{document.getElementById('area').nextElementSibling.textContent=e.target.value==='organization'||e.target.value==='municipality'?'선택 입력 · 컨소시엄 전체 면적을 확인할 때만 입력':'1ha = 약 3,025평'});document.getElementById('filterForm').addEventListener('change',draw);document.getElementById('age').addEventListener('input',draw);document.getElementById('area').addEventListener('input',draw);document.getElementById('budget').addEventListener('input',draw);draw();
+    fetch('./data/smart-agriculture-catalog.json').then(response=>{if(!response.ok)throw new Error('데이터 파일을 불러오지 못했습니다.');return response.json()}).then(data=>{installCatalog(data);draw()}).catch(()=>{if(activeCategory!=='support'){count.textContent='데이터 목록 연결 실패';message.textContent='데이터 목록을 불러오지 못했어요.';cards.innerHTML='<div class="empty">HTML 파일을 직접 열면 브라우저가 JSON 파일 접근을 막을 수 있어요. VS Code에서 Live Server로 열어 주세요.</div>'}});
+  </script>
+</body>
+</html>

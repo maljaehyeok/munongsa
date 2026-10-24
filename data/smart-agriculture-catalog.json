@@ -1,0 +1,343 @@
+{
+  "catalogVersion": 1,
+  "updatedAt": "2026-10-14",
+  "provenanceRules": [
+    "각 sampleRecord·verifiedGuidelineItem·candidateExample에는 sourceId를 연결합니다.",
+    "sources에는 발행기관, 원문 URL 또는 제공된 로컬 파일, 자료 기준일, 확인일, 확인한 위치·항목을 기록합니다.",
+    "지원 자격·금액·일정은 원 공고기관 자료를 우선 사용하고, 비교 서비스는 후보 탐색·화면 참고에만 사용합니다.",
+    "출처에서 확인할 수 없는 값은 추정해 채우지 않고 미확인·추가 확인 필요로 표시합니다.",
+    "정책·금융·모집 정보는 변경될 수 있으므로 최신 공고와 관할 기관·취급 금융기관 확인을 안내합니다."
+  ],
+  "scope": {
+    "domain": "스마트농업",
+    "cultivationModes": ["시설 스마트팜", "노지 스마트농업"],
+    "pilotRegion": "전북특별자치도",
+    "pilotStatus": "시연용 표본 범위 제안 · 팀 확인 전",
+    "pilotExamples": [
+      {"mode": "시설 스마트팜", "region": "김제시", "crop": "딸기", "basis": "김제 스마트팜 혁신밸리의 청년보육 실습작물·임대형 운영작물로 확인"},
+      {"mode": "노지 스마트농업", "region": "고창군", "crop": "배추·무", "basis": "농식품부가 2026년 노지 스마트농업 육성지구로 선정한 지역·품목"}
+    ],
+    "note": "표본 범위는 시연을 위한 제안입니다. 김제·고창의 실제 사업 참여·신청 조건을 뜻하지 않습니다. 노지 지침을 시설에 적용하지 않으며 각 자료의 적용 지역과 대상 범위를 따로 표시합니다."
+  },
+  "sources": [
+    {
+      "id": "S-GUIDE-2026-OPENFIELD",
+      "title": "2026년 노지 스마트농업 육성지구 사업 시행지침",
+      "publisher": "농림축산식품부",
+      "providedBy": "프로젝트 멘토",
+      "lastCheckedAt": "2026-10-14",
+      "localFile": "work/★2026년 노지 스마트농업 육성지구 사업 시행지침.txt",
+      "evidenceLocations": ["본문 1~2년차 솔루션 도입 및 3년차 특화 솔루션 설명", "주요시설 및 장비", "현장 여건 및 입지 조건"]
+    },
+    {
+      "id": "S-MAFRA-2026-PLAN",
+      "title": "2026년 스마트농업 육성 시행계획",
+      "publisher": "농림축산식품부",
+      "url": "https://www.mafra.go.kr/bbs/home/791/594105/download.do",
+      "publishedAt": "2026",
+      "lastCheckedAt": "2026-10-14",
+      "evidenceLocations": ["노지 스마트농업 교육·체험: 센서기반 모니터링, 스마트 방제·관수, 토양수분센서", "노지 육성지구: 관수제어·자율주행키트", "과거 실증 사례: 의성 마늘 등"]
+    },
+    {
+      "id": "S-MAFRA-2026-DISTRICTS",
+      "title": "지역단위 밭작물(노지) 스마트농업을 이끌어갈 핵심 선도 지구 선정",
+      "publisher": "농림축산식품부",
+      "url": "https://www.mafra.go.kr/bbs/home/792/595318/download.do",
+      "publishedAt": "2026-03-03",
+      "lastCheckedAt": "2026-10-14",
+      "evidenceLocations": ["2026 노지 육성지구: 전북 고창(배추·무)", "개소당 95억 원, 2026~2028년, 지역 농업인·지방정부·민간기업 컨소시엄", "스마트 용수·비료 공급, 자율주행 농기계, 병해충 사전 감시, 기상관측 기반"]
+    },
+    {
+      "id": "S-GIMJE-SMARTFARM",
+      "title": "김제시 스마트팜 혁신밸리 소개",
+      "publisher": "스마트팜코리아",
+      "url": "https://innovalley.smartfarmkorea.net/gimje/con/contents.do?cmsSeq=24",
+      "lastCheckedAt": "2026-10-14",
+      "evidenceLocations": ["청년보육 실습 작물에 교육형 딸기 포함", "임대형 스마트팜 운영 사례에 딸기 포함"]
+    },
+    {
+      "id": "S-YOUTH-SETTLEMENT-2026-2",
+      "title": "2026년도 2차 청년농업인 영농정착지원사업 시행지침",
+      "publisher": "농림축산식품부",
+      "url": "https://www.mafra.go.kr/bbs/home/791/597332/download.do",
+      "publishedAt": "2026",
+      "lastCheckedAt": "2026-10-14",
+      "evidenceLocations": ["지원 요건: 만 18~39세, 영농경력 없거나 3년 이하 등", "거주·독립영농·경영주 등록 등 추가 자격과 의무", "영농정착지원금은 선발 및 경력·지급 기준에 따라 차등"]
+    },
+    {
+      "id": "S-DIRECT-PAYMENT-2026",
+      "title": "2026년 기본형 공익직불금 신청 안내",
+      "publisher": "농림축산식품부",
+      "url": "https://www.mafra.go.kr/bbs/home/796/577753/artclView.do",
+      "publishedAt": "2026",
+      "lastCheckedAt": "2026-10-19",
+      "evidenceLocations": ["신청기간 2026년 3월 1일~5월 31일", "지급대상 농지·농업인 및 준수사항은 공식 안내와 행정 검증에 따름"]
+    },
+    {
+      "id": "S-CROP-INSURANCE-2026-GUIDE",
+      "title": "2026년 농작물재해보험 사업시행지침",
+      "publisher": "농림축산식품부",
+      "url": "https://www.mafra.go.kr/bbs/home/798/596394/download.do",
+      "publishedAt": "2026",
+      "lastCheckedAt": "2026-10-19",
+      "evidenceLocations": ["보험 대상 품목·지역·가입 기간과 보험료 지원 기준"]
+    },
+    {
+      "id": "S-CROP-INSURANCE-2026-SCHEDULE",
+      "title": "2026년 농작물재해보험 품목별 판매 일정",
+      "publisher": "농림축산식품부",
+      "url": "https://www.mafra.go.kr/bbs/home/792/596622/download.do",
+      "publishedAt": "2026",
+      "lastCheckedAt": "2026-10-19",
+      "evidenceLocations": ["품목별·지역별 월 단위 판매 일정"]
+    },
+    {
+      "id": "S-NONGSARO-SMARTFARM-CHOICE",
+      "title": "스마트 팜 시설 및 작목 선택방법",
+      "publisher": "농촌진흥청 농사로",
+      "url": "https://www.nongsaro.go.kr/portal/ps/psb/psby/vodPlay.ps?cntntsNo=264715&menuId=PS65512&mvpNo=3680",
+      "publishedAt": "2025",
+      "lastCheckedAt": "2026-10-14",
+      "evidenceLocations": ["스마트팜의 자동 온습도·환기·센서·양액 공급 시설 소개", "딸기 배지·베드 방식과 재배 선택 시 고려점", "교육용 기초 설명 콘텐츠"]
+    },
+    {
+      "id": "S-TEAM-IDEAS",
+      "title": "무농사 팀의 시제품 장비 아이디어",
+      "publisher": "프로젝트 팀 논의·사용자 제공 내용",
+      "lastCheckedAt": "2026-10-14",
+      "evidenceLocations": ["토양 EC·pH 키트, 소형 AWS, 드립 관수제어기, 스마트 밸브·양액기, 드론, 자율주행 트랙터·관리기 예시"]
+    },
+    {
+      "id": "S-GREENDAERO-2026-STARTUP-LOAN",
+      "title": "귀농 농업창업 및 주택구입 지원사업",
+      "publisher": "그린대로 귀농귀촌 종합 플랫폼",
+      "url": "https://www.greendaero.go.kr/svc/rfph/cpif/front/frtHome.do",
+      "publishedAt": "2026 사업 안내",
+      "lastCheckedAt": "2026-10-14",
+      "evidenceLocations": ["대상자 유형·연령 및 영농이력 유의사항", "2026 사업 연령 안내", "고정·변동 금리 선택, 상환기간, 접수처, 금융기관 사전 신용·담보 조회 안내"]
+    },
+    {
+      "id": "S-AGRI-EJI-INDEX",
+      "title": "농업e지 전체 사업 검색",
+      "publisher": "농림축산식품부·농업e지",
+      "url": "https://www.nongupez.go.kr/nsm/bizAply/wholeBiz/wholeBizMain",
+      "lastCheckedAt": "2026-10-14",
+      "sourceRole": "사업 공고·정책자금 후보 발굴용 색인",
+      "evidenceLocations": ["연도, 지역, 사업대상, 공고/신청, 담당기관, 사업분야, 재배품목, 신청기간, 자금유형으로 검색"]
+    },
+    {
+      "id": "S-SMARTFARMKOREA-PORTAL",
+      "title": "스마트팜코리아 데이터·지원사업·장비·교육 포털",
+      "publisher": "농림수산식품교육문화정보원",
+      "url": "https://www.smartfarmkorea.net/",
+      "lastCheckedAt": "2026-10-14",
+      "sourceRole": "스마트농업 관련 공고·데이터·장비·교육 후보 발굴용 색인",
+      "evidenceLocations": ["지원사업 및 교육정보", "스마트농업 장비·솔루션 정보", "정형·비정형 데이터셋과 스마트팜·노지 OPEN-API 메뉴"]
+    },
+    {
+      "id": "S-SMARTFARMING-LIVE-COMPARE",
+      "title": "스마트파밍 지원사업 알림 페이지",
+      "publisher": "SmartFarming.live",
+      "url": "https://www.smartfarming.live/subsidy-alerts",
+      "lastCheckedAt": "2026-10-14",
+      "sourceRole": "유사 서비스·화면 구성 참고",
+      "evidenceLocations": ["사용자가 알려준 비교 서비스 URL"],
+      "useNote": "공식 자격·금액·신청기간을 입력할 때는 이 페이지를 원출처로 쓰지 않고 원 공고기관 자료를 다시 확인합니다."
+    }
+  ],
+  "supportPrograms": [
+    {"id":"youth","category":"정착·창업","audiences":["young","prospective"],"cultivationModes":["both"],"regions":["all"],"title":"청년농업인 영농정착지원사업","summary":"영농 초기 청년농의 안정적인 정착을 돕는 지원사업입니다.","eligibility":"2026 공고 기준 만 18~39세, 독립경영 3년 이하 또는 영농 예정자 등이 대상입니다. 경영주 등록, 병역, 거주 등 세부 요건과 선발심사가 있습니다.","support":"선발자에게 영농정착지원금을 최장 3년 지원합니다. 지급액은 영농경력 등 기준에 따라 달라지며 후계농자금은 별도 심사·배정입니다.","schedule":"2026년 2차 접수는 6월 1일~7월 10일 18시까지였으며 종료되었습니다. 다음 공고는 농업e지와 관할 시·군에서 확인하세요.","status":"2026년 2차 접수 종료","statusType":"closed","facts":"18~39세 · 독립경영 3년 이하/예정자","sourceId":"S-YOUTH-SETTLEMENT-2026-2","needAge":true,"needYouthCareer":true},
+    {"id":"direct","category":"소득·직불","audiences":["individual","young","prospective","organization"],"cultivationModes":["both"],"regions":["all"],"title":"기본형 공익직불금","summary":"실제 경작과 법정 자격 요건을 충족한 농업인·농업법인의 소득 안정을 지원합니다.","eligibility":"지급대상 농지·농업인 자격과 실제 경작 요건을 충족하고 농지 관리 등 준수사항을 이행해야 합니다. 최종 자격과 금액은 행정기관 검증으로 확정됩니다.","support":"소농직불 또는 면적직불 등 유형과 농지 요건에 따라 산정됩니다. 농가별 지급액은 면적과 자격에 따라 달라집니다.","schedule":"2026년 신청기간은 3월 1일~5월 31일로 종료되었습니다. 지급 절차는 자격·준수사항 확인 뒤 진행됩니다.","status":"2026년 신청 종료","statusType":"closed","facts":"전국 · 개인 농업인·농업법인","sourceId":"S-DIRECT-PAYMENT-2026"},
+    {"id":"insurance","category":"재해·보험","audiences":["individual","young","prospective","organization"],"cultivationModes":["openfield","facility"],"regions":["all"],"title":"농작물재해보험","summary":"자연재해 등으로 인한 농작물 피해에 대비하는 정책보험입니다.","eligibility":"보험 대상 품목과 지역에 해당하고 해당 품목의 가입기간에 신청해야 합니다. 품목별 판매 시기와 세부 보장 조건이 다릅니다.","support":"보험료 지원과 농가 부담은 품목·지역·상품 조건에 따라 달라집니다. 정확한 보장내용과 자부담은 가입 전에 확인하세요.","schedule":"2026년 일정은 품목별 월 단위로 안내됩니다. 마늘·양파는 10월 일정에 포함되어 있으나 실제 접수일과 지역 판매 여부는 농·축협에 확인해야 합니다.","status":"품목·지역별 가입기간 확인","statusType":"check","facts":"노지 작물 포함 · 작물·지역별 일정","sourceId":"S-CROP-INSURANCE-2026-GUIDE","extraSourceId":"S-CROP-INSURANCE-2026-SCHEDULE","types":["insurance"],"cropCodes":["rice","garlic","onion","apple","cabbage"]},
+    {"id":"district","category":"노지 스마트농업","audiences":["organization","municipality"],"cultivationModes":["openfield"],"regions":["전북"],"districts":["고창군"],"title":"노지 스마트농업 육성지구","summary":"시·군 컨소시엄이 주산지에 스마트농업 생산기반과 솔루션을 조성하는 사업입니다.","eligibility":"생산자단체·지방정부·솔루션 기업 등이 참여하는 시·군 단위 컨소시엄 대상입니다. 개인 농업인 단독 신청 사업이 아닙니다.","support":"전북 고창(배추·무)이 2026년 육성지구로 선정됐습니다. 선정 지구의 사업비는 개인에게 지급되는 지원금이 아닙니다.","schedule":"2026 공모 접수는 2025년 12월 8일~2026년 1월 30일로 종료되었습니다.","status":"2026년 공모 종료","statusType":"closed","facts":"전북 고창 · 배추·무 · 시·군 컨소시엄","sourceId":"S-MAFRA-2026-DISTRICTS","cropCodes":["cabbage","radish"],"types":["smart"]}
+  ],
+  "sampleRecords": [
+    {
+      "id": "JEONBUK-FACILITY-STRAWBERRY",
+      "category": "재배기술·지역정보",
+      "cultivationMode": "facility",
+      "region": "전북특별자치도 김제시",
+      "crop": "딸기",
+      "title": "김제 스마트팜 혁신밸리 딸기 재배 사례",
+      "summary": "김제 혁신밸리의 청년보육 실습 작물과 임대형 스마트팜 운영 사례에서 딸기가 확인됩니다.",
+      "audience": "시설 스마트팜을 탐색하는 예비·청년 농업인",
+      "sourceId": "S-GIMJE-SMARTFARM",
+      "status": "official-context-confirmed",
+      "limitations": "작물 운영 사례를 확인한 것이며, 현재 입주·임대 모집 중이거나 누구나 신청 가능하다는 의미는 아닙니다."
+    },
+    {
+      "id": "JEONBUK-OPENFIELD-CABBAGE-RADISH",
+      "category": "지원사업·지역정보",
+      "cultivationMode": "openfield",
+      "region": "전북특별자치도 고창군",
+      "crop": "배추·무",
+      "title": "2026 노지 스마트농업 육성지구 선정 사례",
+      "summary": "고창군은 배추·무 품목의 노지 스마트농업 육성지구로 선정됐습니다. 컨소시엄 기반의 지역 생산지구 사업입니다.",
+      "audience": "지방정부·생산자단체·민간기업 컨소시엄",
+      "sourceId": "S-MAFRA-2026-DISTRICTS",
+      "status": "2026-selected-project · current application not implied",
+      "limitations": "개인 농가가 단독으로 신청하는 지원금이 아닙니다. 2026년 선정 결과이며, 이후 모집이나 추가 신청이 진행 중이라는 의미가 아닙니다."
+    },
+    {
+      "id": "SMARTFARM-LOAN-2026",
+      "category": "은행·정책금융",
+      "cultivationMode": "facility",
+      "region": "전국 정책사업 참고",
+      "crop": "시설 스마트팜 일반",
+      "title": "스마트팜 종합자금(정책융자) 기준 확인",
+      "summary": "농식품부 2026 시행계획은 일반 시설자금 기준으로 1인당 한도, 금리, 상환구조를 안내합니다.",
+      "audience": "스마트팜 설치·전환을 검토하는 농업인 등",
+      "sourceId": "S-MAFRA-2026-PLAN",
+      "status": "2026 plan reference · lender and eligibility check required",
+      "keyTerms": "시행계획에 제시된 일반 시설자금 기준: 최대 50억 원, 고정 연리 1.0%, 5년 거치 후 20년 균분상환",
+      "limitations": "정책계획상의 기준 참고이며, 대출 승인·실제 한도·대상 자격을 보장하지 않습니다. 세부 유형, 사업성 심사, 담보·보증, 예산 상황을 취급 금융기관에서 확인해야 합니다. 2026년 계획의 융자규모 중 일부는 정부안으로 표기되어 있습니다."
+    },
+    {
+      "id": "YOUTH-SETTLEMENT-2026-2",
+      "category": "지원사업",
+      "cultivationMode": "both",
+      "region": "시·군별 신청 기준 확인",
+      "crop": "영농계획 품목",
+      "title": "2026 청년농업인 영농정착지원사업(2차 지침 참고)",
+      "summary": "영농 초기 청년농의 정착을 지원하는 사업입니다. 지침에는 만 18~39세와 영농경력 요건 등이 제시되며 세부 심사와 의무가 있습니다.",
+      "audience": "청년농업인·영농 예정자(세부 요건 충족 및 선발 필요)",
+      "sourceId": "S-YOUTH-SETTLEMENT-2026-2",
+      "status": "2026 2차 지침 참고 · 현재 접수 여부 미확인",
+      "limitations": "나이·경력만으로 신청 자격이 확정되지 않습니다. 거주지, 독립영농 기반, 경영주 등록, 병역, 교육, 제외요건, 선발심사 등을 확인해야 합니다. 현재 신청 접수가 가능한지 별도 공식 공고에서 확인하세요."
+    },
+    {
+      "id": "FACILITY-STRAWBERRY-BASICS",
+      "category": "재배기술·시설정보",
+      "cultivationMode": "facility",
+      "region": "시설 스마트팜 일반 참고",
+      "crop": "딸기",
+      "title": "딸기 스마트팜 시설·재배방식 기초자료",
+      "summary": "농촌진흥청 농사로 콘텐츠는 스마트팜의 환경제어·센서·양액 공급 설비와 딸기 배지·베드 재배방식의 기초를 설명합니다.",
+      "audience": "시설 스마트팜을 처음 알아보는 사용자",
+      "sourceId": "S-NONGSARO-SMARTFARM-CHOICE",
+      "status": "official educational material · not farm-specific prescription",
+      "limitations": "교육용 개요입니다. 특정 농가의 품종·시설 규격·양액 처방·병해충 방제 지침으로 바로 적용하지 말고, 작형과 지역 전문가의 최신 기술지도를 확인해야 합니다."
+    },
+    {
+      "id": "NEW-FARMER-STARTUP-LOAN-2026",
+      "category": "은행·정책금융",
+      "cultivationMode": "both",
+      "region": "귀농 예정 지역 시·군 접수",
+      "crop": "영농계획 품목",
+      "title": "귀농 농업창업 및 주택구입 지원사업 정책융자",
+      "summary": "귀농인 등의 영농기반 조성과 주택 마련을 지원하는 융자사업 안내입니다.",
+      "audience": "귀농인·재촌비농업인·귀농희망자 등 세부 요건 대상",
+      "sourceId": "S-GREENDAERO-2026-STARTUP-LOAN",
+      "status": "2026 guidance · local intake and financial review required",
+      "keyTerms": "그린대로 2026 안내: 2026년 신청 가능 연령 표기 만 18~65세(주택자금 예외 별도); 창업자금은 고정 연 2.0% 또는 변동 선택; 5년 거치 10년 원금균등상환",
+      "limitations": "스마트팜 전용 융자가 아니며 기존 영농인 모두에게 적용되는 사업도 아닙니다. 귀농 유형, 거주·영농 이력, 신청 지역, 사업계획 등 요건을 충족해야 합니다. 관할 시·군 접수 공고와 농협의 신용·담보 심사를 확인하세요."
+    }
+  ],
+  "verifiedGuidelineItems": [
+    {
+      "id": "OF-BASE-INFRA",
+      "category": "기초 기반",
+      "cultivationMode": "openfield",
+      "title": "용수·전기·통신·관배수 기반",
+      "summary": "사업 예정지의 용수 공급, 전기·통신, 관수·배수 등 공통 기반을 점검하고 조성하는 항목입니다.",
+      "evidence": "지침의 사업추진 예시와 주요시설·장비 항목에 기반 조성이 명시되어 있습니다.",
+      "sourceId": "S-GUIDE-2026-OPENFIELD",
+      "status": "guideline-confirmed",
+      "limitations": "개별 농가에 바로 지원되는 상품 목록이나 보편적 장비 추천을 뜻하지 않습니다. 사업지구 계획과 현장 여건에 따라 달라집니다."
+    },
+    {
+      "id": "OF-FOUNDATION-SOLUTION",
+      "category": "데이터 수집·관수 제어",
+      "cultivationMode": "openfield",
+      "title": "데이터 수집·분석 및 최적 관수 제어",
+      "summary": "지침에서 노지 스마트농업의 기초 솔루션 방향으로 제시한 구성입니다.",
+      "evidence": "지침은 기초 솔루션을 데이터 수집·분석과 최적 관수 제어로 설명합니다.",
+      "sourceId": "S-GUIDE-2026-OPENFIELD",
+      "status": "guideline-confirmed",
+      "limitations": "특정 센서 종류(EC·pH 등), 브랜드, 설치 수량이나 가격은 지침에서 확정하지 않습니다."
+    },
+    {
+      "id": "OF-SPECIAL-SOLUTION",
+      "category": "맞춤형 특화 솔루션",
+      "cultivationMode": "openfield",
+      "title": "병해충 예찰·환경 제어·생육정보 측정 등",
+      "summary": "현장 문제와 사업 계획에 맞춰 검토하는 특화 솔루션 영역입니다.",
+      "evidence": "지침은 병해충 예찰, 환경 제어, 생육정보 자동 측정, 에너지 효율화 등을 예로 듭니다.",
+      "sourceId": "S-GUIDE-2026-OPENFIELD",
+      "status": "guideline-confirmed",
+      "limitations": "예시가 모든 사업지구에 필수 장비로 지정됐다는 뜻은 아닙니다."
+    },
+    {
+      "id": "OF-EQUIPMENT",
+      "category": "시설·장비 스마트화",
+      "cultivationMode": "openfield",
+      "title": "자동 관수·관비 장비 및 스마트 농기계",
+      "summary": "지침의 주요 시설·장비 범주에 포함된 항목입니다.",
+      "evidence": "주요시설 및 장비 설명에 자동 관수·관비 장비와 스마트 농기계가 명시되어 있습니다.",
+      "sourceId": "S-GUIDE-2026-OPENFIELD",
+      "status": "guideline-confirmed",
+      "limitations": "특정 드론·자율주행 기종이나 스마트 밸브 제품이 지침에서 직접 지정된 것은 아닙니다."
+    },
+    {
+      "id": "OF-SOIL-MOISTURE-SENSOR",
+      "category": "센서 기반 모니터링",
+      "cultivationMode": "openfield",
+      "title": "토양 수분 센서 기반 모니터링",
+      "summary": "농식품부 2026 시행계획은 노지 스마트농업 교육·체험에서 토양수분센서와 수집 데이터의 활용을 제시합니다.",
+      "evidence": "2026 스마트농업 육성 시행계획의 노지 스마트농업 교육·체험 항목",
+      "sourceId": "S-MAFRA-2026-PLAN",
+      "status": "official-plan-confirmed",
+      "limitations": "토양 수분 센서 근거입니다. EC·pH 동시 측정 키트, 제품 사양, 설치 수량·가격까지 확인한 것은 아닙니다."
+    }
+  ],
+  "candidateExamples": [
+    {
+      "id": "EX-SOIL-SENSOR",
+      "title": "토양 수분·EC·pH 측정 센서 키트",
+      "cultivationModes": ["facility", "openfield"],
+      "status": "team-example-needs-validation",
+      "sourceId": "S-TEAM-IDEAS",
+      "whyNotVerified": "토양 수분 센서 활용은 2026 농식품부 시행계획에서 확인됩니다. 다만 EC·pH까지 포함한 통합 키트나 특정 제품·사양은 확인되지 않았으므로 범위를 나누어 추가 확인해야 합니다."
+    },
+    {
+      "id": "EX-WEATHER-STATION",
+      "title": "소형 기상관측장비(AWS)",
+      "cultivationModes": ["facility", "openfield"],
+      "status": "team-example-needs-validation",
+      "sourceId": "S-TEAM-IDEAS",
+      "whyNotVerified": "농식품부 2026 선정 보도자료에는 기상관측장비 기반 확충이 나오지만, 소형 AWS의 구체 제품·관측항목·사양은 지정하지 않습니다."
+    },
+    {
+      "id": "EX-DRIP-CONTROLLER",
+      "title": "토양 수분 연동 드립 관수·관비 제어기",
+      "cultivationModes": ["facility", "openfield"],
+      "status": "team-example-needs-validation",
+      "sourceId": "S-TEAM-IDEAS",
+      "whyNotVerified": "자동 관수·관비와 최적 관수 제어 방향은 확인되지만 드립 방식·수분 센서 연동은 구체 사양 예시로 추가 확인이 필요합니다."
+    },
+    {
+      "id": "EX-VALVE-NUTRIENT",
+      "title": "스마트 밸브 및 양액 공급 장치",
+      "cultivationModes": ["facility", "openfield"],
+      "status": "team-example-needs-validation",
+      "sourceId": "S-TEAM-IDEAS",
+      "whyNotVerified": "자동 관수·관비 장비와 연결될 수 있는 구체 구성 예시이며, 지침의 직접 명시 제품은 아닙니다. 노지·시설 적용을 각각 확인해야 합니다."
+    },
+    {
+      "id": "EX-AGRI-DRONE",
+      "title": "병해충 예찰·방제용 농업 드론",
+      "cultivationModes": ["openfield"],
+      "status": "team-example-needs-validation",
+      "sourceId": "S-TEAM-IDEAS",
+      "whyNotVerified": "병해충 예찰은 지침에 있지만 드론을 예찰 또는 방제 장비로 직접 지정하지는 않습니다. 방제 관련 법규·자격과 실제 사업계획 적합성 확인이 필요합니다."
+    },
+    {
+      "id": "EX-AUTONOMOUS-TRACTOR",
+      "title": "소형 자율주행 트랙터·관리기 연동 패키지",
+      "cultivationModes": ["openfield"],
+      "status": "team-example-needs-validation",
+      "sourceId": "S-TEAM-IDEAS",
+      "whyNotVerified": "농식품부 자료에는 자율주행키트와 자율주행 농기계가 나오지만, 소형 트랙터·관리기 연동 패키지의 특정 기종이나 사양까지 확인된 것은 아닙니다."
+    }
+  ]
+}
