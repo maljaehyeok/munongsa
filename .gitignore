@@ -15,6 +15,30 @@ ENV/
 !.env.example
 *.pem
 *.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+id_ecdsa_sk
+id_ed25519_sk
+
+# Public-only PEM certificates/keys may be versioned after content review.
+# Standard public-key/certificate extensions (.pub, .crt, .cer) are not ignored.
+!cert.pem
+!chain.pem
+!fullchain.pem
+!public-key.pem
+
+# Local authentication directories (including credentials without extensions)
+.ssh/
+.aws/
+.docker/
+/secrets/
+/credentials/
 
 # Logs and temporary files
 *.log
@@ -24,11 +48,8 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Local-only working materials
-/work/.hwpdeps/
-/work/plan-render/
-/work/mentor-report.txt
-/work/pdf-text.txt
-
-# Internal demo output containing local paths
-/outputs/무농사_시범사업데이터.xlsx
+# Local-only working materials, raw research, generated output and old design
+/work/
+/outputs/
+/data/source/
+/index-before-redesign.html

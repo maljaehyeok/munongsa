@@ -1,0 +1,255 @@
+{
+  "schemaVersion": 1,
+  "generatedFrom": [
+    "data/source/munongsa_official_sources_batch1_support.csv",
+    "data/source/munongsa_program_detail_youth_farmer_2026_round2.csv"
+  ],
+  "generatedAt": "2026-10-24",
+  "referenceDocuments": [
+    {
+      "record_id": "SUP-2026-001",
+      "category": "청년농업인 정착",
+      "program_or_document": "2026 청년농업인 영농정착지원사업 시행지침",
+      "issuing_institution": "농림축산식품부",
+      "publication_date": "2025-11-04",
+      "applicable_year": "2026",
+      "region_scope": "전국 단위 사업(개별 신청·접수 절차는 지자체 공고 확인)",
+      "official_source_url": "https://mafra.go.kr/bbs/home/791/575819/artclView.do?layout=unknown",
+      "confirmed_content": "농림축산식품부가 2026년 사업 시행지침을 게시했으며, PDF/HWPX 첨부자료가 제공됨.",
+      "eligibility_conditions": "첨부 시행지침 본문에서 세부 항목 추출 필요",
+      "support_amount_or_rate": "첨부 시행지침 본문에서 확인 필요",
+      "application_period": "해당 연도 모집공고 및 지자체 접수 안내 확인 필요",
+      "required_documents": "시행지침 및 신청 안내에서 추출 필요",
+      "application_url": "https://www.agrix.go.kr/",
+      "status_as_of_2026_10_19": "2026년 지침 존재 확인; 현재 접수 여부는 별도 확인 필요",
+      "evidence_location": "농식품부 공지·공고 게시물 및 첨부 시행지침",
+      "verification_level": "공식 게시물 확인; 세부 요건 미추출",
+      "notes": "지침 게시일은 2025-11-04. 현 시점의 신청 가능 여부를 뜻하지 않음.",
+      "recordType": "guideline",
+      "relatedProgramIds": [
+        "youth"
+      ],
+      "applicationStatus": "unknown",
+      "factVerificationStatus": "partially_verified",
+      "publicationStatus": "review",
+      "reviewNote": "2026 최초 시행지침. CSV에 기록된 출처 확인을 독립 원문 대조와 게시 승인으로 간주하지 않음."
+    },
+    {
+      "record_id": "SUP-2026-002",
+      "category": "후계농업경영인",
+      "program_or_document": "2026 후계농업경영인 육성사업 시행지침",
+      "issuing_institution": "농림축산식품부",
+      "publication_date": "2025-12-26",
+      "applicable_year": "2026",
+      "region_scope": "전국 단위 사업(세부 접수는 해당 공고 확인)",
+      "official_source_url": "https://www.mafra.go.kr/bbs/home/791/576295/artclView.do",
+      "confirmed_content": "농림축산식품부가 2026 후계농업경영인 육성사업 시행지침을 게시하고 PDF/HWPX 첨부자료를 제공함.",
+      "eligibility_conditions": "첨부 시행지침 본문에서 세부 항목 추출 필요",
+      "support_amount_or_rate": "융자 한도·금리·상환 조건은 지침 원문 확인 전 표시하지 않음",
+      "application_period": "해당 연도 모집공고 확인 필요",
+      "required_documents": "시행지침 및 신청 안내에서 추출 필요",
+      "application_url": "https://www.agrix.go.kr/",
+      "status_as_of_2026_10_19": "2026년 지침 존재 확인; 현재 접수 여부는 별도 확인 필요",
+      "evidence_location": "농식품부 공지·공고 게시물 및 첨부 시행지침",
+      "verification_level": "공식 게시물 확인; 세부 요건 미추출",
+      "notes": "같은 게시물에 우수후계농업경영인 육성사업 지침도 별도 첨부되어 있으므로 두 사업을 하나의 레코드로 합치지 말 것.",
+      "recordType": "guideline",
+      "relatedProgramIds": [],
+      "applicationStatus": "unknown",
+      "factVerificationStatus": "partially_verified",
+      "publicationStatus": "review",
+      "reviewNote": "후계농업경영인 시행지침; 우수후계농과 별도. CSV에 기록된 출처 확인을 독립 원문 대조와 게시 승인으로 간주하지 않음."
+    },
+    {
+      "record_id": "SUP-2026-003",
+      "category": "농림축산식품 사업 공통 지침",
+      "program_or_document": "2026년 농림축산식품사업 시행지침서",
+      "issuing_institution": "농림축산식품부",
+      "publication_date": "2026-02-04",
+      "applicable_year": "2026",
+      "region_scope": "전국 공통 사업 지침; 개별 사업별 적용 범위는 각 지침 확인",
+      "official_source_url": "https://www.mafra.go.kr/bbs/home/795/576799/artclView.do",
+      "confirmed_content": "농림축산식품부가 2026년 농림축산식품사업 시행지침서를 게시함. 첨부 PDF 제공.",
+      "eligibility_conditions": "문서 내 사업별로 분리 추출 필요",
+      "support_amount_or_rate": "문서 내 사업별로 분리 추출 필요",
+      "application_period": "문서 내 사업별 및 별도 공고 확인 필요",
+      "required_documents": "문서 내 사업별로 분리 추출 필요",
+      "application_url": "사업별 공식 신청 페이지를 각각 연결",
+      "status_as_of_2026_10_19": "기준 지침서 확인; 개별 사업의 현재 접수 상태를 대체하지 않음",
+      "evidence_location": "농식품부 정책자료 게시물 및 첨부 PDF",
+      "verification_level": "공식 게시물 확인; 개별 사업 레코드 추출 전",
+      "notes": "문서 전체를 하나의 지원사업 카드로 만들지 말고, 개별 사업 단위로 분리해야 함.",
+      "recordType": "policy_reference",
+      "relatedProgramIds": [],
+      "applicationStatus": "not_an_individual_application",
+      "factVerificationStatus": "partially_verified",
+      "publicationStatus": "review",
+      "reviewNote": "농림축산식품사업 공통 지침; 개별 사업 아님. CSV에 기록된 출처 확인을 독립 원문 대조와 게시 승인으로 간주하지 않음."
+    },
+    {
+      "record_id": "SUP-2026-004",
+      "category": "스마트농업 정책",
+      "program_or_document": "2026년 스마트농업 육성 시행계획 공고",
+      "issuing_institution": "농림축산식품부",
+      "publication_date": "2026-01-30",
+      "applicable_year": "2026",
+      "region_scope": "전국 정책 계획; 개별 지원사업의 대상 지역은 별도 확인",
+      "official_source_url": "https://www.mafra.go.kr/home/5108/subview.do",
+      "confirmed_content": "농림축산식품부 공고 제2026-68호로 2026년 스마트농업 육성 시행계획을 공표하고 첨부 PDF를 제공함.",
+      "eligibility_conditions": "정책계획 자체를 개별 농업인 지원사업 자격으로 해석하지 않음",
+      "support_amount_or_rate": "정책계획 자체에서 개별 지원금액을 확정하지 않음; 세부 사업 공고 확인 필요",
+      "application_period": "정책계획 게시일과 개별 사업 신청 기간을 구분",
+      "required_documents": "개별 공모·사업 지침 확인 필요",
+      "application_url": "https://www.mafra.go.kr/",
+      "status_as_of_2026_10_19": "정책계획 게시 확인; 개별 사업의 모집 상태는 별도 확인 필요",
+      "evidence_location": "농식품부 공지·공고 게시물 및 첨부 PDF",
+      "verification_level": "공식 게시물 확인",
+      "notes": "무농사의 유일한 데이터 원천으로 쓰지 않고, 스마트농업 관련 정책 배경 자료로 분류.",
+      "recordType": "policy_plan",
+      "relatedProgramIds": [],
+      "applicationStatus": "not_an_individual_application",
+      "factVerificationStatus": "partially_verified",
+      "publicationStatus": "review",
+      "reviewNote": "스마트농업 정책 계획; 개별 사업 공고 아님. CSV에 기록된 출처 확인을 독립 원문 대조와 게시 승인으로 간주하지 않음."
+    },
+    {
+      "record_id": "SUP-2026-005",
+      "category": "노지 스마트농업",
+      "program_or_document": "2026년도 노지 스마트농업 육성지구 지정 공모",
+      "issuing_institution": "농림축산식품부",
+      "publication_date": "2025-12-08",
+      "applicable_year": "2026",
+      "region_scope": "공모 대상 지자체·사업계획 단위; 일반 농업인 개별 지원과 구분 필요",
+      "official_source_url": "https://www.mafra.go.kr/bbs/home/791/576110/artclView.do",
+      "confirmed_content": "농식품부 공고 제2025-506호로 2026년도 노지 스마트농업 육성지구 지정 공모계획을 게시함.",
+      "eligibility_conditions": "공모계획 원문에서 신청 주체·평가 기준 추출 필요",
+      "support_amount_or_rate": "공모계획 원문 확인 필요",
+      "application_period": "2025년 12월 공고; 현재 신청 접수 중이라는 뜻은 아님",
+      "required_documents": "공모계획 및 신청 서식에서 추출 필요",
+      "application_url": "공모 게시물 및 첨부 공모계획 확인",
+      "status_as_of_2026_10_19": "공모 게시 기록; 현재 접수 상태 아님/미확인",
+      "evidence_location": "농식품부 공지·공고 게시물 및 첨부 공모계획",
+      "verification_level": "공식 게시물 확인; 세부 내용 미추출",
+      "notes": "지구 지정 사업은 지자체/사업계획 대상인지 확인하고 개인 농가 대상 사업과 혼동하지 말 것.",
+      "recordType": "call",
+      "relatedProgramIds": [
+        "district"
+      ],
+      "applicationStatus": "unknown",
+      "factVerificationStatus": "partially_verified",
+      "publicationStatus": "review",
+      "reviewNote": "지자체·사업계획 공모; 개인 농가 신청사업 아님. CSV에 기록된 출처 확인을 독립 원문 대조와 게시 승인으로 간주하지 않음."
+    },
+    {
+      "record_id": "SUP-2026-006",
+      "category": "스마트농업 지역 거점 사례",
+      "program_or_document": "2026년 노지 스마트농업 육성지구 선정 결과",
+      "issuing_institution": "농림축산식품부",
+      "publication_date": "2026-03-03",
+      "applicable_year": "2026",
+      "region_scope": "충남 당진(감자), 전북 고창(배추·무), 전남 고흥(양파), 전남 진도(대파), 경북 의성(마늘)",
+      "official_source_url": "https://www.mafra.go.kr/bbs/home/792/577180/artclView.do",
+      "confirmed_content": "농식품부 보도자료에서 2026년 노지 스마트농업 육성지구 5개 지역 및 대상 작물을 발표함.",
+      "eligibility_conditions": "선정 지역 정보는 개별 농가의 지원 자격을 의미하지 않음",
+      "support_amount_or_rate": "보도자료만으로 개별 농가 지원액을 확정하지 않음",
+      "application_period": "선정 결과 자료; 신청 기간 데이터로 사용하지 않음",
+      "required_documents": "해당 없음(선정 결과 기록)",
+      "application_url": "관련 지자체 및 후속 사업 공고 확인",
+      "status_as_of_2026_10_19": "선정 결과 기록",
+      "evidence_location": "농식품부 보도자료 본문",
+      "verification_level": "공식 보도자료 확인",
+      "notes": "사이트의 지역 필터·작물 태그를 설계하는 데 활용 가능하나, 지역 농가 모두가 자동으로 지원 대상인 것은 아님.",
+      "recordType": "selection_result",
+      "relatedProgramIds": [
+        "district"
+      ],
+      "applicationStatus": "not_an_individual_application",
+      "factVerificationStatus": "partially_verified",
+      "publicationStatus": "review",
+      "reviewNote": "선정 결과; 개별 농가 신청사업 아님. CSV에 기록된 출처 확인을 독립 원문 대조와 게시 승인으로 간주하지 않음."
+    }
+  ],
+  "programDetails": [
+    {
+      "record_id": "SUP-DETAIL-2026-001",
+      "program_name": "2026 청년농업인 영농정착지원사업(청년창업형 후계농업경영인) 2차",
+      "category": "청년농업인 정착지원",
+      "issuing_institution": "농림축산식품부",
+      "applicable_year": "2026",
+      "latest_guideline_publication_date": "2026-05-15",
+      "official_guideline_url": "https://mafra.go.kr/bbs/home/791/577920/artclView.do?layout=unknown",
+      "official_guideline_pdf_url": "https://mafra.go.kr/bbs/home/791/597332/download.do",
+      "eligibility_age": "2026년 기준 18~39세(1986~2008년 출생자); 시행지침에 명시된 예외 별도 확인",
+      "eligibility_farming_experience": "영농경력이 없거나 3년 이하; 2023년 이후 농업경영정보 경영주 등록자 기준(지침상 예외 있음)",
+      "eligibility_military": "면접 심사 전일까지 병역필 또는 병역면제자(산업기능요원 등 지침상 세부 규정 확인)",
+      "eligibility_residence": "신청 시·군·특광역시에 실제 거주(주민등록 포함); 사업장과 거주지는 동일 시·군·특광역시에 소재해야 함. 독립경영 예정자는 예정 영농기반 소재지에 신청하며 주소 이전 기한 확인 필요",
+      "other_exclusions": "본인 명의 사업자등록/법인등기, 상근직, 재학생·휴학생, 일정 수준 이상 재산·소득 등 신청 제한 항목이 있으므로 첨부 시행지침 전체의 제외요건을 반드시 확인",
+      "support_amount": "독립경영 연차에 따라 월 110만원(1년차), 100만원(2년차), 90만원(3년차); 지급 가능 기간은 독립경영 연차에 따라 최대 36개월 범위. 세부 지급 조건 적용",
+      "support_type": "영농정착지원금(바우처 등 지침상 지급 방식); 농지은행 지원 및 후계농 육성자금 등 연계·우대 항목은 별도 요건과 신청 절차 확인",
+      "application_period_2026_round2": "2026-06-01~2026-07-10 18:00 (공식 농촌진흥청 청년농부 페이지에 게시된 2차 모집 정보 기준)",
+      "application_status_checked_2026-10-19": "2차 모집 신청기간 종료; 현재 접수 중으로 표시하지 말 것. 후속 모집 여부는 새 공고 확인 필요",
+      "application_method": "농업e지 온라인 신청(신청 시 시·군·구 선택, 영농계획서 및 증빙서류 첨부)",
+      "application_portal_url": "https://www.nongupez.go.kr/",
+      "required_documents_confirmed": "신청서 및 영농계획서, 자격·요건 증빙서류가 필요함. 구체적인 증빙 목록은 시행지침 및 신청 화면 확인 필요",
+      "contact": "청년농업인 콜센터 1670-0255 (공식 청년농부 안내에 게시된 번호; 운영 여부는 신청 전 재확인 권장)",
+      "source_evidence": "농식품부 2026년 2차 시행지침 PDF pp.3-7, 32-35; 농촌진흥청 똑똑청년농부의 2026년 2차 모집 안내",
+      "verification_status": "공식 시행지침 및 공식 안내 페이지 확인; 세부 제외요건과 제출서류 전체 목록은 원문 추가 대조 필요",
+      "last_checked": "2026-10-19",
+      "notes": "최초 시행지침이 아니라 2026-05-15 게시된 2차 시행지침을 기준으로 기록. 2026년 2차 접수 기간은 이미 지났으므로 추천 화면에서 신청 가능 상태로 표시하지 말 것. 사업자등록/상근직/재학/소득·재산 등 제한 조건이 복잡하므로 자동으로 '지원 가능' 확정 금지; '조건상 가능성 있음—공식 지침 확인 필요' 수준으로 표시.",
+      "relatedProgramId": "youth",
+      "recordType": "program_round_detail",
+      "roundApplicationStatus": "closed",
+      "futureRecruitmentStatus": "unknown",
+      "factVerificationStatus": "partially_verified",
+      "fieldVerification": {
+        "eligibility_age": {
+          "status": "source_checked",
+          "evidence": "농식품부 2차 시행지침 PDF 인쇄면 3–4"
+        },
+        "eligibility_farming_experience": {
+          "status": "source_checked",
+          "evidence": "농식품부 2차 시행지침 PDF 인쇄면 3–4"
+        },
+        "eligibility_military": {
+          "status": "source_checked",
+          "evidence": "농식품부 2차 시행지침 PDF 인쇄면 4"
+        },
+        "eligibility_residence": {
+          "status": "source_checked",
+          "evidence": "농식품부 2차 시행지침 PDF 인쇄면 4"
+        },
+        "other_exclusions": {
+          "status": "partially_verified",
+          "evidence": "농식품부 2차 시행지침 PDF 인쇄면 4–6; 전체 예외·세부조건 확인 필요"
+        },
+        "support_amount": {
+          "status": "source_checked",
+          "evidence": "농식품부 2차 시행지침 PDF 인쇄면 4–5"
+        },
+        "application_period_2026_round2": {
+          "status": "source_checked",
+          "evidence": "농식품부 2차 시행지침 PDF 인쇄면 20; 고창군 2차 모집 공고"
+        },
+        "application_method": {
+          "status": "source_checked",
+          "evidence": "농식품부 2차 시행지침 PDF 인쇄면 20"
+        },
+        "required_documents_confirmed": {
+          "status": "partially_verified",
+          "evidence": "농식품부 2차 시행지침 PDF 인쇄면 20, 32; CSV의 간략 목록 외 상세 증빙 및 예외 대조 필요"
+        },
+        "contact": {
+          "status": "unverified",
+          "evidence": "CSV 기록만 있음; 노출하지 않음"
+        },
+        "futureRecruitmentStatus": {
+          "status": "unverified",
+          "evidence": "지침은 별도 추가모집 일정을 허용; 이후 전국·지역별 공고 전수 확인 미완료"
+        }
+      },
+      "publicationStatus": "pending_review",
+      "publicationNote": "기존 사업 카드의 상세 패널에서 검토 중인 2차 기록으로 구분해 표시. 현재 신청 가능 사업으로 추천하지 않음."
+    }
+  ],
+  "notice": "참고·검토용 데이터입니다. 원문 확인 또는 자료 수록만으로 자격·신청 가능성·게시 승인이 확정되지 않습니다."
+}

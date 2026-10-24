@@ -10,15 +10,32 @@
 
 ```text
 .
-├── index.html                              # 정적 웹사이트 화면
-├── index-before-redesign.html              # 이전 화면 보존본
-├── app.py                                  # 별도로 구현된 Flask 시연 앱
-└── data/
-    ├── smart-agriculture-catalog.json      # 웹사이트가 사용하는 카탈로그 데이터
-    └── source/                              # 조사 및 데이터 수집 자료
+├── index.html                         # HTML·내장 CSS·화면 제어 JavaScript
+├── assets/
+│   └── profile-matching.js            # 브라우저 내부 프로필 비교·관련도 정렬
+├── data/
+│   ├── smart-agriculture-catalog.json # 기존 카탈로그·출처·사업 카드
+│   ├── crop-cultivation-records.json  # 작물 재배자료·검토 보류 기록
+│   ├── support-programs.json          # 지원사업 상세·참고자료
+│   ├── finance-products.json          # 농업 금융자료·검증 상태
+│   ├── equipment-catalog.json         # 장비 범주·팀 아이디어·제품 후보
+│   ├── *-integration-audit.json       # 네 분야 통합 검증 기록
+│   └── source/                       # 원본 CSV·엑셀 (Git 제외)
+├── scripts/
+│   ├── build_support_data.py          # 지원사업 데이터 생성
+│   ├── build_finance_data.py          # 금융 데이터 생성
+│   └── build_equipment_data.py        # 장비 데이터 생성
+├── Dockerfile                        # Nginx 정적 사이트 이미지
+├── .dockerignore                     # Docker 빌드에 필요한 파일만 포함
+├── .gitignore                        # 원본·작업자료·인증 정보 제외
+├── README.md
+├── app.py                            # 별도로 구현된 Flask 시연 앱
+└── index-before-redesign.html         # 이전 화면 보존본 (Git 제외)
 ```
 
-`outputs/`에는 결과물이, `work/`에는 작업용 자료가 있습니다. 이 폴더의 파일이 모두 저장소에 포함되는 것은 아닙니다. 업로드 전에 각 파일의 필요성, 개인정보 포함 여부, 재배포 조건을 확인하세요.
+`work/`, `outputs/`, `data/source/`, `index-before-redesign.html`은 로컬에 보관하며 Git에서 제외합니다. 서비스용 JSON과 audit JSON은 제외하지 않습니다. audit JSON과 생성 스크립트는 정적 사이트 실행에는 필요하지 않으며 Docker 이미지에도 포함하지 않습니다.
+
+지원사업·금융 생성 스크립트를 다시 실행하려면 별도로 보관한 원본 CSV·엑셀이 필요합니다. 장비 생성 스크립트는 기존 카탈로그와 생성된 금융 JSON을 읽습니다. 원본이 없는 EC2에서 재생성을 실행하지 않고, 검토한 서비스 JSON을 함께 배포합니다.
 
 ## 정적 웹사이트 실행
 
@@ -26,7 +43,51 @@
 2. Live Server 확장 기능을 설치한 뒤 `index.html`을 엽니다.
 3. 편집기에서 **Open with Live Server**를 선택합니다.
 
-페이지는 `data/smart-agriculture-catalog.json`을 `fetch()`로 읽습니다. 브라우저에서 HTML을 `file://` 방식으로 직접 여는 경우 JSON 접근이 제한될 수 있으므로 로컬 HTTP 서버로 실행하는 것을 권장합니다.
+`index.html`은 `assets/profile-matching.js`를 로드하고 위의 서비스 JSON 5개를 `fetch()`로 읽습니다. 지역·작물·영농 단계·관심 분야를 선택하면 기록된 조건에 따라 관련 자료를 먼저 표시합니다. 조건이 없거나 불분명한 자료에는 확인 필요 상태를 표시하며, 신청 자격이나 현재 신청 가능 여부를 확정하지 않습니다. 입력값은 현재 브라우저 화면에서 관리합니다.
+
+브라우저에서 HTML을 `file://` 방식으로 직접 여는 경우 JSON 접근이 제한될 수 있으므로 로컬 HTTP 서버로 실행하는 것을 권장합니다.
+
+## Docker·Nginx로 로컬 실행
+
+Docker가 설치되어 있고 Docker 엔진이 실행 중이어야 합니다. 프로젝트 루트에서 다음 명령을 실행합니다.
+
+```bash
+docker build -t munongsa:local .
+docker run --rm -d --name munongsa -p 127.0.0.1:8080:80 munongsa:local
+```
+
+브라우저에서 `http://localhost:8080`으로 접속합니다. 중지할 때는 `docker stop munongsa`를 실행합니다. 위 명령은 `--rm`을 사용하므로 중지하면 해당 컨테이너가 제거되며 프로젝트 파일과 이미지는 남습니다. 같은 이름의 기존 컨테이너가 있다면 상태를 확인하거나 새 컨테이너 이름을 사용하세요.
+
+Dockerfile은 `nginx:stable-alpine`을 사용하고 `index.html`, `assets/`, 서비스 JSON 5개를 `/usr/share/nginx/html/`에 복사합니다. Nginx는 컨테이너 내부 80번 포트에서 정적 파일을 제공합니다. 이번 배포에는 Flask·Python 서버나 데이터베이스가 필요하지 않습니다.
+
+화면 외에 다음 주소의 응답도 확인합니다.
+
+```text
+/assets/profile-matching.js
+/data/smart-agriculture-catalog.json
+/data/crop-cultivation-records.json
+/data/support-programs.json
+/data/finance-products.json
+/data/equipment-catalog.json
+```
+
+## AWS EC2 배포 개요
+
+배포 대상은 Docker가 설치된 Ubuntu 24.04 EC2입니다. 다음은 수동 배포 시의 절차이며 자동 배포 설정은 포함하지 않습니다.
+
+1. 허가된 인증 방식으로 GitHub 저장소를 복제하고, 프로젝트 루트에서 실행합니다. 비공개 저장소 인증용 키·토큰은 저장소에 넣지 않습니다.
+2. `Dockerfile`, `index.html`, `assets/`, 서비스 JSON 5개가 포함되어 있는지 확인합니다.
+3. 이미 사용 중인 컨테이너 이름과 포트를 확인한 뒤 이미지를 빌드하고 실행합니다. 아래는 EC2의 80번 포트로 직접 제공하는 예시입니다.
+
+```bash
+docker build -t munongsa:local .
+docker run -d --name munongsa --restart unless-stopped -p 80:80 munongsa:local
+```
+
+4. EC2 보안 그룹에서 선택한 호스트 포트의 인바운드 접근을 허용하고, 필요한 경우 운영체제 방화벽도 확인합니다. 8080번 포트를 선택했다면 매핑과 접근 URL·허용 포트를 모두 8080으로 맞춥니다.
+5. EC2의 공개 주소에서 페이지와 위의 JS·JSON 주소가 정상 응답하는지 확인합니다.
+
+로컬용 `127.0.0.1:8080:80` 바인딩은 호스트 내부 접근용이므로 EC2에서 외부에 직접 공개할 때 그대로 사용하지 않습니다. 현재 Nginx 구성은 사이트를 루트 경로(`/`)의 HTTP로 제공합니다. HTTPS와 도메인을 사용하려면 별도로 구성해야 합니다.
 
 ## Flask 시연 앱 실행
 
@@ -53,7 +114,10 @@ python app.py
 
 - 개인 연락처, 비밀번호, API 키, 토큰, 로컬 절대 경로가 포함된 파일을 공개 저장소에 올리지 마세요.
 - 조사 자료와 문서의 재배포 조건 및 이용허락을 확인한 뒤 업로드하세요.
+- `.env`, SSH 개인키, 개인 인증서 묶음, 로컬 `.aws/`·`.ssh/`·`.docker/` 및 루트의 `secrets/`·`credentials/`는 제외합니다. 공개키 `.pub`와 공개 인증서 `.crt`·`.cer`는 일괄 제외하지 않습니다.
+- `.pem`은 개인키일 수 있어 기본 제외하되, `cert.pem`, `chain.pem`, `fullchain.pem`, `public-key.pem`은 공개 자료만 넣는 이름으로 예외 처리합니다. 예외 파일에도 개인키·비밀정보가 없는지 내용을 확인해야 합니다. 그 밖의 공개 PEM 파일은 검토한 파일에 한해 별도 예외를 추가합니다.
 - `.gitignore`는 지정된 파일 패턴을 Git에서 제외하도록 도울 뿐, 모든 민감정보를 자동으로 탐지하거나 제거하지 않습니다. 업로드 전에 파일 내용과 변경 목록을 직접 확인해야 합니다.
+- `.gitignore`는 이미 추적 중인 파일을 자동으로 추적 해제하지 않습니다. `.dockerignore`는 Docker 빌드 컨텍스트만 제한하며 GitHub 업로드 대상을 결정하지 않습니다.
 
 ## 프로젝트 상태와 저장소 운영
 

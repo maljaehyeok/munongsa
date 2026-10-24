@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-24",
+  "counts": {
+    "officialGuidelineCategories": 5,
+    "teamIdeas": 6,
+    "productCandidates": 8,
+    "facilityCandidates": 13,
+    "verifiedProducts": 0
+  },
+  "productSourceCoverage": {
+    "verifiedManufacturerProductPages": 0,
+    "officialGuidelineCategoriesWithDirectUrl": 1,
+    "officialGuidelineCategoriesMissingDirectUrl": 4,
+    "productCandidateRowsMissingManufacturerVerification": 8,
+    "facilityCandidateRowsWithoutProductIdentity": 13
+  },
+  "possibleDuplicateLinks": [
+    {
+      "leftId": "EX-AGRI-DRONE",
+      "rightId": "MC-DR-001",
+      "reason": "농업용 드론이라는 주제 유사성만 확인; 동일 제품 아님"
+    },
+    {
+      "leftId": "EX-AUTONOMOUS-TRACTOR",
+      "rightId": "MC-TR-001",
+      "reason": "트랙터 범주 유사성만 확인; 자율주행 패키지와 일반 트랙터는 동일 항목으로 판정하지 않음"
+    },
+    {
+      "leftId": "EX-AUTONOMOUS-TRACTOR",
+      "rightId": "MC-TR-002",
+      "reason": "트랙터 범주 유사성만 확인; 자율주행 패키지와 일반 트랙터는 동일 항목으로 판정하지 않음"
+    },
+    {
+      "leftId": "EX-VALVE-NUTRIENT",
+      "rightId": "FAC-ICT-02",
+      "reason": "양액 공급·제어 범주 유사성만 확인; 제품·구성이 일치하는지 미확인"
+    }
+  ],
+  "checks": {
+    "allTeamIdeasMarkedReview": true,
+    "allWorkbookCandidatesUnverified": true,
+    "noWorkbookCandidateMarkedForSale": true,
+    "verifiedProductsRequireOfficialManufacturerUrl": true
+  },
+  "limitations": [
+    "금융 엑셀의 농기계·설비 기록은 제품 및 정부 지원 대상 확인의 근거로 단독 사용하지 않음",
+    "팀 아이디어와 워크북 기종 후보의 유사성은 중복 확정이 아님",
+    "공식 제품 페이지와 모델이 연결된 검증 제품은 현재 없음"
+  ]
+}

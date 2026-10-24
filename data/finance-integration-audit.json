@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-24",
+  "sourceSheetCounts": {
+    "masterProducts": 28,
+    "teamTaxonomyDrafts": 12,
+    "specialtyProductDetails": 6,
+    "machineryFinanceExamples": 8,
+    "facilityFinanceDetails": 13,
+    "calculatorScenarios": 14
+  },
+  "catalogFinanceRecordIds": [
+    "NEW-FARMER-STARTUP-LOAN-2026",
+    "SMARTFARM-LOAN-2026"
+  ],
+  "linkedDuplicateCandidates": {
+    "LP-NAT-003": [
+      "NEW-FARMER-STARTUP-LOAN-2026"
+    ],
+    "LP-NAT-004": [
+      "NEW-FARMER-STARTUP-LOAN-2026"
+    ],
+    "LP-FAC-001": [
+      "SMARTFARM-LOAN-2026"
+    ]
+  },
+  "catalogConflictCandidates": [
+    {
+      "productId": "LP-FAC-001",
+      "catalogRecordId": "SMARTFARM-LOAN-2026",
+      "workbookClaim": "3억원 한도 기록, 고정 1.0~2.0% 또는 변동, 5년 거치·15년 상환",
+      "catalogClaim": "최대 50억원, 고정 연리 1.0%, 5년 거치·20년 균분상환",
+      "conflictingFields": [
+        "한도",
+        "금리 체계",
+        "상환 기간",
+        "기준 자료"
+      ],
+      "resolution": "두 기록을 병합하지 않고 원문 연도·자금유형 대조 필요"
+    },
+    {
+      "productId": "LP-NAT-003",
+      "catalogRecordId": "NEW-FARMER-STARTUP-LOAN-2026",
+      "workbookClaim": "창업자금 최대 3억원, 고정 1.5% 또는 변동, 5년 거치·10년 원금균등 기록",
+      "catalogClaim": "2026 안내 기준 고정 연 2.0% 또는 변동, 5년 거치·10년 원금균등",
+      "conflictingFields": [
+        "금리"
+      ],
+      "resolution": "그린대로 2026 사업안내에서 고정 연 2.0% 또는 변동 및 5년 거치·10년 원금균등을 확인. 워크북의 1.5%는 공식 안내와 충돌하므로 원자료 기록은 보존하고 금리를 검토 상태로 표시. 한도와 현재 접수 상태는 미확인."
+    },
+    {
+      "productId": "LP-NAT-004",
+      "catalogRecordId": "NEW-FARMER-STARTUP-LOAN-2026",
+      "workbookClaim": "주택자금 최대 7천5백만원, 고정 1.5% 또는 변동, 5년 거치·10년 원금균등",
+      "catalogClaim": "카탈로그 카드는 창업·주택 사업을 묶어 2.0% 및 5년 거치·10년 상환 안내",
+      "conflictingFields": [
+        "상품 범위",
+        "금리",
+        "상환 조건 연결"
+      ],
+      "resolution": "그린대로 2026 사업안내는 2.0% 고정 또는 변동, 5년 거치·10년 원금균등을 안내. 워크북 금리와 충돌하며, 별도 주택자금 한도·세부 자격·현재 접수는 추가 확인 필요."
+    }
+  ],
+  "crossSheetDuplicateLinks": {
+    "SP-6TH-01": "LP-6TH-001",
+    "SP-AT-01": "LP-6TH-002",
+    "SP-HOU-01": "LP-HOU-001",
+    "SP-REH-01": "LP-REH-001",
+    "SP-PEN-01": "LP-PEN-001",
+    "SP-LIV-01": "LP-LIV-003"
+  },
+  "facilityDetailLinks": {
+    "FAC-ENG-01": "LP-ADD-001",
+    "FAC-ENG-02": "LP-ADD-001",
+    "FAC-ENG-03": "LP-ADD-001",
+    "FAC-ICT-01": "LP-ADD-002",
+    "FAC-ICT-02": "LP-ADD-002",
+    "FAC-ICT-03": "LP-ADD-002",
+    "FAC-PST-01": "LP-ADD-003",
+    "FAC-PST-02": "LP-ADD-003",
+    "FAC-WTR-01": "LP-ADD-004",
+    "FAC-WTR-02": "LP-ADD-004",
+    "FAC-LIV-01": "LP-LIV-001",
+    "FAC-LIV-02": "LP-LIV-002",
+    "FAC-ENG-04": "LP-ENG-001"
+  },
+  "officialSourceCoverage": {
+    "fullyVerifiedProductTerms": 0,
+    "partiallyVerifiedProductPresenceOrPurpose": [
+      "LP-6TH-002"
+    ],
+    "partiallyVerifiedFieldRecords": {
+      "LP-NAT-003": [
+        "repayment"
+      ],
+      "LP-NAT-004": [
+        "repayment"
+      ]
+    },
+    "conflictingFieldRecords": [
+      "LP-NAT-003.interest",
+      "LP-NAT-004.interest"
+    ],
+    "unverifiedProductTerms": 28,
+    "currentApplicationStatusKnown": 0,
+    "rowsWithOriginalSourceUrl": 0
+  },
+  "calculatorReview": {
+    "scenarioCount": 14,
+    "formulaCount": 42,
+    "cachedFormulaResults": 0,
+    "formulas": {
+      "거치기간 월 이자 (원)": "IF(D18>0, ROUND(B18*C18/12, 0), 0)",
+      "상환기 1년차 월납입액 (원)": "ROUND((B18/(E18*12)) + (B18*C18/12), 0)",
+      "총 납입 이자 합계 (원)": "ROUND((B18*C18*D18) + (B18*C18*(E18+1)/2), 0)"
+    },
+    "assessment": "계산 시트에 수식 42개가 있으나 저장된 계산 결과는 없습니다. F는 거치기간 월 이자를 단리로 계산하고, G는 월 원금균등액에 최초 원금 기준 월 이자를 더합니다. H는 거치이자와 연 단위 원금균등 상환을 가정한 단순 총이자식입니다. 월별 잔액 감소 및 실제 금융기관의 납입 스케줄과 일치한다고 확인되지 않아 서비스 계산기로 이식하지 않았습니다.",
+    "siteCalculatorImplemented": false
+  },
+  "checks": {
+    "masterIdsUnique": true,
+    "allMasterRowsHaveReviewStatus": true,
+    "noWorkbookOpenStatusTreatedAsCurrentlyOpen": true,
+    "duplicateCatalogRowsLinkedInsteadOfDuplicated": true
+  },
+  "limitations": [
+    "마스터 및 세부 시트에 상품별 공식 원문 URL·근거 위치가 거의 없어, source_checked 표기만으로 독립 검증하지 않았습니다.",
+    "엑셀 카테고리의 추천 매칭 문구는 팀 초안으로만 보존하고 사용자 추천 로직에 사용하지 않습니다.",
+    "스마트팜·귀농 융자 후보는 기존 카탈로그 카드와 연결했으며, 엑셀 조건은 충돌 가능성이 있어 미검증 표시합니다."
+  ]
+}

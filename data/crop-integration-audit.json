@@ -1,0 +1,1784 @@
+{
+  "auditVersion": 1,
+  "generatedAt": "2026-10-24",
+  "sourceWorkbook": "data/source/무농사_웹사이트용_5개시트_통합본.xlsx",
+  "summary": {
+    "detailRecords": 176,
+    "normalizedRecords": 169,
+    "verdictRecords": 169,
+    "detailUniqueIds": 176,
+    "normalizedUniqueIds": 169,
+    "verdictUniqueIds": 169,
+    "detailDuplicateIds": [],
+    "normalizedDuplicateIds": [],
+    "verdictDuplicateIds": [],
+    "normalizedIdsMissingVerdict": [],
+    "verdictIdsWithoutNormalized": [],
+    "normalizedSourceIdsMissingDetail": [],
+    "detailIdsWithoutNormalized": [
+      "OFF-20261021-01",
+      "OFF-20261021-02",
+      "OFF-20261021-03",
+      "OFF-20261021-04",
+      "OFF-20261021-05",
+      "OFF-20261021-06",
+      "OFF-20261021-07"
+    ],
+    "dbSourceIdExactMatchCount": 169,
+    "sourceRegistryExactUrlMatches": 39,
+    "sourceRegistryUnmatchedNormalizedRecords": 130,
+    "fieldComparisonExactMatches": {
+      "crop": 169,
+      "regionAndCropping": 169,
+      "stageOrTopic": 169,
+      "detail": 159,
+      "unitConditions": 169,
+      "sourceTitle": 167,
+      "sourcePublisher": 169,
+      "sourceUrl": 159,
+      "evidenceLocation": 135,
+      "publicationDate": 169,
+      "lastCheckedAt": 163,
+      "sourceVerificationStatus": 169
+    },
+    "fieldComparisonDifferences": {
+      "evidenceLocation": 34,
+      "detail": 10,
+      "sourceTitle": 2,
+      "sourceUrl": 10,
+      "lastCheckedAt": 6
+    },
+    "offRecords": [
+      "OFF-20261021-01",
+      "OFF-20261021-02",
+      "OFF-20261021-03",
+      "OFF-20261021-04",
+      "OFF-20261021-05",
+      "OFF-20261021-06",
+      "OFF-20261021-07"
+    ],
+    "offRecordsWithUnresolvedSourceMapping": [
+      "OFF-20261021-04",
+      "OFF-20261021-05"
+    ],
+    "partialOverlapCandidateCount": 1,
+    "confirmedDuplicateCount": 0,
+    "causeUnconfirmedCount": 7
+  },
+  "idCrosswalk": [
+    {
+      "id": "MNF-0001",
+      "sourceRecordId": "RAD-001",
+      "verdictRecordId": "MNF-0001",
+      "sourceDetailRow": 2,
+      "normalizedRow": 2,
+      "verdictRow": 2,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0002",
+      "sourceRecordId": "RAD-002",
+      "verdictRecordId": "MNF-0002",
+      "sourceDetailRow": 3,
+      "normalizedRow": 3,
+      "verdictRow": 3,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0003",
+      "sourceRecordId": "RAD-003",
+      "verdictRecordId": "MNF-0003",
+      "sourceDetailRow": 4,
+      "normalizedRow": 4,
+      "verdictRow": 4,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0004",
+      "sourceRecordId": "RAD-004",
+      "verdictRecordId": "MNF-0004",
+      "sourceDetailRow": 5,
+      "normalizedRow": 5,
+      "verdictRow": 5,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0005",
+      "sourceRecordId": "RAD-005",
+      "verdictRecordId": "MNF-0005",
+      "sourceDetailRow": 6,
+      "normalizedRow": 6,
+      "verdictRow": 6,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0006",
+      "sourceRecordId": "RAD-006",
+      "verdictRecordId": "MNF-0006",
+      "sourceDetailRow": 7,
+      "normalizedRow": 7,
+      "verdictRow": 7,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0007",
+      "sourceRecordId": "RAD-007",
+      "verdictRecordId": "MNF-0007",
+      "sourceDetailRow": 8,
+      "normalizedRow": 8,
+      "verdictRow": 8,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0008",
+      "sourceRecordId": "RAD-008",
+      "verdictRecordId": "MNF-0008",
+      "sourceDetailRow": 9,
+      "normalizedRow": 9,
+      "verdictRow": 9,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0009",
+      "sourceRecordId": "RAD-009",
+      "verdictRecordId": "MNF-0009",
+      "sourceDetailRow": 10,
+      "normalizedRow": 10,
+      "verdictRow": 10,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0010",
+      "sourceRecordId": "RAD-010",
+      "verdictRecordId": "MNF-0010",
+      "sourceDetailRow": 11,
+      "normalizedRow": 11,
+      "verdictRow": 11,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0011",
+      "sourceRecordId": "RAD-011",
+      "verdictRecordId": "MNF-0011",
+      "sourceDetailRow": 12,
+      "normalizedRow": 12,
+      "verdictRow": 12,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0012",
+      "sourceRecordId": "RAD-012",
+      "verdictRecordId": "MNF-0012",
+      "sourceDetailRow": 13,
+      "normalizedRow": 13,
+      "verdictRow": 13,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0013",
+      "sourceRecordId": "RAD-013",
+      "verdictRecordId": "MNF-0013",
+      "sourceDetailRow": 14,
+      "normalizedRow": 14,
+      "verdictRow": 14,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0014",
+      "sourceRecordId": "RAD-014",
+      "verdictRecordId": "MNF-0014",
+      "sourceDetailRow": 15,
+      "normalizedRow": 15,
+      "verdictRow": 15,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0015",
+      "sourceRecordId": "RAD-015",
+      "verdictRecordId": "MNF-0015",
+      "sourceDetailRow": 16,
+      "normalizedRow": 16,
+      "verdictRow": 16,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0016",
+      "sourceRecordId": "CAB-2026-001",
+      "verdictRecordId": "MNF-0016",
+      "sourceDetailRow": 17,
+      "normalizedRow": 17,
+      "verdictRow": 17,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0017",
+      "sourceRecordId": "CAB-2026-002",
+      "verdictRecordId": "MNF-0017",
+      "sourceDetailRow": 18,
+      "normalizedRow": 18,
+      "verdictRow": 18,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0018",
+      "sourceRecordId": "CAB-2026-003",
+      "verdictRecordId": "MNF-0018",
+      "sourceDetailRow": 19,
+      "normalizedRow": 19,
+      "verdictRow": 19,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0019",
+      "sourceRecordId": "CAB-2026-004",
+      "verdictRecordId": "MNF-0019",
+      "sourceDetailRow": 20,
+      "normalizedRow": 20,
+      "verdictRow": 20,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0020",
+      "sourceRecordId": "CAB-2026-005",
+      "verdictRecordId": "MNF-0020",
+      "sourceDetailRow": 21,
+      "normalizedRow": 21,
+      "verdictRow": 21,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0021",
+      "sourceRecordId": "CAB-2026-006",
+      "verdictRecordId": "MNF-0021",
+      "sourceDetailRow": 22,
+      "normalizedRow": 22,
+      "verdictRow": 22,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0022",
+      "sourceRecordId": "CAB-2026-007",
+      "verdictRecordId": "MNF-0022",
+      "sourceDetailRow": 23,
+      "normalizedRow": 23,
+      "verdictRow": 23,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0023",
+      "sourceRecordId": "CAB-2026-008",
+      "verdictRecordId": "MNF-0023",
+      "sourceDetailRow": 24,
+      "normalizedRow": 24,
+      "verdictRow": 24,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0024",
+      "sourceRecordId": "CAB-2026-009",
+      "verdictRecordId": "MNF-0024",
+      "sourceDetailRow": 25,
+      "normalizedRow": 25,
+      "verdictRow": 25,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0025",
+      "sourceRecordId": "CAB-2026-010",
+      "verdictRecordId": "MNF-0025",
+      "sourceDetailRow": 26,
+      "normalizedRow": 26,
+      "verdictRow": 26,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0026",
+      "sourceRecordId": "CAB-2026-011",
+      "verdictRecordId": "MNF-0026",
+      "sourceDetailRow": 27,
+      "normalizedRow": 27,
+      "verdictRow": 27,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0027",
+      "sourceRecordId": "CAB-2026-012",
+      "verdictRecordId": "MNF-0027",
+      "sourceDetailRow": 28,
+      "normalizedRow": 28,
+      "verdictRow": 28,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0028",
+      "sourceRecordId": "CAB-2026-013",
+      "verdictRecordId": "MNF-0028",
+      "sourceDetailRow": 29,
+      "normalizedRow": 29,
+      "verdictRow": 29,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0029",
+      "sourceRecordId": "CAB-2026-014",
+      "verdictRecordId": "MNF-0029",
+      "sourceDetailRow": 30,
+      "normalizedRow": 30,
+      "verdictRow": 30,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0030",
+      "sourceRecordId": "CAB-2026-015",
+      "verdictRecordId": "MNF-0030",
+      "sourceDetailRow": 31,
+      "normalizedRow": 31,
+      "verdictRow": 31,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0031",
+      "sourceRecordId": "PEP-2026-001",
+      "verdictRecordId": "MNF-0031",
+      "sourceDetailRow": 34,
+      "normalizedRow": 32,
+      "verdictRow": 32,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0032",
+      "sourceRecordId": "PEP-2026-002",
+      "verdictRecordId": "MNF-0032",
+      "sourceDetailRow": 35,
+      "normalizedRow": 33,
+      "verdictRow": 33,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0033",
+      "sourceRecordId": "PEP-2026-003",
+      "verdictRecordId": "MNF-0033",
+      "sourceDetailRow": 36,
+      "normalizedRow": 34,
+      "verdictRow": 34,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0034",
+      "sourceRecordId": "PEP-2026-004",
+      "verdictRecordId": "MNF-0034",
+      "sourceDetailRow": 37,
+      "normalizedRow": 35,
+      "verdictRow": 35,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0035",
+      "sourceRecordId": "PEP-2026-005",
+      "verdictRecordId": "MNF-0035",
+      "sourceDetailRow": 38,
+      "normalizedRow": 36,
+      "verdictRow": 36,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0036",
+      "sourceRecordId": "PEP-2026-006",
+      "verdictRecordId": "MNF-0036",
+      "sourceDetailRow": 39,
+      "normalizedRow": 37,
+      "verdictRow": 37,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0037",
+      "sourceRecordId": "PEP-2026-007",
+      "verdictRecordId": "MNF-0037",
+      "sourceDetailRow": 40,
+      "normalizedRow": 38,
+      "verdictRow": 38,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0038",
+      "sourceRecordId": "PEP-2026-008",
+      "verdictRecordId": "MNF-0038",
+      "sourceDetailRow": 41,
+      "normalizedRow": 39,
+      "verdictRow": 39,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0039",
+      "sourceRecordId": "PEP-2026-009",
+      "verdictRecordId": "MNF-0039",
+      "sourceDetailRow": 42,
+      "normalizedRow": 40,
+      "verdictRow": 40,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0040",
+      "sourceRecordId": "PEP-2026-010",
+      "verdictRecordId": "MNF-0040",
+      "sourceDetailRow": 43,
+      "normalizedRow": 41,
+      "verdictRow": 41,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0041",
+      "sourceRecordId": "PEP-2026-011",
+      "verdictRecordId": "MNF-0041",
+      "sourceDetailRow": 44,
+      "normalizedRow": 42,
+      "verdictRow": 42,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0042",
+      "sourceRecordId": "PEP-2026-012",
+      "verdictRecordId": "MNF-0042",
+      "sourceDetailRow": 45,
+      "normalizedRow": 43,
+      "verdictRow": 43,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0043",
+      "sourceRecordId": "PEP-2026-013",
+      "verdictRecordId": "MNF-0043",
+      "sourceDetailRow": 46,
+      "normalizedRow": 44,
+      "verdictRow": 44,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0044",
+      "sourceRecordId": "PEP-2026-014",
+      "verdictRecordId": "MNF-0044",
+      "sourceDetailRow": 47,
+      "normalizedRow": 45,
+      "verdictRow": 45,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0045",
+      "sourceRecordId": "GAR-2026-001",
+      "verdictRecordId": "MNF-0045",
+      "sourceDetailRow": 51,
+      "normalizedRow": 46,
+      "verdictRow": 46,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0046",
+      "sourceRecordId": "GAR-2026-002",
+      "verdictRecordId": "MNF-0046",
+      "sourceDetailRow": 52,
+      "normalizedRow": 47,
+      "verdictRow": 47,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0047",
+      "sourceRecordId": "GAR-2026-003",
+      "verdictRecordId": "MNF-0047",
+      "sourceDetailRow": 53,
+      "normalizedRow": 48,
+      "verdictRow": 48,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0048",
+      "sourceRecordId": "GAR-2026-004",
+      "verdictRecordId": "MNF-0048",
+      "sourceDetailRow": 54,
+      "normalizedRow": 49,
+      "verdictRow": 49,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0049",
+      "sourceRecordId": "GAR-2026-005",
+      "verdictRecordId": "MNF-0049",
+      "sourceDetailRow": 55,
+      "normalizedRow": 50,
+      "verdictRow": 50,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0050",
+      "sourceRecordId": "GAR-2026-006",
+      "verdictRecordId": "MNF-0050",
+      "sourceDetailRow": 56,
+      "normalizedRow": 51,
+      "verdictRow": 51,
+      "differingFields": [
+        "detail",
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0051",
+      "sourceRecordId": "GAR-2026-007",
+      "verdictRecordId": "MNF-0051",
+      "sourceDetailRow": 57,
+      "normalizedRow": 52,
+      "verdictRow": 52,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0052",
+      "sourceRecordId": "GAR-2026-008",
+      "verdictRecordId": "MNF-0052",
+      "sourceDetailRow": 58,
+      "normalizedRow": 53,
+      "verdictRow": 53,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0053",
+      "sourceRecordId": "GAR-2026-009",
+      "verdictRecordId": "MNF-0053",
+      "sourceDetailRow": 59,
+      "normalizedRow": 54,
+      "verdictRow": 54,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0054",
+      "sourceRecordId": "GAR-2026-010",
+      "verdictRecordId": "MNF-0054",
+      "sourceDetailRow": 60,
+      "normalizedRow": 55,
+      "verdictRow": 55,
+      "differingFields": [
+        "detail",
+        "sourceTitle",
+        "sourceUrl",
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0055",
+      "sourceRecordId": "GAR-2026-011",
+      "verdictRecordId": "MNF-0055",
+      "sourceDetailRow": 61,
+      "normalizedRow": 56,
+      "verdictRow": 56,
+      "differingFields": [
+        "detail",
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0056",
+      "sourceRecordId": "GAR-2026-012",
+      "verdictRecordId": "MNF-0056",
+      "sourceDetailRow": 62,
+      "normalizedRow": 57,
+      "verdictRow": 57,
+      "differingFields": [
+        "sourceUrl"
+      ]
+    },
+    {
+      "id": "MNF-0057",
+      "sourceRecordId": "GAR-2026-013",
+      "verdictRecordId": "MNF-0057",
+      "sourceDetailRow": 63,
+      "normalizedRow": 58,
+      "verdictRow": 58,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0058",
+      "sourceRecordId": "GAR-2026-014",
+      "verdictRecordId": "MNF-0058",
+      "sourceDetailRow": 64,
+      "normalizedRow": 59,
+      "verdictRow": 59,
+      "differingFields": [
+        "sourceUrl",
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0059",
+      "sourceRecordId": "GAR-2026-015",
+      "verdictRecordId": "MNF-0059",
+      "sourceDetailRow": 65,
+      "normalizedRow": 60,
+      "verdictRow": 60,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0060",
+      "sourceRecordId": "GAR-2026-016",
+      "verdictRecordId": "MNF-0060",
+      "sourceDetailRow": 66,
+      "normalizedRow": 61,
+      "verdictRow": 61,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0061",
+      "sourceRecordId": "GAR-2026-017",
+      "verdictRecordId": "MNF-0061",
+      "sourceDetailRow": 67,
+      "normalizedRow": 62,
+      "verdictRow": 62,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0062",
+      "sourceRecordId": "GAR-2026-018",
+      "verdictRecordId": "MNF-0062",
+      "sourceDetailRow": 68,
+      "normalizedRow": 63,
+      "verdictRow": 63,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0063",
+      "sourceRecordId": "ONI-2026-001",
+      "verdictRecordId": "MNF-0063",
+      "sourceDetailRow": 71,
+      "normalizedRow": 64,
+      "verdictRow": 64,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0064",
+      "sourceRecordId": "ONI-2026-002",
+      "verdictRecordId": "MNF-0064",
+      "sourceDetailRow": 72,
+      "normalizedRow": 65,
+      "verdictRow": 65,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0065",
+      "sourceRecordId": "ONI-2026-003",
+      "verdictRecordId": "MNF-0065",
+      "sourceDetailRow": 73,
+      "normalizedRow": 66,
+      "verdictRow": 66,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0066",
+      "sourceRecordId": "ONI-2026-004",
+      "verdictRecordId": "MNF-0066",
+      "sourceDetailRow": 74,
+      "normalizedRow": 67,
+      "verdictRow": 67,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0067",
+      "sourceRecordId": "ONI-2026-005",
+      "verdictRecordId": "MNF-0067",
+      "sourceDetailRow": 75,
+      "normalizedRow": 68,
+      "verdictRow": 68,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0068",
+      "sourceRecordId": "ONI-2026-006",
+      "verdictRecordId": "MNF-0068",
+      "sourceDetailRow": 76,
+      "normalizedRow": 69,
+      "verdictRow": 69,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0069",
+      "sourceRecordId": "ONI-2026-007",
+      "verdictRecordId": "MNF-0069",
+      "sourceDetailRow": 77,
+      "normalizedRow": 70,
+      "verdictRow": 70,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0070",
+      "sourceRecordId": "ONI-2026-008",
+      "verdictRecordId": "MNF-0070",
+      "sourceDetailRow": 78,
+      "normalizedRow": 71,
+      "verdictRow": 71,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0071",
+      "sourceRecordId": "ONI-2026-009",
+      "verdictRecordId": "MNF-0071",
+      "sourceDetailRow": 79,
+      "normalizedRow": 72,
+      "verdictRow": 72,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0072",
+      "sourceRecordId": "ONI-2026-010",
+      "verdictRecordId": "MNF-0072",
+      "sourceDetailRow": 80,
+      "normalizedRow": 73,
+      "verdictRow": 73,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0073",
+      "sourceRecordId": "ONI-2026-011",
+      "verdictRecordId": "MNF-0073",
+      "sourceDetailRow": 81,
+      "normalizedRow": 74,
+      "verdictRow": 74,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0074",
+      "sourceRecordId": "ONI-2026-012",
+      "verdictRecordId": "MNF-0074",
+      "sourceDetailRow": 82,
+      "normalizedRow": 75,
+      "verdictRow": 75,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0075",
+      "sourceRecordId": "ONI-2026-013",
+      "verdictRecordId": "MNF-0075",
+      "sourceDetailRow": 83,
+      "normalizedRow": 76,
+      "verdictRow": 76,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0076",
+      "sourceRecordId": "ONI-2026-014",
+      "verdictRecordId": "MNF-0076",
+      "sourceDetailRow": 84,
+      "normalizedRow": 77,
+      "verdictRow": 77,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0077",
+      "sourceRecordId": "ONI-2026-015",
+      "verdictRecordId": "MNF-0077",
+      "sourceDetailRow": 85,
+      "normalizedRow": 78,
+      "verdictRow": 78,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0078",
+      "sourceRecordId": "ONI-2026-016",
+      "verdictRecordId": "MNF-0078",
+      "sourceDetailRow": 86,
+      "normalizedRow": 79,
+      "verdictRow": 79,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0079",
+      "sourceRecordId": "ONI-2026-017",
+      "verdictRecordId": "MNF-0079",
+      "sourceDetailRow": 87,
+      "normalizedRow": 80,
+      "verdictRow": 80,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0080",
+      "sourceRecordId": "POT-2026-001",
+      "verdictRecordId": "MNF-0080",
+      "sourceDetailRow": 88,
+      "normalizedRow": 81,
+      "verdictRow": 81,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0081",
+      "sourceRecordId": "POT-2026-002",
+      "verdictRecordId": "MNF-0081",
+      "sourceDetailRow": 89,
+      "normalizedRow": 82,
+      "verdictRow": 82,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0082",
+      "sourceRecordId": "POT-2026-003",
+      "verdictRecordId": "MNF-0082",
+      "sourceDetailRow": 90,
+      "normalizedRow": 83,
+      "verdictRow": 83,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0083",
+      "sourceRecordId": "POT-2026-004",
+      "verdictRecordId": "MNF-0083",
+      "sourceDetailRow": 91,
+      "normalizedRow": 84,
+      "verdictRow": 84,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0084",
+      "sourceRecordId": "POT-2026-005",
+      "verdictRecordId": "MNF-0084",
+      "sourceDetailRow": 92,
+      "normalizedRow": 85,
+      "verdictRow": 85,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0085",
+      "sourceRecordId": "POT-2026-006",
+      "verdictRecordId": "MNF-0085",
+      "sourceDetailRow": 93,
+      "normalizedRow": 86,
+      "verdictRow": 86,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0086",
+      "sourceRecordId": "POT-2026-007",
+      "verdictRecordId": "MNF-0086",
+      "sourceDetailRow": 94,
+      "normalizedRow": 87,
+      "verdictRow": 87,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0087",
+      "sourceRecordId": "POT-2026-008",
+      "verdictRecordId": "MNF-0087",
+      "sourceDetailRow": 95,
+      "normalizedRow": 88,
+      "verdictRow": 88,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0088",
+      "sourceRecordId": "POT-2026-009",
+      "verdictRecordId": "MNF-0088",
+      "sourceDetailRow": 96,
+      "normalizedRow": 89,
+      "verdictRow": 89,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0089",
+      "sourceRecordId": "POT-2026-010",
+      "verdictRecordId": "MNF-0089",
+      "sourceDetailRow": 97,
+      "normalizedRow": 90,
+      "verdictRow": 90,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0090",
+      "sourceRecordId": "POT-2026-011",
+      "verdictRecordId": "MNF-0090",
+      "sourceDetailRow": 98,
+      "normalizedRow": 91,
+      "verdictRow": 91,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0091",
+      "sourceRecordId": "POT-2026-012",
+      "verdictRecordId": "MNF-0091",
+      "sourceDetailRow": 99,
+      "normalizedRow": 92,
+      "verdictRow": 92,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0092",
+      "sourceRecordId": "POT-2026-013",
+      "verdictRecordId": "MNF-0092",
+      "sourceDetailRow": 100,
+      "normalizedRow": 93,
+      "verdictRow": 93,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0093",
+      "sourceRecordId": "POT-2026-014",
+      "verdictRecordId": "MNF-0093",
+      "sourceDetailRow": 101,
+      "normalizedRow": 94,
+      "verdictRow": 94,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0094",
+      "sourceRecordId": "POT-2026-015",
+      "verdictRecordId": "MNF-0094",
+      "sourceDetailRow": 102,
+      "normalizedRow": 95,
+      "verdictRow": 95,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0095",
+      "sourceRecordId": "POT-2026-016",
+      "verdictRecordId": "MNF-0095",
+      "sourceDetailRow": 103,
+      "normalizedRow": 96,
+      "verdictRow": 96,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0096",
+      "sourceRecordId": "POT-2026-017",
+      "verdictRecordId": "MNF-0096",
+      "sourceDetailRow": 104,
+      "normalizedRow": 97,
+      "verdictRow": 97,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0097",
+      "sourceRecordId": "POT-2026-018",
+      "verdictRecordId": "MNF-0097",
+      "sourceDetailRow": 105,
+      "normalizedRow": 98,
+      "verdictRow": 98,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0098",
+      "sourceRecordId": "POT-2026-019",
+      "verdictRecordId": "MNF-0098",
+      "sourceDetailRow": 106,
+      "normalizedRow": 99,
+      "verdictRow": 99,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0099",
+      "sourceRecordId": "SP-2026-001",
+      "verdictRecordId": "MNF-0099",
+      "sourceDetailRow": 107,
+      "normalizedRow": 100,
+      "verdictRow": 100,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0100",
+      "sourceRecordId": "SP-2026-002",
+      "verdictRecordId": "MNF-0100",
+      "sourceDetailRow": 108,
+      "normalizedRow": 101,
+      "verdictRow": 101,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0101",
+      "sourceRecordId": "SP-2026-003",
+      "verdictRecordId": "MNF-0101",
+      "sourceDetailRow": 109,
+      "normalizedRow": 102,
+      "verdictRow": 102,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0102",
+      "sourceRecordId": "SP-2026-004",
+      "verdictRecordId": "MNF-0102",
+      "sourceDetailRow": 110,
+      "normalizedRow": 103,
+      "verdictRow": 103,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0103",
+      "sourceRecordId": "SP-2026-005",
+      "verdictRecordId": "MNF-0103",
+      "sourceDetailRow": 111,
+      "normalizedRow": 104,
+      "verdictRow": 104,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0104",
+      "sourceRecordId": "SP-2026-006",
+      "verdictRecordId": "MNF-0104",
+      "sourceDetailRow": 112,
+      "normalizedRow": 105,
+      "verdictRow": 105,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0105",
+      "sourceRecordId": "SP-2026-007",
+      "verdictRecordId": "MNF-0105",
+      "sourceDetailRow": 113,
+      "normalizedRow": 106,
+      "verdictRow": 106,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0106",
+      "sourceRecordId": "SP-2026-008",
+      "verdictRecordId": "MNF-0106",
+      "sourceDetailRow": 114,
+      "normalizedRow": 107,
+      "verdictRow": 107,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0107",
+      "sourceRecordId": "SP-2026-009",
+      "verdictRecordId": "MNF-0107",
+      "sourceDetailRow": 115,
+      "normalizedRow": 108,
+      "verdictRow": 108,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0108",
+      "sourceRecordId": "SP-2026-010",
+      "verdictRecordId": "MNF-0108",
+      "sourceDetailRow": 116,
+      "normalizedRow": 109,
+      "verdictRow": 109,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0109",
+      "sourceRecordId": "SP-2026-011",
+      "verdictRecordId": "MNF-0109",
+      "sourceDetailRow": 117,
+      "normalizedRow": 110,
+      "verdictRow": 110,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0110",
+      "sourceRecordId": "SP-2026-012",
+      "verdictRecordId": "MNF-0110",
+      "sourceDetailRow": 118,
+      "normalizedRow": 111,
+      "verdictRow": 111,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0111",
+      "sourceRecordId": "SP-2026-013",
+      "verdictRecordId": "MNF-0111",
+      "sourceDetailRow": 119,
+      "normalizedRow": 112,
+      "verdictRow": 112,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0112",
+      "sourceRecordId": "SP-2026-014",
+      "verdictRecordId": "MNF-0112",
+      "sourceDetailRow": 120,
+      "normalizedRow": 113,
+      "verdictRow": 113,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0113",
+      "sourceRecordId": "SP-2026-015",
+      "verdictRecordId": "MNF-0113",
+      "sourceDetailRow": 121,
+      "normalizedRow": 114,
+      "verdictRow": 114,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0114",
+      "sourceRecordId": "SP-2026-016",
+      "verdictRecordId": "MNF-0114",
+      "sourceDetailRow": 122,
+      "normalizedRow": 115,
+      "verdictRow": 115,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0115",
+      "sourceRecordId": "SP-2026-017",
+      "verdictRecordId": "MNF-0115",
+      "sourceDetailRow": 123,
+      "normalizedRow": 116,
+      "verdictRow": 116,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0116",
+      "sourceRecordId": "SP-2026-018",
+      "verdictRecordId": "MNF-0116",
+      "sourceDetailRow": 124,
+      "normalizedRow": 117,
+      "verdictRow": 117,
+      "differingFields": [
+        "detail",
+        "sourceTitle",
+        "sourceUrl",
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0117",
+      "sourceRecordId": "SP-2026-019",
+      "verdictRecordId": "MNF-0117",
+      "sourceDetailRow": 125,
+      "normalizedRow": 118,
+      "verdictRow": 118,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0118",
+      "sourceRecordId": "SOY-2026-001",
+      "verdictRecordId": "MNF-0118",
+      "sourceDetailRow": 126,
+      "normalizedRow": 119,
+      "verdictRow": 119,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0119",
+      "sourceRecordId": "SOY-2026-002",
+      "verdictRecordId": "MNF-0119",
+      "sourceDetailRow": 127,
+      "normalizedRow": 120,
+      "verdictRow": 120,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0120",
+      "sourceRecordId": "SOY-2026-003",
+      "verdictRecordId": "MNF-0120",
+      "sourceDetailRow": 128,
+      "normalizedRow": 121,
+      "verdictRow": 121,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0121",
+      "sourceRecordId": "SOY-2026-004",
+      "verdictRecordId": "MNF-0121",
+      "sourceDetailRow": 129,
+      "normalizedRow": 122,
+      "verdictRow": 122,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0122",
+      "sourceRecordId": "SOY-2026-005",
+      "verdictRecordId": "MNF-0122",
+      "sourceDetailRow": 130,
+      "normalizedRow": 123,
+      "verdictRow": 123,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0123",
+      "sourceRecordId": "SOY-2026-006",
+      "verdictRecordId": "MNF-0123",
+      "sourceDetailRow": 131,
+      "normalizedRow": 124,
+      "verdictRow": 124,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0124",
+      "sourceRecordId": "SOY-2026-007",
+      "verdictRecordId": "MNF-0124",
+      "sourceDetailRow": 132,
+      "normalizedRow": 125,
+      "verdictRow": 125,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0125",
+      "sourceRecordId": "SOY-2026-008",
+      "verdictRecordId": "MNF-0125",
+      "sourceDetailRow": 133,
+      "normalizedRow": 126,
+      "verdictRow": 126,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0126",
+      "sourceRecordId": "SOY-2026-009",
+      "verdictRecordId": "MNF-0126",
+      "sourceDetailRow": 134,
+      "normalizedRow": 127,
+      "verdictRow": 127,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0127",
+      "sourceRecordId": "SOY-2026-010",
+      "verdictRecordId": "MNF-0127",
+      "sourceDetailRow": 135,
+      "normalizedRow": 128,
+      "verdictRow": 128,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0128",
+      "sourceRecordId": "SOY-2026-011",
+      "verdictRecordId": "MNF-0128",
+      "sourceDetailRow": 136,
+      "normalizedRow": 129,
+      "verdictRow": 129,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0129",
+      "sourceRecordId": "SOY-2026-012",
+      "verdictRecordId": "MNF-0129",
+      "sourceDetailRow": 137,
+      "normalizedRow": 130,
+      "verdictRow": 130,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0130",
+      "sourceRecordId": "SOY-2026-013",
+      "verdictRecordId": "MNF-0130",
+      "sourceDetailRow": 138,
+      "normalizedRow": 131,
+      "verdictRow": 131,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0131",
+      "sourceRecordId": "SOY-2026-014",
+      "verdictRecordId": "MNF-0131",
+      "sourceDetailRow": 139,
+      "normalizedRow": 132,
+      "verdictRow": 132,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0132",
+      "sourceRecordId": "SOY-2026-015",
+      "verdictRecordId": "MNF-0132",
+      "sourceDetailRow": 140,
+      "normalizedRow": 133,
+      "verdictRow": 133,
+      "differingFields": [
+        "detail",
+        "sourceUrl",
+        "evidenceLocation",
+        "lastCheckedAt"
+      ]
+    },
+    {
+      "id": "MNF-0133",
+      "sourceRecordId": "SOY-2026-016",
+      "verdictRecordId": "MNF-0133",
+      "sourceDetailRow": 141,
+      "normalizedRow": 134,
+      "verdictRow": 134,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0134",
+      "sourceRecordId": "SOY-2026-017",
+      "verdictRecordId": "MNF-0134",
+      "sourceDetailRow": 142,
+      "normalizedRow": 135,
+      "verdictRow": 135,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0135",
+      "sourceRecordId": "SOY-2026-018",
+      "verdictRecordId": "MNF-0135",
+      "sourceDetailRow": 143,
+      "normalizedRow": 136,
+      "verdictRow": 136,
+      "differingFields": [
+        "detail",
+        "evidenceLocation",
+        "lastCheckedAt"
+      ]
+    },
+    {
+      "id": "MNF-0136",
+      "sourceRecordId": "ALLIUM-001",
+      "verdictRecordId": "MNF-0136",
+      "sourceDetailRow": 144,
+      "normalizedRow": 137,
+      "verdictRow": 137,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0137",
+      "sourceRecordId": "ALLIUM-002",
+      "verdictRecordId": "MNF-0137",
+      "sourceDetailRow": 145,
+      "normalizedRow": 138,
+      "verdictRow": 138,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0138",
+      "sourceRecordId": "ALLIUM-003",
+      "verdictRecordId": "MNF-0138",
+      "sourceDetailRow": 146,
+      "normalizedRow": 139,
+      "verdictRow": 139,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0139",
+      "sourceRecordId": "ALLIUM-004",
+      "verdictRecordId": "MNF-0139",
+      "sourceDetailRow": 147,
+      "normalizedRow": 140,
+      "verdictRow": 140,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0140",
+      "sourceRecordId": "ALLIUM-005",
+      "verdictRecordId": "MNF-0140",
+      "sourceDetailRow": 148,
+      "normalizedRow": 141,
+      "verdictRow": 141,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0141",
+      "sourceRecordId": "ALLIUM-006",
+      "verdictRecordId": "MNF-0141",
+      "sourceDetailRow": 149,
+      "normalizedRow": 142,
+      "verdictRow": 142,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0142",
+      "sourceRecordId": "ALLIUM-007",
+      "verdictRecordId": "MNF-0142",
+      "sourceDetailRow": 150,
+      "normalizedRow": 143,
+      "verdictRow": 143,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0143",
+      "sourceRecordId": "ALLIUM-008",
+      "verdictRecordId": "MNF-0143",
+      "sourceDetailRow": 151,
+      "normalizedRow": 144,
+      "verdictRow": 144,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0144",
+      "sourceRecordId": "ALLIUM-009",
+      "verdictRecordId": "MNF-0144",
+      "sourceDetailRow": 152,
+      "normalizedRow": 145,
+      "verdictRow": 145,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0145",
+      "sourceRecordId": "ALLIUM-010",
+      "verdictRecordId": "MNF-0145",
+      "sourceDetailRow": 153,
+      "normalizedRow": 146,
+      "verdictRow": 146,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0146",
+      "sourceRecordId": "ALLIUM-011",
+      "verdictRecordId": "MNF-0146",
+      "sourceDetailRow": 154,
+      "normalizedRow": 147,
+      "verdictRow": 147,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0147",
+      "sourceRecordId": "ALLIUM-012",
+      "verdictRecordId": "MNF-0147",
+      "sourceDetailRow": 155,
+      "normalizedRow": 148,
+      "verdictRow": 148,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0148",
+      "sourceRecordId": "ALLIUM-013",
+      "verdictRecordId": "MNF-0148",
+      "sourceDetailRow": 156,
+      "normalizedRow": 149,
+      "verdictRow": 149,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0149",
+      "sourceRecordId": "ALLIUM-014",
+      "verdictRecordId": "MNF-0149",
+      "sourceDetailRow": 157,
+      "normalizedRow": 150,
+      "verdictRow": 150,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0150",
+      "sourceRecordId": "ALLIUM-015",
+      "verdictRecordId": "MNF-0150",
+      "sourceDetailRow": 158,
+      "normalizedRow": 151,
+      "verdictRow": 151,
+      "differingFields": [
+        "detail",
+        "sourceUrl",
+        "evidenceLocation",
+        "lastCheckedAt"
+      ]
+    },
+    {
+      "id": "MNF-0151",
+      "sourceRecordId": "ALLIUM-016",
+      "verdictRecordId": "MNF-0151",
+      "sourceDetailRow": 159,
+      "normalizedRow": 152,
+      "verdictRow": 152,
+      "differingFields": [
+        "sourceUrl",
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0152",
+      "sourceRecordId": "WHEAT-001",
+      "verdictRecordId": "MNF-0152",
+      "sourceDetailRow": 160,
+      "normalizedRow": 153,
+      "verdictRow": 153,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0153",
+      "sourceRecordId": "WHEAT-002",
+      "verdictRecordId": "MNF-0153",
+      "sourceDetailRow": 161,
+      "normalizedRow": 154,
+      "verdictRow": 154,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0154",
+      "sourceRecordId": "WHEAT-003",
+      "verdictRecordId": "MNF-0154",
+      "sourceDetailRow": 162,
+      "normalizedRow": 155,
+      "verdictRow": 155,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0155",
+      "sourceRecordId": "WHEAT-004",
+      "verdictRecordId": "MNF-0155",
+      "sourceDetailRow": 163,
+      "normalizedRow": 156,
+      "verdictRow": 156,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0156",
+      "sourceRecordId": "WHEAT-005",
+      "verdictRecordId": "MNF-0156",
+      "sourceDetailRow": 164,
+      "normalizedRow": 157,
+      "verdictRow": 157,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0157",
+      "sourceRecordId": "WHEAT-006",
+      "verdictRecordId": "MNF-0157",
+      "sourceDetailRow": 165,
+      "normalizedRow": 158,
+      "verdictRow": 158,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0158",
+      "sourceRecordId": "WHEAT-007",
+      "verdictRecordId": "MNF-0158",
+      "sourceDetailRow": 166,
+      "normalizedRow": 159,
+      "verdictRow": 159,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0159",
+      "sourceRecordId": "WHEAT-008",
+      "verdictRecordId": "MNF-0159",
+      "sourceDetailRow": 167,
+      "normalizedRow": 160,
+      "verdictRow": 160,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0160",
+      "sourceRecordId": "WHEAT-009",
+      "verdictRecordId": "MNF-0160",
+      "sourceDetailRow": 168,
+      "normalizedRow": 161,
+      "verdictRow": 161,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0161",
+      "sourceRecordId": "WHEAT-010",
+      "verdictRecordId": "MNF-0161",
+      "sourceDetailRow": 169,
+      "normalizedRow": 162,
+      "verdictRow": 162,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0162",
+      "sourceRecordId": "WHEAT-011",
+      "verdictRecordId": "MNF-0162",
+      "sourceDetailRow": 170,
+      "normalizedRow": 163,
+      "verdictRow": 163,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0163",
+      "sourceRecordId": "WHEAT-012",
+      "verdictRecordId": "MNF-0163",
+      "sourceDetailRow": 171,
+      "normalizedRow": 164,
+      "verdictRow": 164,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0164",
+      "sourceRecordId": "WHEAT-013",
+      "verdictRecordId": "MNF-0164",
+      "sourceDetailRow": 172,
+      "normalizedRow": 165,
+      "verdictRow": 165,
+      "differingFields": []
+    },
+    {
+      "id": "MNF-0165",
+      "sourceRecordId": "WHEAT-014",
+      "verdictRecordId": "MNF-0165",
+      "sourceDetailRow": 173,
+      "normalizedRow": 166,
+      "verdictRow": 166,
+      "differingFields": [
+        "evidenceLocation"
+      ]
+    },
+    {
+      "id": "MNF-0166",
+      "sourceRecordId": "WHEAT-015",
+      "verdictRecordId": "MNF-0166",
+      "sourceDetailRow": 174,
+      "normalizedRow": 167,
+      "verdictRow": 167,
+      "differingFields": [
+        "detail",
+        "sourceUrl",
+        "evidenceLocation",
+        "lastCheckedAt"
+      ]
+    },
+    {
+      "id": "MNF-0167",
+      "sourceRecordId": "WHEAT-016",
+      "verdictRecordId": "MNF-0167",
+      "sourceDetailRow": 175,
+      "normalizedRow": 168,
+      "verdictRow": 168,
+      "differingFields": [
+        "detail",
+        "sourceUrl",
+        "evidenceLocation",
+        "lastCheckedAt"
+      ]
+    },
+    {
+      "id": "MNF-0168",
+      "sourceRecordId": "WHEAT-017",
+      "verdictRecordId": "MNF-0168",
+      "sourceDetailRow": 176,
+      "normalizedRow": 169,
+      "verdictRow": 169,
+      "differingFields": [
+        "detail",
+        "sourceUrl",
+        "evidenceLocation",
+        "lastCheckedAt"
+      ]
+    },
+    {
+      "id": "MNF-0169",
+      "sourceRecordId": "WHEAT-018",
+      "verdictRecordId": "MNF-0169",
+      "sourceDetailRow": 177,
+      "normalizedRow": 170,
+      "verdictRow": 170,
+      "differingFields": []
+    }
+  ],
+  "fieldComparisonDefinition": {
+    "normalizedToDetail": {
+      "crop": "B=B",
+      "regionAndCropping": "C=C",
+      "growthStageOrTopic": "D=D",
+      "detail": "E=E",
+      "unitConditions": "F=F",
+      "sourceTitle": "02열 G ↔ 04열 H",
+      "sourcePublisher": "02열 H ↔ 04열 G",
+      "sourceUrl": "I=I",
+      "evidenceLocation": "J=J",
+      "publicationDate": "K=K",
+      "lastCheckedAt": "L=L",
+      "sourceVerificationStatus": "M=M"
+    },
+    "comparisonRule": "값이 같지 않으면 차이로 기록합니다. 내용 유사도만으로 중복을 자동 확정하지 않으며, 원문 대조 전에 기존 행을 덮어쓰지 않습니다."
+  },
+  "offItems": [
+    {
+      "id": "OFF-20261021-04",
+      "sourceWorkbookRow": 32,
+      "sourceFieldMappingStatus": "unresolved",
+      "normalizedRecordId": null,
+      "verdictRecordId": null,
+      "possibleDuplicateCandidates": [
+        {
+          "recordId": "MNF-0027",
+          "relationship": "partial_topic_overlap",
+          "note": "배추 육묘·관수 주제의 부분 중첩 후보. 원문 근거와 적용 조건을 대조하기 전에는 중복으로 확정하지 않음."
+        }
+      ],
+      "cause": "원인 미확정: OFF ID가 정규화 DB와 게시 판정 시트에 없으나, 제외 사유를 입증할 기록은 확인되지 않음",
+      "recommendation": "원본 행과 셀 값을 보존하고 기존 ID·원문을 대조한 뒤 별도 검토 상태를 결정"
+    },
+    {
+      "id": "OFF-20261021-05",
+      "sourceWorkbookRow": 33,
+      "sourceFieldMappingStatus": "unresolved",
+      "normalizedRecordId": null,
+      "verdictRecordId": null,
+      "possibleDuplicateCandidates": [],
+      "cause": "원인 미확정: OFF ID가 정규화 DB와 게시 판정 시트에 없으나, 제외 사유를 입증할 기록은 확인되지 않음",
+      "recommendation": "원본 행과 셀 값을 보존하고 기존 ID·원문을 대조한 뒤 별도 검토 상태를 결정"
+    },
+    {
+      "id": "OFF-20261021-01",
+      "sourceWorkbookRow": 48,
+      "sourceFieldMappingStatus": "aligned_to_sheet_columns",
+      "normalizedRecordId": null,
+      "verdictRecordId": null,
+      "possibleDuplicateCandidates": [],
+      "cause": "원인 미확정: OFF ID가 정규화 DB와 게시 판정 시트에 없으나, 제외 사유를 입증할 기록은 확인되지 않음",
+      "recommendation": "원본 행과 셀 값을 보존하고 기존 ID·원문을 대조한 뒤 별도 검토 상태를 결정"
+    },
+    {
+      "id": "OFF-20261021-02",
+      "sourceWorkbookRow": 49,
+      "sourceFieldMappingStatus": "aligned_to_sheet_columns",
+      "normalizedRecordId": null,
+      "verdictRecordId": null,
+      "possibleDuplicateCandidates": [],
+      "cause": "원인 미확정: OFF ID가 정규화 DB와 게시 판정 시트에 없으나, 제외 사유를 입증할 기록은 확인되지 않음",
+      "recommendation": "원본 행과 셀 값을 보존하고 기존 ID·원문을 대조한 뒤 별도 검토 상태를 결정"
+    },
+    {
+      "id": "OFF-20261021-03",
+      "sourceWorkbookRow": 50,
+      "sourceFieldMappingStatus": "aligned_to_sheet_columns",
+      "normalizedRecordId": null,
+      "verdictRecordId": null,
+      "possibleDuplicateCandidates": [],
+      "cause": "원인 미확정: OFF ID가 정규화 DB와 게시 판정 시트에 없으나, 제외 사유를 입증할 기록은 확인되지 않음",
+      "recommendation": "원본 행과 셀 값을 보존하고 기존 ID·원문을 대조한 뒤 별도 검토 상태를 결정"
+    },
+    {
+      "id": "OFF-20261021-06",
+      "sourceWorkbookRow": 69,
+      "sourceFieldMappingStatus": "aligned_to_sheet_columns",
+      "normalizedRecordId": null,
+      "verdictRecordId": null,
+      "possibleDuplicateCandidates": [],
+      "cause": "원인 미확정: OFF ID가 정규화 DB와 게시 판정 시트에 없으나, 제외 사유를 입증할 기록은 확인되지 않음",
+      "recommendation": "원본 행과 셀 값을 보존하고 기존 ID·원문을 대조한 뒤 별도 검토 상태를 결정"
+    },
+    {
+      "id": "OFF-20261021-07",
+      "sourceWorkbookRow": 70,
+      "sourceFieldMappingStatus": "aligned_to_sheet_columns",
+      "normalizedRecordId": null,
+      "verdictRecordId": null,
+      "possibleDuplicateCandidates": [],
+      "cause": "원인 미확정: OFF ID가 정규화 DB와 게시 판정 시트에 없으나, 제외 사유를 입증할 기록은 확인되지 않음",
+      "recommendation": "원본 행과 셀 값을 보존하고 기존 ID·원문을 대조한 뒤 별도 검토 상태를 결정"
+    }
+  ],
+  "nonDestructiveNote": "원본 엑셀과 기존 카탈로그를 수정하지 않았습니다. 추가 검토 레코드는 게시 승인이나 검증 완료를 뜻하지 않습니다."
+}

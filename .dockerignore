@@ -1,0 +1,29 @@
+# Deny top-level entries first so excluded directories can be pruned.
+*
+!Dockerfile
+!.dockerignore
+!index.html
+!assets/
+!assets/**
+!data/
+data/*
+!data/smart-agriculture-catalog.json
+!data/crop-cultivation-records.json
+!data/support-programs.json
+!data/finance-products.json
+!data/equipment-catalog.json
+
+# Keep explicit directory exclusions AFTER all inclusion rules.
+# Never walk research, dependency, cache, or local working directories.
+work
+work/**
+outputs
+outputs/**
+scripts
+scripts/**
+.git
+.git/**
+data/source
+data/source/**
+**/__pycache__
+**/*.py[cod]

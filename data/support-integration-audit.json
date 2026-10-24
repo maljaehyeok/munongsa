@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-24",
+  "existingCatalogProgramIds": [
+    "youth",
+    "direct",
+    "insurance",
+    "district"
+  ],
+  "sourceCsvRecordIds": [
+    "SUP-2026-001",
+    "SUP-2026-002",
+    "SUP-2026-003",
+    "SUP-2026-004",
+    "SUP-2026-005",
+    "SUP-2026-006"
+  ],
+  "detailRecordIds": [
+    "SUP-DETAIL-2026-001"
+  ],
+  "referenceDocumentCount": 6,
+  "programDetailCount": 1,
+  "newSupportProgramCards": 0,
+  "duplicatePolicy": "기존 사업 카드는 복제하지 않고 관련 ID로 연결; 지침·공모·선정결과는 참고문서 유형으로 분리.",
+  "workbookComparison": {
+    "workbook": "outputs/무농사_시범사업데이터.xlsx",
+    "purpose": "reference_only_duplicate_check",
+    "recordsCompared": 4,
+    "matchedExistingProgramIds": [
+      "youth",
+      "direct",
+      "insurance",
+      "district"
+    ],
+    "newProgramCardsAdded": 0,
+    "note": "사업목록 4건은 기존 카탈로그의 네 지원사업 카드와 대응. 원본 통합·덮어쓰기 입력으로 사용하지 않음."
+  },
+  "checks": {
+    "sourceRecordIdsUnique": true,
+    "detailRecordIdsUnique": true,
+    "allRelatedProgramsExist": true,
+    "roundTwoClosed": true,
+    "futureRecruitmentNotAssertedOpen": true
+  }
+}
