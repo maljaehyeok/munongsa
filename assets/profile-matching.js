@@ -28,7 +28,7 @@
       record.modes = asList(r.cultivationModes);
       record.audiences = asList(r.audiences);
       // Same early-career flag used by the existing profile filter; relevance only.
-      record.stages = r.needYouthCareer ? ['planned','under1','1to3'] : record.audiences.includes('prospective') ? ['planned'] : [];
+      record.stages = r.needYouthCareer ? ['planned','under1','1to3'] : [];
     } else if (kind === 'cultivationRecord' || kind === 'cultivationReview') {
       const scope = regionScope(r.regionAndCropping);
       record.regions=scope.provinces;record.national=scope.national;record.regionText=scope.text;
@@ -47,7 +47,49 @@
     }
     return record;
   }
+  // Recorded-condition comparison, not official eligibility or current availability.
+  function evaluateProgram(item,profile) {
+    const r=describe('program',item), conditions=[];
+    const selected=v=>v!=null && v!=='' && !['all','unknown'].includes(v);
+    const add=(field,status,reason,weight=0)=>conditions.push({field,status,reason,weight:status==='match'?weight:0});
+    const compare=(field,value,values,label,weight)=>{
+      if(!selected(value)) {if(values.length)add(field,'check',`${label} 미입력`);return;}
+      if(!values.length)add(field,'check',`${label} 조건 미기록`);
+      else add(field,values.includes(value)?'match':'mismatch',`${label} ${values.includes(value)?'기록과 일치':'기록과 불일치'}`,weight);
+    };
+    // Preserve the existing personal-applicant route to age-limited youth programs;
+    // age/career checks no longer depend on which personal label the user chose.
+    const audiences=item.needAge&&r.audiences.includes('young')
+      ? [...new Set([...r.audiences,'individual'])] : r.audiences;
+    compare('applicant',profile.applicant,audiences,'신청 주체',2);
+    if(item.needAge) {
+      const range=String(item.eligibility||'').match(/(\d+)\s*[~～–-]\s*(\d+)\s*세/);
+      const age=Number(profile.age);
+      if(!selected(profile.age)||!Number.isFinite(age)||age<0||!Number.isInteger(age))add('age','check','연령 미입력 또는 유효하지 않은 값');
+      else if(!range)add('age','check','연령 범위 미기록');
+      else add('age',age>=Number(range[1])&&age<=Number(range[2])?'match':'mismatch',`연령 ${range[1]}~${range[2]}세 기록과 ${age>=Number(range[1])&&age<=Number(range[2])?'일치':'불일치'} · 기준연도·예외 확인`);
+    }
+    compare('experience',profile.experience,r.stages,'영농 단계',3);
+    if(profile.applicant==='prospective'&&selected(profile.experience)&&profile.experience!=='planned')add('profile','check','예비 농업인 유형과 입력한 영농 경력이 상충함');
+    if(r.national) {
+      if(selected(profile.region))add('region','match','전국 범위 기록과 일치',2);
+    } else compare('region',profile.region,r.regions,'시·도',5);
+    // A national record does not establish crop-specific/local eligibility.
+    if(r.districts.length)compare('district',profile.district,r.districts,'시·군·구',8);
+    compare('crop',profile.crop,r.crops,'작물',7);
+    if(r.modes.includes('both')) {
+      if(selected(profile.cultivation))add('cultivation','match','시설·노지 공통 기록과 일치',2);
+    } else compare('cultivation',profile.cultivation,r.modes,'재배 방식',2);
+    if(!conditions.length)add('profile','check','조건 비교에 필요한 프로필·사업 정보 부족');
+    const matched=conditions.filter(c=>c.status==='match').map(c=>c.reason);
+    const unknown=conditions.filter(c=>c.status==='check').map(c=>c.reason);
+    const different=conditions.filter(c=>c.status==='mismatch').map(c=>c.reason);
+    const conditionStatus=different.length?'mismatch':unknown.length||!matched.length?'check':'match';
+    return {score:conditions.reduce((s,c)=>s+c.weight,0),matched,unknown,different,conditions,conditionStatus,
+      needsCheck:conditionStatus!=='match',verification:item.factVerificationStatus||'unverified'};
+  }
   function evaluate(kind,item,profile) {
+    if(kind==='program')return evaluateProgram(item,profile);
     const r=describe(kind,item), matched=[],unknown=[],different=[];
     let score=0;
     const selected=v=>v && !['all','unknown'].includes(v);
@@ -86,7 +128,7 @@
   }
   function rank(kind,rows,profile) {
     return rows.map((item,index)=>({item,index,match:evaluate(kind,item,profile)}))
-      .sort((a,b)=>b.match.score-a.match.score||a.index-b.index);
+      .sort((a,b)=>(kind==='program'?({match:0,check:1,mismatch:2}[a.match.conditionStatus]-{match:0,check:1,mismatch:2}[b.match.conditionStatus]):0)||b.match.score-a.match.score||a.index-b.index);
   }
-  root.MunongsaMatching={evaluate,rank,describe};
+  root.MunongsaMatching={evaluate,rank,describe,evaluateProgram};
 })(globalThis);
