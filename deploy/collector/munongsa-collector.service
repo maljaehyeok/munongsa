@@ -1,0 +1,28 @@
+[Unit]
+Description=Munongsa private official notice collection and approved feed export
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/munongsa
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONIOENCODING=utf-8
+Environment=MUNONGSA_STATE_DIR=/var/lib/munongsa
+Environment=MUNONGSA_PUBLIC_DIR=/var/lib/munongsa-public
+EnvironmentFile=-/etc/munongsa/collector.env
+ExecStart=/home/ubuntu/munongsa/.venv-collector/bin/python -B scripts/run_support_collection.py --live
+TimeoutStartSec=30min
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/munongsa /var/lib/munongsa-public
+StandardOutput=journal
+StandardError=journal
+# Partial source failure (1) remains visible as a failed unit; no automatic retries.
+SuccessExitStatus=3

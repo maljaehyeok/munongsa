@@ -1,0 +1,320 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "kind": "jeonju",
+      "city": "전주시",
+      "source_id": "jeonbuk-jeonju-official",
+      "institution": "전주시",
+      "board_url": "https://www.jeonju.go.kr/planweb/board/list.9is?boardUid=ff8080818bad9295018bae4a18f609a7&contentUid=ff8080818990c349018b041a9b013a46&page=1",
+      "registry_parent_id": "jeonju-farmer-notices",
+      "method": "html",
+      "enabled": true,
+      "official_hosts": [
+        "www.jeonju.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "reuse_policy": "unknown",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요"
+    },
+    {
+      "kind": "gunsan",
+      "city": "군산시",
+      "source_id": "jeonbuk-gunsan-official",
+      "institution": "군산시 농업기술센터",
+      "board_url": "https://www.gunsan.go.kr/farm/m2500",
+      "registry_parent_id": "gunsan-farm-support-html",
+      "method": "html",
+      "enabled": true,
+      "official_hosts": [
+        "www.gunsan.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "reuse_policy": "restricted",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요"
+    },
+    {
+      "kind": "iksan",
+      "city": "익산시",
+      "source_id": "jeonbuk-iksan-official",
+      "institution": "익산시 농업기술센터",
+      "board_url": "https://www.iksan.go.kr/farm/index.do?menuUid=ff80808197387a4f019753b876160bf6",
+      "registry_parent_id": "iksan-farm-notices",
+      "method": "html",
+      "enabled": false,
+      "official_hosts": [
+        "www.iksan.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "reuse_policy": "unknown",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요",
+      "disabled_reason": "기존 접근 제한 유지"
+    },
+    {
+      "kind": "jeongeup",
+      "city": "정읍시",
+      "source_id": "jeonbuk-jeongeup-official",
+      "institution": "정읍시 농업정책과",
+      "board_url": "https://www.jeongeup.go.kr/buseo/index.jeongeup?menuCd=DOM_000001021000000000",
+      "registry_parent_id": "jeongeup-agriculture-notices",
+      "method": "html",
+      "enabled": true,
+      "official_hosts": [
+        "www.jeongeup.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "reuse_policy": "unknown",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요"
+    },
+    {
+      "kind": "namwon",
+      "city": "남원시",
+      "source_id": "jeonbuk-namwon-official",
+      "institution": "남원시",
+      "board_url": "https://www.namwon.go.kr/index.9is?menuUid=ff8080818e3beff0018e4077131b007a",
+      "registry_parent_id": "namwon-official-notices",
+      "method": "html",
+      "enabled": false,
+      "official_hosts": [
+        "www.namwon.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "reuse_policy": "unknown",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요",
+      "disabled_reason": "기존 접근 제한 유지"
+    },
+    {
+      "kind": "gimje",
+      "city": "김제시",
+      "source_id": "jeonbuk-gimje-official",
+      "institution": "김제시 농업기술센터",
+      "board_url": "https://www.gimje.go.kr/agro/index.gimje?menuCd=DOM_000000903001000000",
+      "registry_parent_id": "gimje-agro-notices",
+      "method": "html",
+      "enabled": true,
+      "official_hosts": [
+        "www.gimje.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "reuse_policy": "unknown",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요"
+    },
+    {
+      "kind": "wanju",
+      "city": "완주군",
+      "source_id": "jeonbuk-wanju-official",
+      "institution": "완주군 농업기술센터",
+      "board_url": "https://www.wanju.go.kr/atc/planweb/board/list.9is?boardUid=ff8080818a49961a018ab011af3543bc&categoryUid1=ff8080818bc7fa7c018bd69c596z9021&contentUid=ff808081898ba9ba0189f1c964a2014d&page=1&subPath=%2Fatc",
+      "registry_parent_id": "wanju-atc-notices",
+      "method": "html",
+      "enabled": false,
+      "official_hosts": [
+        "www.wanju.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "reuse_policy": "unknown",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요",
+      "disabled_reason": "기존 접근 제한 유지"
+    },
+    {
+      "kind": "jinan",
+      "city": "진안군",
+      "source_id": "jeonbuk-jinan-official",
+      "institution": "진안군 농업기술센터",
+      "board_url": "https://www.jinan.go.kr/board/list.jinan?boardId=BBS_0000094&paging=ok&startPage=1",
+      "registry_parent_id": "jinan-agriculture-notices",
+      "method": "html",
+      "enabled": true,
+      "official_hosts": [
+        "www.jinan.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "reuse_policy": "unknown",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요"
+    },
+    {
+      "kind": "muju",
+      "city": "무주군",
+      "source_id": "jeonbuk-muju-official",
+      "institution": "무주군 농업기술센터",
+      "board_url": "https://www.muju.go.kr/index.9is?contentUid=ff8080816c5f9d47016cbd8e426602d3",
+      "registry_parent_id": "muju-agriculture-notices",
+      "method": "html",
+      "enabled": true,
+      "official_hosts": [
+        "www.muju.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "reuse_policy": "unknown",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요"
+    },
+    {
+      "kind": "jangsu",
+      "city": "장수군",
+      "source_id": "jeonbuk-jangsu-official",
+      "institution": "장수군",
+      "board_url": "https://www.jangsu.go.kr/farming/board/view.jangsu?boardId=BBS_0000025&dataSid=571283&menuCd=DOM_000000701005000000&paging=ok&startPage=92",
+      "registry_parent_id": "jangsu-agriculture-notices",
+      "method": "html",
+      "enabled": true,
+      "official_hosts": [
+        "www.jangsu.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "reuse_policy": "unknown",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요"
+    },
+    {
+      "kind": "imsil",
+      "city": "임실군",
+      "source_id": "jeonbuk-imsil-official",
+      "institution": "임실군 농업기술센터",
+      "board_url": "https://www.imsil.go.kr/agri/index.imsil?menuCd=DOM_000000606001000000",
+      "registry_parent_id": "imsil-agri-notices",
+      "method": "html",
+      "enabled": true,
+      "official_hosts": [
+        "www.imsil.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "reuse_policy": "unknown",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요"
+    },
+    {
+      "kind": "sunchang",
+      "city": "순창군",
+      "source_id": "jeonbuk-sunchang-official",
+      "institution": "순창군 농업기술센터",
+      "board_url": "https://www.sunchang.go.kr/farm/board/post/view.do?boardUid=ff8080819a2f0e3b019a6c0c17ba1fd9&codeUids=ff8080819c303f7a019c50cd28b73cdd&menuUid=ff8080819a2f0e3b019a3807a0b80650&postUid=4028a6f09f4b44cb01a012bb712a77bf",
+      "registry_parent_id": "sunchang-farm-notices",
+      "method": "html",
+      "enabled": true,
+      "official_hosts": [
+        "www.sunchang.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "reuse_policy": "unknown",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요"
+    },
+    {
+      "kind": "gochang",
+      "city": "고창군",
+      "source_id": "jeonbuk-gochang-official",
+      "institution": "고창군",
+      "board_url": "https://www.gochang.go.kr/board/list.gochang?boardId=BBS_0000083&menuCd=DOM_000000104000000000&orderBy=REGISTER_DATE+DESC&paging=ok&startPage=1",
+      "registry_parent_id": "gochang-agriculture-notices",
+      "method": "html",
+      "enabled": true,
+      "official_hosts": [
+        "www.gochang.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "reuse_policy": "unknown",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요"
+    },
+    {
+      "kind": "buan",
+      "city": "부안군",
+      "source_id": "jeonbuk-buan-official",
+      "institution": "부안군 농업기술센터",
+      "board_url": "https://www.buan.go.kr/jbares/board/list.buan?boardId=BBS_0000147&menuCd=DOM_000000906001000000&paging=ok&startPage=1",
+      "registry_parent_id": "buan-agri-notices",
+      "method": "html",
+      "enabled": true,
+      "official_hosts": [
+        "www.buan.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "reuse_policy": "unknown",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요"
+    },
+    {
+      "source_id": "jeonbuk-jbares-official",
+      "institution": "전북특별자치도농업기술원",
+      "board_url": "https://www.jbares.go.kr/board/list.jbares?boardId=BBS_0000001&menuCd=DOM_000000101001005000",
+      "method": "html",
+      "enabled": true,
+      "official_hosts": [
+        "www.jbares.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "html_policy": "robots_checked_metadata_only_no_content",
+      "body_reuse": "unknown",
+      "public_display": "unknown",
+      "local_metadata_only": true,
+      "kind": "jbares",
+      "city": "전북 공통",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요"
+    },
+    {
+      "source_id": "mafra-notices-rss",
+      "institution": "농림축산식품부",
+      "board_url": "https://www.mafra.go.kr/bbs/home/791/artclList.do",
+      "discovery_url": "https://www.mafra.go.kr/bbs/home/791/rssList.do?row=50",
+      "method": "rss",
+      "enabled": true,
+      "allowed_hosts": [
+        "www.mafra.go.kr",
+        "mafra.go.kr"
+      ],
+      "timeout_seconds": 15,
+      "max_attempts": 2,
+      "minimum_interval_hours": 24,
+      "max_items": 50,
+      "policy_checked_at": "2026-10-25",
+      "policy_url": "https://www.mafra.go.kr/home/5327/subview.do",
+      "rights_url": "https://www.mafra.go.kr/home/5331/subview.do",
+      "policy_note": "공식 RSS 안내에 게시된 주소. robots.txt는 실행마다 확인. RSS 항목의 메타데이터만 내부 검토용으로 저장하며 개별 게시물·첨부파일 재사용은 별도 심사. 본문·첨부만 바뀌면 RSS에서 감지하지 못할 수 있음.",
+      "kind": "mafra",
+      "city": "전국",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요"
+    },
+    {
+      "source_id": "bizinfo-support-api",
+      "institution": "기업마당",
+      "board_url": "https://www.bizinfo.go.kr/",
+      "discovery_url": "https://www.bizinfo.go.kr/uss/rss/bizinfoApi.do",
+      "method": "bizinfo_api",
+      "enabled": false,
+      "allowed_hosts": [
+        "www.bizinfo.go.kr",
+        "bizinfo.go.kr"
+      ],
+      "api_key_env": "BIZINFO_API_KEY",
+      "parameters": {
+        "dataType": "json",
+        "searchCnt": "50",
+        "pageUnit": "50",
+        "pageIndex": "1"
+      },
+      "max_items": 50,
+      "timeout_seconds": 15,
+      "minimum_interval_hours": 24,
+      "max_attempts": 1,
+      "official_call_quota": "unknown",
+      "policy_checked_at": "2026-10-25",
+      "policy_url": "https://www.bizinfo.go.kr/apiDetail.do?id=bizinfoApi",
+      "rights_url": "https://www.bizinfo.go.kr/biz/bizd/selectBIZD120View.do",
+      "policy_note": "공식 문서의 GET·crtfcKey·JSON(jsonArray.item)/XML(RSS) 기준 어댑터 준비. 호출 횟수 제한과 오류 코드 체계는 문서에 없어 미확인. 비활성 유지; 실제 API 호출은 코드에서도 차단하며 모의 transport만 테스트. 인증키 값은 설정/DB에 저장하지 않음.",
+      "kind": "bizinfo",
+      "city": "전국",
+      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요",
+      "disabled_reason": "운영 API 활성화 별도 승인 필요"
+    }
+  ]
+}

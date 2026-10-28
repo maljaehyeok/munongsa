@@ -5,6 +5,7 @@ __pycache__/
 
 # Virtual environments
 .venv/
+.venv-collector/
 venv/
 env/
 ENV/
@@ -53,3 +54,9 @@ Thumbs.db
 /outputs/
 /data/source/
 /index-before-redesign.html
+
+# Persistent collector state must never enter a source release.
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+publication-rights.json

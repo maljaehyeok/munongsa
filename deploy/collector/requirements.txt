@@ -1,0 +1,2 @@
+# Existing runtime dependency; no Django/PostgreSQL/Redis required.
+beautifulsoup4==4.12.3
