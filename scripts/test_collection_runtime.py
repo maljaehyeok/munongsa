@@ -27,6 +27,31 @@ def item():
 
 
 class RuntimeTests(unittest.TestCase):
+    def test_robots_denial_never_sends_a_detail_request(self):
+        from support_runtime import boards
+        from types import SimpleNamespace
+        transport=boards.Transport({'official_hosts':['www.gimje.go.kr']})
+        transport.robot=SimpleNamespace(can_fetch=lambda agent,link:False)
+        with patch.object(boards.http,'build_opener') as opener,self.assertRaises(boards.Blocked):
+            transport.get('https://www.gimje.go.kr/board/list.gimje')
+        opener.assert_not_called();self.assertEqual(transport.count,0)
+
+    def test_common_board_detail_extracts_without_missing_html_import(self):
+        from support_runtime import boards
+        body='<div class="basicView"><div class="conText"><p>신청기간: 2026.10.01.~2026.10.30.</p><p>지원내용: 시설 &amp; 장비 지원</p></div></div>'.encode('utf-8')
+        result=boards.extract(body,'https://www.jinan.go.kr/board/view.jinan?boardId=TEST&dataSid=1')
+        self.assertEqual(result['content_selector'],'.basicView .conText')
+        self.assertIsInstance(result['facts'],dict)
+
+    def test_detail_analysis_does_not_mislabel_html_import_error_as_extraction_failure(self):
+        from support_runtime import discovery
+        from types import SimpleNamespace
+        body='<div class="basicView"><div class="conText"><p>신청기간: 2026.10.01.~2026.10.30.</p></div></div>'.encode('utf-8')
+        entry=item()
+        result=discovery.analyse(entry,SimpleNamespace(get=lambda link:body),NOW)
+        self.assertNotEqual(result['status'],'failed')
+        self.assertNotEqual(result.get('error'),'NameError')
+
     def test_central_rss_uses_imported_monitor_without_local_shadowing(self):
         source={'enabled':True}
         with patch.object(ingestion.m,'fetch_rss',return_value=(b'<rss/>',200,'application/rss+xml')) as fetch,patch.object(ingestion.m,'parse_rss',return_value=[]):

@@ -2,7 +2,7 @@
 Senior project row/link/date parsing reused with the operator's permission.
 No trial data, automatic approval or publication side effects.
 """
-import re,time,urllib.error,urllib.robotparser
+import html,re,time,urllib.error,urllib.robotparser
 import urllib.parse as url
 import urllib.request as http
 from datetime import date,datetime,timedelta
