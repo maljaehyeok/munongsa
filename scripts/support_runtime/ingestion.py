@@ -106,7 +106,7 @@ def collect_source(source,entries,now,first=False):
 
 
 def central(source,kind):
-    m=m;group={'kind':kind,'analyses':[],'errors':[],'requests':0,'list_count':0,'state':'연결 미완료'}
+    group={'kind':kind,'analyses':[],'errors':[],'requests':0,'list_count':0,'state':'연결 미완료'}
     if not source.get('enabled'):return dict(group,state='비활성 유지',skipped=True)
     try:
         source=copy.deepcopy(source);source['max_attempts']=1

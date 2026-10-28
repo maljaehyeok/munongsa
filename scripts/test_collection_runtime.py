@@ -27,6 +27,25 @@ def item():
 
 
 class RuntimeTests(unittest.TestCase):
+    def test_central_rss_uses_imported_monitor_without_local_shadowing(self):
+        source={'enabled':True}
+        with patch.object(ingestion.m,'fetch_rss',return_value=(b'<rss/>',200,'application/rss+xml')) as fetch,patch.object(ingestion.m,'parse_rss',return_value=[]):
+            result=ingestion.central(source,'mafra')
+        fetch.assert_called_once()
+        self.assertEqual(result['errors'],[])
+        self.assertEqual(result['list_count'],0)
+
+    def test_central_rss_failure_is_isolated_and_sanitized(self):
+        with patch.object(ingestion.m,'fetch_rss',side_effect=RuntimeError('PRIVATE_URL_DO_NOT_LOG')):
+            result=ingestion.central({'enabled':True},'mafra')
+        self.assertEqual(result['errors'][0]['error'],'RuntimeError')
+        self.assertNotIn('PRIVATE_URL',json.dumps(result))
+
+    def test_disabled_central_source_never_fetches(self):
+        with patch.object(ingestion.m,'fetch_rss') as fetch:
+            result=ingestion.central({'enabled':False},'mafra')
+        fetch.assert_not_called();self.assertTrue(result['skipped'])
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.state = Path(self.temp.name) / 'private'
