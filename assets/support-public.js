@@ -20,6 +20,13 @@
     if(p&&now>p.end)return item.application_status==='closed_verified'?'모집 마감 · 연장·재공고는 원문 확인':'기재 신청기간 경과 · 연장 여부 확인 필요';
     if(p&&now<p.start&&item.application_status==='upcoming_verified')return '모집 예정 · 확인된 시작일 기준';
     if(p&&p.start<=now&&now<=p.end&&item.application_status==='open_verified')return '기재 신청기간 내 · 예산·접수 가능 여부 원문 확인';
+    const facts=item.reference_application_dates||{},valid=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v+'T00:00:00+09:00'))&&new Date(Date.parse(v+'T00:00:00+09:00')+9*3600000).toISOString().slice(0,10)===v;
+    const start=facts.start?.date,end=facts.end?.date,today=new Date(now+9*3600000).toISOString().slice(0,10);
+    const endTime=facts.end?.time;
+    if(valid(end)&&facts.end?.timezone==='Asia/Seoul'&&typeof endTime==='string'&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(endTime)&&now>Date.parse(end+'T'+endTime+':00+09:00'))return '기재 신청기한 경과 · 연장·재공고 확인 필요';
+    if(valid(end)&&today>end)return '기재 신청기한 경과 · 연장·재공고 확인 필요';
+    if(valid(start)&&today<start)return '기재 신청 시작일 전 · 접수 여부 확인 필요';
+    if(valid(start)&&valid(end)&&start<=end&&start<=today&&today<=end)return '기재 신청기간 내 · 접수 시각·가능 여부 확인 필요';
     return '신청 상태 확인 필요';
   }
   function evaluate(item,p){
@@ -28,7 +35,7 @@
       (v.min==null||(v.min_inclusive?n>=v.min:n>v.min))&&(v.max==null||(v.max_inclusive?n<=v.max:n<v.max));
     for(const c of payload.conditions||[]){
       let state='check',detail='정보 또는 공식 검증 부족';const v=c.value||{},label=names[c.kind]||'조건';
-      if(c.status==='verified'&&c.evidence?.quote&&c.evidence?.location&&safeUrl(c.evidence.url)){
+      if(c.status==='verified'&&(c.evidence?.quote||c.evidence?.fact_confirmed===true)&&c.evidence?.location&&safeUrl(c.evidence.url)){
         if(c.presence==='no_restriction'){state='match';detail='원문에서 제한 없음 확인'}
         else if(c.presence==='specified'){
           let actual=null,known=false,ok=false;

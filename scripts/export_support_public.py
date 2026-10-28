@@ -7,7 +7,7 @@ import argparse
 import json
 import re
 from contextlib import closing
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 
 import support_monitor as monitor
@@ -38,7 +38,7 @@ def rights_for(manifest, identity, now):
     if value.get('public_display') != 'allowed':
         return None
     checked = date.fromisoformat(value['checked_at'])
-    if checked > now.date():
+    if checked > now.astimezone(timezone(timedelta(hours=9))).date():
         return None
     return {'public_display': 'allowed', 'evidence_url': checked_url(value['evidence_url']),
             'checked_at': checked.isoformat()}
@@ -54,6 +54,33 @@ def period_status(record, now):
     if now < start:
         return 'upcoming_verified' if record['application_status'] == 'upcoming' else 'unknown'
     return 'open_verified' if record['application_status'] == 'open' else 'unknown'
+
+
+def reference_dates(grant, record):
+    """Human-confirmed date facts only; never substitutes for a verified time window."""
+    if (grant.get('notice_content_hash') != record['content_hash']
+            or grant.get('reference_dates_verified') is not True):
+        return {}
+    raw = grant.get('reference_dates', {})
+    result = {}
+    for key in ('start', 'end'):
+        if key not in raw:
+            continue
+        part = raw[key]
+        value = part['date']
+        if date.fromisoformat(value).isoformat() != value:
+            raise ValueError('invalid reference date')
+        evidence = proof(part['evidence'])
+        if not evidence['location'].strip():
+            raise ValueError('reference date needs a checked evidence location')
+        result[key] = {'date': value, 'evidence': evidence}
+        if part.get('time') not in (None, 'unknown'):
+            if not re.fullmatch(r'(?:[01]\d|2[0-3]):[0-5]\d', part['time']) or part.get('timezone') != 'Asia/Seoul':
+                raise ValueError('invalid reference time')
+            result[key].update(time=part['time'], timezone='Asia/Seoul')
+    if result.get('start') and result.get('end') and result['start']['date'] > result['end']['date']:
+        raise ValueError('invalid reference date range')
+    return result
 
 
 def export(connection, rights, now=None):
@@ -85,6 +112,12 @@ def export(connection, rights, now=None):
             # Explicit export review binds the condition version in the rights
             # manifest; a new condition revision cannot inherit that permission.
             grant = rights[r['notice_id']]
+            source_checked = r['reviewed_at']
+            if grant.get('notice_content_hash') == r['content_hash'] and grant.get('source_checked_at'):
+                parsed_checked = datetime.fromisoformat(grant['source_checked_at'])
+                if parsed_checked.tzinfo is None or parsed_checked > now:
+                    raise ValueError('invalid source check timestamp')
+                source_checked = parsed_checked.isoformat()
             condition_release = (grant.get('eligibility_revision_id') == revision.get('revision_id')
                                  and grant.get('notice_content_hash') == r['content_hash'])
             if 'payload' in revision and not revision['needs_review'] and condition_release:
@@ -102,9 +135,16 @@ def export(connection, rights, now=None):
                         eligibility.check_condition(c, r, verified=True)
                         value = json.loads(json.dumps(c['value'], ensure_ascii=False))
                         public_text(json.dumps(value, ensure_ascii=False))
+                        condition_proof = proof(c['evidence'])
+                        if grant.get('facts_only') is True:
+                            if c['kind'] not in ('applicant', 'residence', 'farm_registration'):
+                                raise ValueError('condition outside reviewed facts-only scope')
+                            condition_proof['fact_confirmed'] = True
+                        else:
+                            condition_proof['quote'] = public_text(c['evidence']['quote'])
                         conditions.append({'condition_id': c['condition_id'], 'kind': c['kind'],
                             'presence': c['presence'], 'value': value, 'status': 'verified',
-                            'evidence': {**proof(c['evidence']), 'quote': public_text(c['evidence']['quote'])}})
+                            'evidence': condition_proof})
                     else:
                         # Keep the logical position, never expose candidate assertions as facts.
                         conditions.append({'condition_id': c['condition_id'], 'kind': c['kind'],
@@ -117,10 +157,11 @@ def export(connection, rights, now=None):
             item = {'id': r['notice_id'], 'program_id': r['program_id'], 'round_id': r['round_id'],
                     'title': public_text(r['title']), 'source_id': r['source_id'],
                     'institution': public_text(source['institution']), 'url': checked_url(r['original_url']),
-                    'published_at': r['published_at'], 'last_checked_at': r['reviewed_at'],
+                    'published_at': r['published_at'], 'last_checked_at': source_checked,
                     'publication': r['publication'], 'verification_status': r['verification_status'],
                     'freshness': r['freshness'], 'application_status': period_status(r, now),
                     'application_period': r['verified_application_period'] if r['application_period_verified'] else {},
+                    'reference_application_dates': reference_dates(grant, r),
                     'recommendation_eligible': bool(allowed), 'rights': license_record,
                     'guidance_level': 'personalized_candidate' if allowed else 'official_notice',
                     'eligibility_complete': bool(all_verified),
