@@ -110,6 +110,7 @@ class CommonList:
 
 def classify(row):
     text=row['title']+' '+row.get('list_excerpt','')
+    if re.search(r'농기계|농업기계|농업용\s*(?:기계|장비)|농기자재|시설장비|등화장치|장비\s*(?:지원|보조)',text):return 'excluded'
     if re.search(r'채용|입찰|합격자|기간제.*근로|선정결과|대상자.*명단|축제|행사|박람회|수요조사|법률.*의견|의견.*조회|등록정보.*공개',text):return 'excluded'
     if not re.search(r'농업|농가|농산물|농촌|귀농|귀촌|원예|스마트팜|농기계|청년농|후계농|축산|양봉|꿀벌|식품기업|노지|시설하우스',text):return 'unknown'
     if re.search(r'교육|연수|아카데미|수강',text):return 'education' if re.search(r'모집|신청|접수',text) else 'unknown'
@@ -120,6 +121,7 @@ def extract(body,link):
     soup=BeautifulSoup(body,'html.parser')
     if soup.select_one('.border_view > .exp'):return gochang.extract_gochang(body,link)
     selectors=['.bbsview-con','.bdvCntWrap .se-contents','.bdvCntWrap','.bbsviewcont','.bbsviewcontent','.bbsview_con','.bbs_view_con','.bbs_view .bbs_con','.basicView .conText','.board_view .view_cont','.board-view .view-content','.view_content','.view_cont','.bbs_view_cont','.bbs_content','.board_view_con','.board_view .con','#boardContents','.view_txt','.board_view .view-con','.board_view .cont','.bbsV_cont','.view-con','.conText','.viewContent','.board_view_content','.view_con','.view-contents','.board-view-content','.board-view-contents','.board-view__content','#bbsContents','.contentBody']
+    if url.urlsplit(link).hostname=='www.rda.go.kr':selectors.insert(0,'.viewArea .viewBody')
     selector=next((s for s in selectors if soup.select_one(s)),None)
     if not selector:raise ValueError('지원되지 않는 본문 영역')
     node=soup.select_one(selector)

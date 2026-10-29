@@ -34,6 +34,9 @@ class Transport(w.Transport):
 
 
 def content_lines(body,result):
+    if result.get('content_selector')=='.viewArea .viewBody':
+        from .rda import detail_lines
+        return detail_lines(body)
     soup=BeautifulSoup(body,'html.parser');selector=result.get('content_selector');node=soup.select_one(selector) if selector else None
     if node is None:return []
     for x in node.select('script,style'):x.decompose()
@@ -65,10 +68,13 @@ def analyse(entry,t,now):
                 if fact['evidence']['quote'] in norm:fact['evidence']['quote']=raw[:180];break
         result.update({k:v for k,v in repaired.items() if k!='content_selector'})
         if getattr(t,'fact_enricher',None):result['facts'].update(t.fact_enricher(lines,row['original_url']))
+        result['facts'].update(periods.notice_context(row['title'],row['original_url']))
         parsed=periods.extract(lines,row['original_url']);period=parsed.get('period') or {}
         if parsed.get('period'):
             for key,part in [('application_start','start'),('application_deadline','end')]:
                 if period.get(part):result['facts'][key]={'value':period[part],'evidence':period['evidence']}
+            if result.get('status')=='no_facts':result['status']='partial'
+        result['unknown_fields']=[key for key in result.get('unknown_fields',[]) if key not in result['facts']]
         result['warnings']=list(dict.fromkeys(result.get('warnings',[])+parsed['warnings']))
         result['recruitment']=periods.assess(result.get('facts',{}),parsed,now,checked)
         result['period_parse']=parsed;return dict(entry,**result,checked_at=checked)
@@ -78,6 +84,9 @@ def analyse(entry,t,now):
 
 
 def search_source(source,now,known=None,refresh_details=False,detail_policy=None,fact_enricher=None):
+    if source['kind']=='rda_young':
+        from .rda import collect
+        return collect(source,now,known,detail_policy)
     t=Transport(source);kind=source['kind'];rows={};attempts=[]
     t.fact_enricher=fact_enricher
     group={'kind':kind,'city':source['city'],'checked_at':w.m.utc_now(),'list_count':0,'candidate_count':0,'analyses':[],'errors':[],
@@ -129,7 +138,7 @@ def search_source(source,now,known=None,refresh_details=False,detail_policy=None
                 if choice:fields['searchType']=choice.get('value','')
             if any(k in fields for k in ('boardUid','boardId')) or 'board' in w.url.urlsplit(action).path:forms.append((action,fields,keyword,form.get('method','get').lower()))
         for action,fields,key,method in forms[:1]:
-            for term in ('농업','지원'):
+            for term in source.get('search_terms',('농업','지원'))[:4]:
                 query=dict(fields);query[key]=term
                 for page in ('page','startPage'):
                     if page in query:query[page]='1'
@@ -156,15 +165,28 @@ def search_source(source,now,known=None,refresh_details=False,detail_policy=None
                             for row in parser.parse(BeautifulSoup(t.get(nextlink),'html.parser'),nextlink):rows[row['original_id']]=row
                         except Exception as error:group['errors'].append({'error':w.error_name(error),'stage':'추가 검색 페이지'})
         group['list_count']=len(rows);group['list_rows']=list(rows.values())
+        # Previously found live/upcoming notices can fall off the latest pages.
+        # Recheck their exact saved detail links, not every historical posting.
+        for (saved_kind,_),prior in (known or {}).items():
+            if saved_kind!=kind:continue
+            state=periods.assess(prior.get('facts',{}),now=now)['status']
+            if state in ('date_window_open','confirmed_open','upcoming','ongoing'):
+                row=prior['metadata'];rows.setdefault(row['original_id'],row)
         chosen=[]
         for row in rows.values():
             if w.classify(row) not in ('agriculture_support','education'):continue
             posted=row.get('published_at');recent=bool(posted and posted>=(now.date()-w.timedelta(days=90)).isoformat())
             carry=bool(re.search(r'상시|연장|재공고|추가모집|2027',row['title']))
-            if recent or carry:chosen.append(row)
-        chosen.sort(key=lambda r:r.get('published_at') or '',reverse=True)
+            prior=(known or {}).get((kind,row['original_id']))
+            saved_status=periods.assess(prior.get('facts',{}),now=now)['status'] if prior else None
+            if recent or carry or saved_status in ('date_window_open','confirmed_open','upcoming','ongoing'):chosen.append(row)
+        def priority(row):
+            prior=(known or {}).get((kind,row['original_id']))
+            state=periods.assess(prior.get('facts',{}),now=now)['status'] if prior else None
+            return (state not in ('date_window_open','confirmed_open','upcoming','ongoing'),-(int((row.get('published_at') or '1900-01-01').replace('-','')[:8])))
+        chosen.sort(key=priority)
         group['candidate_count']=len(chosen);group['state']='연결 성공' if chosen else '관련 공고 미발견'
-        for row in chosen[:12]:
+        for row in chosen[:min(int(source.get('detail_limit',12)),24)]:
             prior=(known or {}).get((kind,row['original_id']))
             fetch=not(prior and prior.get('status')!='failed' and not refresh_details)
             if detail_policy:

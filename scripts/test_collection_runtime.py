@@ -93,7 +93,7 @@ class RuntimeTests(unittest.TestCase):
         return monitor.connect(self.state, readonly=True)
 
     def test_registry_preserves_14_cities_and_disabled_api(self):
-        self.assertEqual(len([s for s in self.registry if s['kind'] not in ('mafra', 'bizinfo', 'jbares')]), 14)
+        self.assertEqual(len([s for s in self.registry if s['kind'] not in ('mafra', 'bizinfo', 'jbares', 'rda_young')]), 14)
         self.assertFalse(next(s for s in self.registry if s['kind'] == 'bizinfo')['enabled'])
 
     def test_blocked_sources_remain_disabled(self):
@@ -168,6 +168,57 @@ class RuntimeTests(unittest.TestCase):
 
     def test_date_window_does_not_assert_official_open(self):
         self.assertEqual(periods.assess(item()['facts'], now=NOW)['status'], 'date_window_open')
+
+    def test_private_additive_facts_preserve_approved_hash_and_conditions(self):
+        self.run_groups()
+        with closing(monitor.connect(self.state)) as c:
+            nid=c.execute('SELECT notice_id FROM discovered_notices').fetchone()[0]
+            monitor.review_notice(c,nid,'fixture','test only',verification_status='verified',freshness='current',target='fixture farmer',evidence_url=item()['metadata']['original_url'],evidence_location='fixture')
+            monitor.publish_notice(c,nid,'approved_reference','fixture','test only')
+            before=monitor.notice_record(c,nid);revision=ingestion.eligibility.latest(c,nid)
+        enriched=item();enriched['facts']['application_method']={'value':'Visit official office','evidence':enriched['facts']['application_deadline']['evidence']}
+        self.assertEqual(self.run_groups([enriched])['counts']['enriched'],1)
+        with closing(self.db()) as c:
+            after=monitor.notice_record(c,nid)
+            self.assertEqual(after['publication'],'approved_reference');self.assertEqual(after['content_hash'],before['content_hash'])
+            self.assertEqual(ingestion.eligibility.latest(c,nid),revision)
+            self.assertEqual(c.execute("SELECT COUNT(*) FROM review_events WHERE action='private_facts_enriched'").fetchone()[0],1)
+        self.assertEqual(self.run_groups([enriched])['counts']['same'],1)
+
+    def test_new_qualification_fact_still_revokes_approval(self):
+        self.run_groups()
+        with closing(monitor.connect(self.state)) as c:
+            nid=c.execute('SELECT notice_id FROM discovered_notices').fetchone()[0]
+            monitor.review_notice(c,nid,'fixture','test only',verification_status='verified',freshness='current',target='fixture farmer',evidence_url=item()['metadata']['original_url'],evidence_location='fixture')
+            monitor.publish_notice(c,nid,'approved_reference','fixture','test only')
+        changed=item();changed['facts']['legal_entity_required']={'value':True,'evidence':changed['facts']['application_deadline']['evidence']}
+        self.run_groups([changed])
+        with closing(self.db()) as c:self.assertEqual(monitor.notice_record(c,nid)['publication'],'review')
+
+    def test_calendar_change_does_not_revoke_reference_approval(self):
+        self.run_groups()
+        with closing(monitor.connect(self.state)) as c:
+            nid=c.execute('SELECT notice_id FROM discovered_notices').fetchone()[0]
+            monitor.review_notice(c,nid,'fixture','test only',verification_status='verified',freshness='current',target='fixture farmer',evidence_url=item()['metadata']['original_url'],evidence_location='fixture')
+            monitor.publish_notice(c,nid,'approved_reference','fixture','test only');before=monitor.notice_record(c,nid)
+        later=NOW.replace(month=11,day=10)
+        group={'kind':'buan','analyses':[item()],'errors':[],'list_count':1}
+        result=runtime.execute(self.state,self.output,self.state/'publication-rights.json',self.registry,[group],now=later)
+        self.assertEqual(result['counts']['same'],1)
+        with closing(self.db()) as c:
+            after=monitor.notice_record(c,nid)
+            self.assertEqual(after['publication'],'approved_reference');self.assertEqual(after['content_hash'],before['content_hash'])
+
+    def test_public_zero_drop_warns_but_never_serves_revoked_record(self):
+        self.run_groups()
+        with closing(self.db()) as c:nid=c.execute('SELECT notice_id FROM discovered_notices').fetchone()[0]
+        (self.state/'publication-rights.json').write_text('{}')
+        (self.output/'support-public.json').write_text(json.dumps({'notices':[{'id':nid}]}))
+        stats=runtime.export_public(self.state,self.output,self.state/'publication-rights.json',NOW)
+        self.assertEqual(stats['warning'],'public_count_dropped_to_zero')
+        self.assertEqual(json.loads((self.output/'support-public.json').read_text())['notices'],[])
+        alert=json.loads(next((self.state/'logs').glob('public-warning-*.json')).read_text())
+        self.assertFalse(alert['unsafe_fallback_used']);self.assertEqual(alert['records'][0]['state']['publication'],'review')
 
     def test_backup_integrity_and_database_outside_public(self):
         self.run_groups()

@@ -10,6 +10,7 @@ scripts/support_notice_body.py
 scripts/support_bizinfo.py
 scripts/export_support_public.py
 scripts/run_support_collection.py
+scripts/verify_support_publication.py
 scripts/support_runtime/__init__.py
 scripts/support_runtime/boards.py
 scripts/support_runtime/conditions.py
@@ -20,6 +21,7 @@ scripts/support_runtime/facts.py
 scripts/support_runtime/gochang.py
 scripts/support_runtime/ingestion.py
 scripts/support_runtime/periods.py
+scripts/support_runtime/rda.py
 scripts/test_collection_runtime.py
 scripts/test_support_public.py
 scripts/test_support_monitor.py

@@ -124,7 +124,20 @@ def export_public(state, output, rights_file, now=None):
     output.mkdir(parents=True, exist_ok=True)
     previous = output / 'support-public.json'
     if previous.exists():
-        ingestion.atomic(state / 'backups' / ('public-' + uuid.uuid4().hex + '.json'), json.loads(previous.read_text('utf8')))
+        prior=json.loads(previous.read_text('utf8'))
+        ingestion.atomic(state / 'backups' / ('public-' + uuid.uuid4().hex + '.json'), prior)
+        if prior.get('notices') and not data['notices']:
+            # Warn, but never retain a revoked notice as a public fallback.
+            with closing(monitor.connect(state,readonly=True)) as audit:
+                reasons=[]
+                for item in prior['notices']:
+                    row=audit.execute('SELECT publication,verification_status,freshness FROM discovered_notices WHERE notice_id=?',(item['id'],)).fetchone()
+                    reasons.append({'notice_id':item['id'],'state':dict(row) if row else {'publication':'missing'}})
+            alert={'at':periods.as_of(now).isoformat(),'warning':'public_count_dropped_to_zero','before':len(prior['notices']),'after':0,
+                'reason':'Approval, evidence or rights gate excluded records; date expiry alone does not remove reference notices',
+                'records':reasons,'unsafe_fallback_used':False}
+            ingestion.atomic(state/'logs'/('public-warning-'+uuid.uuid4().hex+'.json'),alert)
+            stats['warning']='public_count_dropped_to_zero'
     ingestion.atomic(previous, data, mode=0o644)
     if os.name != 'nt':
         output.chmod(0o755)

@@ -90,7 +90,7 @@ def should_fetch(kind,row,prior,now,first=False):
     stamp=prior.get('checked_at')
     try:age=now-periods.as_of(stamp)
     except (ValueError,TypeError):return True
-    if period in ('date_window_open','confirmed_open','upcoming'):return first or periods.as_of(stamp).date()<now.date()
+    if period in ('date_window_open','confirmed_open','upcoming','ongoing'):return first or periods.as_of(stamp).date()<now.date()
     posted=row.get('published_at') or '1900-01-01'
     return age>=timedelta(days=7 if posted>=(now.date()-timedelta(days=90)).isoformat() else 30)
 
@@ -151,7 +151,11 @@ def save(c,entry):
         conflict={'previous':before['published_at'],'observed':after['published_at'],'status':'needs_review; official change not established'}
         changed=[];after['published_at']=before['published_at'];row['published_at']=before['published_at']
     action='new' if not old else 'changed' if changed else 'enriched' if added else 'metadata_conflict' if conflict and h.get('daily_date_conflict')!=conflict else 'same'
-    if action in ('new','changed','enriched'):
+    # Additional private operational facts are not edits to the approved notice.
+    # Never extend this exception to dates, targets, conditions or exclusions.
+    private_fields={'support_unit_rates','application_method','budget_total','project_year'}
+    private_enrichment=bool(old and action=='enriched' and all(k.removeprefix('facts.') in private_fields for k in added))
+    if action in ('new','changed','enriched') and not private_enrichment:
         stable={'original_id':row['original_id'],'title':row['title'],'published_at':row.get('published_at'),'original_url':row['original_url'],'important_facts':after['facts']}
         result=write_items(c,kind,[stable])
         if result['status']=='failed':raise RuntimeError('db_registration_failed')
@@ -166,8 +170,11 @@ def save(c,entry):
     if conflict:h['daily_date_conflict']=conflict
     with c:
         c.execute('UPDATE discovered_notices SET hints_json=?,last_collected_at=? WHERE notice_id=?',(m.packed(h),m.utc_now(),nid))
+        if private_enrichment:
+            m.record_event(c,nid,'private_facts_enriched','collector','Private additive facts only; approved facts and conditions unchanged',
+                {'facts':before['facts']},{'facts':after['facts'],'added_fields':added})
     condition_error=None
-    if action in ('new','changed','enriched') or eligibility.latest(c,nid) is None:
+    if (action in ('new','changed','enriched') and not private_enrichment) or eligibility.latest(c,nid) is None:
         payload=conditions.payload_for(entry.get('facts',{}),conditions.make_payload(entry.get('facts',{})))
         for condition in payload['conditions']:condition.pop('status',None)
         try:

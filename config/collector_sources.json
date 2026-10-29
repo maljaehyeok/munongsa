@@ -315,6 +315,24 @@
       "city": "전국",
       "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요",
       "disabled_reason": "운영 API 활성화 별도 승인 필요"
+    },
+    {
+      "kind": "rda_young",
+      "city": "전국·지역별",
+      "source_id": "rda-young-official",
+      "institution": "농촌진흥청 청년농업인 길잡이",
+      "board_url": "https://www.rda.go.kr/young/custom.do",
+      "method": "html",
+      "enabled": true,
+      "official_hosts": [
+        "www.rda.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 20,
+      "detail_limit": 4,
+      "reuse_policy": "unknown",
+      "notes": "비공개 사실정보 시험; 공개·추천 승인 없음",
+      "max_pages": 2
     }
   ]
 }

@@ -10,6 +10,7 @@ def extra_facts(lines,url):
            'budget_total':r'(?:사업비|총사업비)',
            'application_method':r'(?:신청방법|접수방법|신청장소|접수장소|접수처|신청접수처)',
            'required_documents':r'(?:제출서류|신청서류|구비서류)',
+           'eligibility_description':r'(?:신청자격|지원자격|지원조건)',
            'exclusion_description':r'(?:제외대상|지원제외|신청제외)'}
     result={}
     for key,label in rules.items():

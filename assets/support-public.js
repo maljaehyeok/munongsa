@@ -23,8 +23,10 @@
     const facts=item.reference_application_dates||{},valid=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v+'T00:00:00+09:00'))&&new Date(Date.parse(v+'T00:00:00+09:00')+9*3600000).toISOString().slice(0,10)===v;
     const start=facts.start?.date,end=facts.end?.date,today=new Date(now+9*3600000).toISOString().slice(0,10);
     const endTime=facts.end?.time;
-    if(valid(end)&&facts.end?.timezone==='Asia/Seoul'&&typeof endTime==='string'&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(endTime)&&now>Date.parse(end+'T'+endTime+':00+09:00'))return '기재 신청기한 경과 · 연장·재공고 확인 필요';
+    const timed=facts.end?.timezone==='Asia/Seoul'&&typeof endTime==='string'&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(endTime);
+    if(valid(end)&&timed&&now>=Date.parse(end+'T'+endTime+':00+09:00'))return '기재 신청기한 경과 · 연장·재공고 확인 필요';
     if(valid(end)&&today>end)return '기재 신청기한 경과 · 연장·재공고 확인 필요';
+    if(valid(end)&&today===end&&!timed)return '마감일 당일 · 종료 시각 확인 필요';
     if(valid(start)&&today<start)return '기재 신청 시작일 전 · 접수 여부 확인 필요';
     if(valid(start)&&valid(end)&&start<=end&&start<=today&&today<=end)return '기재 신청기간 내 · 접수 시각·가능 여부 확인 필요';
     return '신청 상태 확인 필요';
@@ -102,12 +104,28 @@
       unknown:conditions.filter(c=>c.status==='check').map(c=>c.reason),different:conditions.filter(c=>c.status==='mismatch').map(c=>c.reason),
       explanation:conditionStatus==='match'?'기록된 논리식 충족 · 공식 신청 자격 확정 아님':conditionStatus==='mismatch'?'전체 조건 논리식과 불일치 · 공식 탈락 판정 아님':'미확인 조건 또는 입력 정보 부족 · 신청 자격 판단 보류'};
   }
+  function recruitment(item,now=Date.now()){
+    const p=period(item),facts=item.reference_application_dates||{};
+    const kday=ms=>new Date(ms+9*3600000).toISOString().slice(0,10),today=kday(now);
+    const start=p?kday(p.start):facts.start?.date,end=p?kday(p.end):facts.end?.date;
+    let state='unknown';const text=status(item,now);
+    if(/경과|모집 마감/.test(text))state='elapsed';
+    else if(/시작일 전|모집 예정/.test(text))state='upcoming';
+    else if(/신청기간 내/.test(text))state='window';
+    let badge='';
+    if(date(end)&&end>=today){
+      const days=Math.round((Date.parse(end+'T00:00:00Z')-Date.parse(today+'T00:00:00Z'))/86400000);
+      badge=days===0?'오늘 마감(기재 기한) · 접수 시각·여부 확인':`D-${days} · 기재 마감일 기준`;
+    }
+    return {state,badge,start:start||null,end:end||null,as_of:new Date(now).toISOString(),eligibility_separate:true};
+  }
   function explore(data,profile,now=Date.now()){
     if(!data||data.schema_version!==schema||!Array.isArray(data.notices))throw new Error('invalid_support_public_schema');
     const seen=new Set(),rows=[];
-    for(const item of data.notices){if(!item||typeof item.id!=='string'||seen.has(item.id)||!publishable(item))continue;seen.add(item.id);rows.push({item,match:evaluate(item,profile),available:eligible(item,now),status:status(item,now)})}
-    rows.sort((a,b)=>({match:0,check:1,mismatch:2}[a.match.conditionStatus]-{match:0,check:1,mismatch:2}[b.match.conditionStatus]));
+    for(const item of data.notices){if(!item||typeof item.id!=='string'||seen.has(item.id)||!publishable(item))continue;seen.add(item.id);rows.push({item,match:evaluate(item,profile),available:eligible(item,now),status:status(item,now),recruitment:recruitment(item,now)})}
+    const rank=r=>/경과|모집 마감/.test(r.status)?3:/시작일 전|모집 예정/.test(r.status)?1:/신청기간 내/.test(r.status)?0:2;
+    rows.sort((a,b)=>rank(a)-rank(b)||({match:0,check:1,mismatch:2}[a.match.conditionStatus]-{match:0,check:1,mismatch:2}[b.match.conditionStatus]));
     return {recommendations:rows.filter(r=>r.available&&r.match.conditionStatus!=='mismatch'),excluded:rows.filter(r=>r.available&&r.match.conditionStatus==='mismatch'),references:rows.filter(r=>!r.available)};
   }
-  root.MunongsaSupport={evaluate,explore,eligible,status,safeUrl,schema};
+  root.MunongsaSupport={evaluate,explore,eligible,status,recruitment,safeUrl,schema};
 })(globalThis);
