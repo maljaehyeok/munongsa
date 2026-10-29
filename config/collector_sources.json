@@ -333,6 +333,25 @@
       "reuse_policy": "unknown",
       "notes": "비공개 사실정보 시험; 공개·추천 승인 없음",
       "max_pages": 2
+    },
+    {
+      "kind": "koat",
+      "city": "전국·사업별 지역 확인",
+      "source_id": "koat-business-official",
+      "institution": "한국농업기술진흥원",
+      "board_url": "https://www.koat.or.kr/board/business/list.do",
+      "method": "html",
+      "enabled": true,
+      "official_hosts": [
+        "www.koat.or.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 10,
+      "detail_limit": 2,
+      "policy_checked_at": "2026-10-29",
+      "policy_url": "https://www.koat.or.kr/robots.txt",
+      "reuse_policy": "unknown",
+      "notes": "Private factual review only; no automatic publication. Individual farmer access not assumed."
     }
   ]
 }

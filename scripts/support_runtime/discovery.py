@@ -84,6 +84,9 @@ def analyse(entry,t,now):
 
 
 def search_source(source,now,known=None,refresh_details=False,detail_policy=None,fact_enricher=None):
+    if source['kind']=='koat':
+        from .koat import collect
+        return collect(source,now,known,detail_policy)
     if source['kind']=='rda_young':
         from .rda import collect
         return collect(source,now,known,detail_policy)

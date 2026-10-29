@@ -124,7 +124,7 @@
     const seen=new Set(),rows=[];
     for(const item of data.notices){if(!item||typeof item.id!=='string'||seen.has(item.id)||!publishable(item))continue;seen.add(item.id);rows.push({item,match:evaluate(item,profile),available:eligible(item,now),status:status(item,now),recruitment:recruitment(item,now)})}
     const rank=r=>/경과|모집 마감/.test(r.status)?3:/시작일 전|모집 예정/.test(r.status)?1:/신청기간 내/.test(r.status)?0:2;
-    rows.sort((a,b)=>rank(a)-rank(b)||({match:0,check:1,mismatch:2}[a.match.conditionStatus]-{match:0,check:1,mismatch:2}[b.match.conditionStatus]));
+    rows.sort((a,b)=>rank(a)-rank(b)||((a.recruitment.end||'9999-12-31').localeCompare(b.recruitment.end||'9999-12-31'))||({match:0,check:1,mismatch:2}[a.match.conditionStatus]-{match:0,check:1,mismatch:2}[b.match.conditionStatus]));
     return {recommendations:rows.filter(r=>r.available&&r.match.conditionStatus!=='mismatch'),excluded:rows.filter(r=>r.available&&r.match.conditionStatus==='mismatch'),references:rows.filter(r=>!r.available)};
   }
   root.MunongsaSupport={evaluate,explore,eligible,status,recruitment,safeUrl,schema};

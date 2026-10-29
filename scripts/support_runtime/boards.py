@@ -122,6 +122,7 @@ def extract(body,link):
     if soup.select_one('.border_view > .exp'):return gochang.extract_gochang(body,link)
     selectors=['.bbsview-con','.bdvCntWrap .se-contents','.bdvCntWrap','.bbsviewcont','.bbsviewcontent','.bbsview_con','.bbs_view_con','.bbs_view .bbs_con','.basicView .conText','.board_view .view_cont','.board-view .view-content','.view_content','.view_cont','.bbs_view_cont','.bbs_content','.board_view_con','.board_view .con','#boardContents','.view_txt','.board_view .view-con','.board_view .cont','.bbsV_cont','.view-con','.conText','.viewContent','.board_view_content','.view_con','.view-contents','.board-view-content','.board-view-contents','.board-view__content','#bbsContents','.contentBody']
     if url.urlsplit(link).hostname=='www.rda.go.kr':selectors.insert(0,'.viewArea .viewBody')
+    if url.urlsplit(link).hostname=='www.koat.or.kr':selectors.insert(0,'.boardView table.view')
     selector=next((s for s in selectors if soup.select_one(s)),None)
     if not selector:raise ValueError('지원되지 않는 본문 영역')
     node=soup.select_one(selector)

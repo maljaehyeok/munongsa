@@ -36,4 +36,6 @@ const factual={...item,eligibility:{conditions:[fact],logic:{condition_id:'resid
 check(api.evaluate(factual,{residenceRegion:'전북',residenceDistrict:'전주시'}).conditionStatus==='match');
 check(api.evaluate(factual,{residenceRegion:'전북',residenceDistrict:'부안군'}).conditionStatus==='mismatch');
 check(api.evaluate({...factual,eligibility:{...factual.eligibility,conditions:[{...fact,status:'candidate'}]}},{residenceRegion:'전북',residenceDistrict:'전주시'}).conditionStatus==='check');
+const soon={...timed,id:'soon',reference_application_dates:{start:{date:'2026-10-27'},end:{date:'2026-11-01',time:'18:00',timezone:'Asia/Seoul'}}};
+check(api.explore({schema_version:api.schema,notices:[{...timed,id:'later'},soon,item]}, {},at('2026-10-29T12:00:00+09:00')).references.map(r=>r.item.id).join(',')===[item.id,soon.id,'later'].join(','));
 console.log(JSON.stringify({passed,failed:0,external_requests:0}));
