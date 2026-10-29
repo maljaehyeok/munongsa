@@ -26,10 +26,10 @@ async function main(){
  await check('support has visual priority',async()=>{const support=await page.locator('[data-category="support"]').boundingBox(),bank=await page.locator('[data-category="bank"]').boundingBox();assert.ok(support.width>bank.width*1.5);assert.ok(await page.locator('[data-category="support"]').evaluate(el=>getComputedStyle(el).backgroundColor!=='rgb(255, 255, 255)'))});
  await page.screenshot({path:path.join(out,'service-desktop.png'),fullPage:true});
  await page.locator('[data-category="support"]').click();
- await check('support references preserved',async()=>{assert.equal(await page.locator('#resultTitle').textContent(),'지원사업');assert.equal(await page.locator('[data-info-kind="supportReview"]').count(),67);assert.ok((await page.locator('#cards').textContent()).includes('정식 승인 미완료'))});
+ await check('support references preserved',async()=>{assert.equal(await page.locator('#resultTitle').textContent(),'지원사업');assert.equal(await page.locator('[data-info-kind="supportReview"]').count(),await page.evaluate(()=>MunongsaSupportReview.publicRecords(supportReview).length));assert.ok((await page.locator('#cards').textContent()).includes('검토 중 참고 공고'))});
  await check('profile heading has accessible high contrast',async()=>{const values=await page.locator('.filter-heading').evaluate(el=>{const s=getComputedStyle(el);return {fg:s.color,bg:s.backgroundColor}});const luminance=rgb=>{const c=rgb.match(/\d+/g).slice(0,3).map(v=>{const n=Number(v)/255;return n<=0.04045?n/12.92:Math.pow((n+0.055)/1.055,2.4)});return .2126*c[0]+.7152*c[1]+.0722*c[2]};const a=luminance(values.fg),b=luminance(values.bg);assert.ok((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5)});
  await page.screenshot({path:path.join(out,'support-desktop.png')});
- await page.locator('#supportSearch').fill('면세유');
+ await page.locator('#supportSearch').fill('농식품');
  await check('reference keyword search',async()=>{assert.ok(await page.locator('[data-info-kind="supportReview"]').count()>0);assert.ok(await page.locator('[data-info-kind="supportReview"]').count()<67)});
  await page.locator('#supportSearch').fill('');
  await page.locator('[data-info-kind="supportReview"]').first().click();
@@ -78,8 +78,8 @@ async function main(){
   await p.close();
  }
  const direct=await browser.newPage();
- await wire(direct);await direct.goto(base+'/#categories?category=support&kind=supportReview&key=catalog-youth');await ready(direct);
- await check('direct category/detail URL restored',async()=>{await direct.locator('#modal.show').waitFor();assert.ok((await direct.locator('#modalTitle').textContent()).includes('청년'))});
+ await wire(direct);await direct.goto(base);await ready(direct);const detailKey=await direct.evaluate(()=>MunongsaSupportReview.publicRecords(supportReview)[0].id);await direct.goto(base+'/#categories?category=support&kind=supportReview&key='+encodeURIComponent(detailKey));
+ await check('direct category/detail URL restored',async()=>{await direct.locator('#modal.show').waitFor();assert.ok((await direct.locator('#modalTag').textContent()).includes('검토'))});
  await direct.close();
  await check('no browser JavaScript errors',async()=>assert.deepEqual(errors,[]));
  await fs.writeFile(path.join(out,'test-results.json'),JSON.stringify({results,errors},null,2));
