@@ -39,10 +39,10 @@
     </section>
     <div class="explore-toolbar" id="exploreToolbar" hidden><button type="button" class="back-service" data-service-home>← 서비스 홈</button><span aria-hidden="true">/</span><span id="currentServiceLabel">지원사업</span></div>
     <section class="layout" id="results">
-      <form class="filters" id="filterForm"><div class="filter-heading"><h2><small class="browse-step">01 · 선택 입력</small>내 영농 조건</h2><button type="button" id="profileToggle" class="profile-toggle" aria-expanded="true" aria-controls="filterForm">접기</button></div><p class="filters-intro">관심 분야와 내 상황을 선택하면 기록된 조건과 관련된 자료부터 보여드려요. 조건이 없는 자료는 확인이 필요한 후보로 표시합니다.</p>
+      <form class="filters" id="filterForm" autocomplete="off"><div class="filter-heading"><h2><small class="browse-step">01 · 선택 입력</small>내 영농 조건</h2><button type="button" id="profileToggle" class="profile-toggle" aria-expanded="true" aria-controls="filterForm">접기</button></div><p class="filters-intro">관심 분야와 내 상황을 선택하면 기록된 조건과 관련된 자료부터 보여드려요. 조건이 없는 자료는 확인이 필요한 후보로 표시합니다.</p>
         <div class="field" id="interestField"><label for="interest">관심 분야</label><select id="interest"><option value="support">지원사업</option><option value="bank">농업금융</option><option value="cultivation">재배기술</option></select><span class="hint">위 분야 탭과 같은 선택입니다. 분야를 바꿔도 입력한 조건은 유지돼요.</span></div>
         <div class="profile-avatar" id="profileAvatar"><div class="avatar-placeholder" aria-hidden="true">👨‍🌾</div><div><strong>프로필 사진</strong><small>사진 등록은 준비 중이에요.<br>회원가입 없이 둘러볼 수 있습니다.</small></div></div>
-        <div class="field"><label for="region">농사를 짓거나 준비하는 지역</label><div class="field-grid"><select id="region" aria-label="시·도 선택"><option value="all">시·도 선택</option><option value="전북">전북특별자치도</option><option value="전남">전라남도</option><option value="경북">경상북도</option><option value="강원">강원특별자치도</option><option value="충남">충청남도</option><option value="충북">충청북도</option><option value="경남">경상남도</option><option value="제주">제주특별자치도</option><option value="경기">경기도</option></select><select id="district" aria-label="시·군·구 선택"><option value="all">시·군·구 선택</option></select></div><span class="hint">지역을 선택하면 해당 지역 자료를 살펴봅니다. 실제 적용 범위는 각 자료의 출처를 확인하세요.</span></div>
+        <div class="field"><label for="region">농사를 짓거나 준비하는 지역</label><div class="field-grid"><select id="region" aria-label="시·도 선택"><option value="all" selected>선택 안 함</option><option value="전북">전북특별자치도</option><option value="전남">전라남도</option><option value="경북">경상북도</option><option value="강원">강원특별자치도</option><option value="충남">충청남도</option><option value="충북">충청북도</option><option value="경남">경상남도</option><option value="제주">제주특별자치도</option><option value="경기">경기도</option></select><select id="district" aria-label="시·군·구 선택"><option value="all">시·군·구 선택</option></select></div><span class="hint">지역을 선택하면 해당 지역 자료를 살펴봅니다. 실제 적용 범위는 각 자료의 출처를 확인하세요.</span></div>
         <div class="field" id="farmingSituationField"><label for="farmingSituation">현재 농업을 어떤 형태로 하고 있나요?</label><select id="farmingSituation"><option value="unknown">선택 안 함</option><option value="preparing">준비 중</option><option value="family">가족농 참여</option><option value="independent">독립경영</option><option value="organization">법인·단체</option></select><span class="hint">상황 선택만으로 경력이나 경영체 등록 여부를 판단하지 않아요.</span></div>
         <details id="additionalProfileFields" class="equipment-examples">
           <summary>추가 정보 입력 · 선택 사항</summary>
@@ -52,8 +52,8 @@
           <div class="field"><label for="groupMemberCount">함께 신청하는 인원은 몇 명인가요? · 선택</label><input id="groupMemberCount" type="number" min="0" step="1" placeholder="예: 5"><span class="hint">단체의 최소 인원 요건이 있는 공고에만 비교해요. 조직 형태·대표자 자격은 따로 확인해야 합니다.</span></div>
           <div class="field"><label for="experience">농업을 시작한 지 얼마나 됐나요? · 선택</label><select id="experience"><option value="unknown">모름</option><option value="planned">시작 전</option><option value="under1">1년 미만</option><option value="1to3">1년 이상~3년 이하</option><option value="over3">3년 초과</option></select><span class="hint">무농사의 탐색용 구분이며 공식 자격 분류가 아닙니다. 정확한 독립경영 기간은 아래에 따로 입력해요.</span></div>
         <div class="field"><label for="applicant">신청자 유형 · 세부 구분</label><select id="applicant"><option value="all" selected>선택 안 함</option><option value="individual">개인 농업인</option><option value="young">청년농업인</option><option value="prospective">영농 예정·예비 청년농</option><option value="organization">농업법인·생산자단체</option><option value="municipality">지자체·시군 컨소시엄</option><option value="agricultural_corporation">농업법인</option><option value="group">비법인 단체·모임</option><option value="business">사업체(개인사업자 포함)</option></select><span class="hint">유형을 선택하지 않으면 모든 신청자 유형의 사업을 보여줘요. 지역·작물 등 다른 조건은 계속 적용됩니다.</span></div>
-        <div class="field"><label for="crop">재배 작물</label><select id="crop"><option value="all">미정</option><option value="rice">벼</option><option value="garlic">마늘</option><option value="onion">양파</option><option value="apple">사과</option><option value="cabbage">배추</option><option value="radish">무</option><option value="potato">감자</option><option value="sweetpotato">고구마</option><option value="soybean">콩</option><option value="wheat">밀</option><option value="pepper">고추</option><option value="greenonion">파</option><option value="scallion">쪽파</option><option value="other">그 외 작물</option></select></div>
-        <div class="field"><label for="cultivation">재배 방식</label><select id="cultivation"><option value="all">모두</option><option value="facility">시설 재배</option><option value="openfield">노지 재배</option></select><span class="hint">재배자료는 원문에 적힌 작형을 표시합니다. 시설·노지 적용 여부를 확인할 수 없는 자료는 방식으로 단정하지 않습니다.</span></div>
+        <div class="field"><label for="crop">재배 작물</label><select id="crop"><option value="all" selected>선택 안 함</option><option value="rice">벼</option><option value="garlic">마늘</option><option value="onion">양파</option><option value="apple">사과</option><option value="cabbage">배추</option><option value="radish">무</option><option value="potato">감자</option><option value="sweetpotato">고구마</option><option value="soybean">콩</option><option value="wheat">밀</option><option value="pepper">고추</option><option value="greenonion">파</option><option value="scallion">쪽파</option><option value="other">그 외 작물</option></select></div>
+        <div class="field"><label for="cultivation">재배 방식</label><select id="cultivation"><option value="all" selected>선택 안 함</option><option value="facility">시설 재배</option><option value="openfield">노지 재배</option></select><span class="hint">재배자료는 원문에 적힌 작형을 표시합니다. 시설·노지 적용 여부를 확인할 수 없는 자료는 방식으로 단정하지 않습니다.</span></div>
         <div class="field-grid">
           <div class="field"><label for="area">재배 규모 (ha)</label><input id="area" type="number" min="0" step="0.01" placeholder="예: 1.5"><span class="hint">1ha = 약 3,025평</span></div>
           <div class="field"><label for="budget">장비 예산 (만원)</label><input id="budget" type="number" min="0" step="10" placeholder="예: 500"><span class="hint">미정이면 비워두세요</span></div>
@@ -66,8 +66,8 @@
           <div class="field-grid"><div class="field"><label for="farmingYears">기준일의 영농경력 (년)</label><input id="farmingYears" type="number" min="0" step="0.01"></div><div class="field"><label for="independentYears">기준일의 독립경영 기간 (년)</label><input id="independentYears" type="number" min="0" step="0.01"></div></div>
         </div>
         </details>
-        <div class="filter-actions"><button class="apply" type="submit">내 조건으로 찾아보기</button><button class="reset-filters" id="resetFilters" type="button">초기화</button></div>
-        <div class="no-save"><span aria-hidden="true">🔒</span><span>입력 정보는 이 브라우저 화면에만 보관하며 서버로 전송하지 않습니다.</span></div>
+        <div class="filter-actions"><button class="apply" type="submit">선택한 조건으로 보기</button><button class="reset-filters" id="resetFilters" type="button">선택 조건 초기화</button></div>
+        <div class="no-save"><span aria-hidden="true">🔒</span><span>선택한 조건은 이 탭에 보관하며 새로고침해도 유지됩니다. 서버로 전송하지 않으며 ‘선택 조건 초기화’로 지울 수 있어요.</span></div>
         <p class="filter-tip">비워둔 조건은 미확인으로 남습니다. 입력 없이도 자료를 둘러볼 수 있어요.</p>
       </form>
       <div class="results">
@@ -89,12 +89,12 @@
   <link rel="stylesheet" href="./assets/cultivation-mvp.css">
   <link rel="stylesheet" href="./assets/black-minimal.css?v=deadline-20261030">
   <script src="./assets/crop-directory.js"></script>
-  <script src="./assets/cultivation-mvp.js?v=content-20261030"></script>
+  <script src="./assets/cultivation-mvp.js?v=input-20261030"></script>
   <script src="./assets/ui-v2.js?v=browse-20261030"></script>
   <script src="./assets/profile-matching.js"></script>
   <script src="./assets/support-public.js"></script>
   <script src="./assets/finance-mvp.js?v=content-20261030"></script>
-  <script src="./assets/user-display.js?v=content-20261030"></script>
+  <script src="./assets/user-display.js?v=input-20261030"></script>
   <script src="./assets/personalization.js?v=accuracy-20261029"></script>
   <script src="./assets/support-review.js?v=support-readable-20261029"></script>
   <script>
@@ -313,6 +313,8 @@
     }
     function initializeNavigation(){
       const previous=history.state;
+      // Neutral form defaults apply only to a new history entry; keep existing saved profiles.
+      if(!previous?.munongsaNavigation||!previous.profile)document.getElementById('filterForm').reset();
       if(previous?.munongsaNavigation&&previous.profile){
         for(const id of ['applicant','age','experience','region','crop','area','budget','cultivation','residenceRegion','residenceDistrict','birthDate','farmRegistered','experienceBasisDate','farmingYears','independentYears','farmingSituation','supportSearch','exporterStatus','groupMemberCount','financeSearch','financePurpose']){
           const field=document.getElementById(id),value=previous.profile[id];
@@ -342,7 +344,13 @@
       }
     }
     document.getElementById('filterForm').addEventListener('submit',e=>{e.preventDefault();draw()});
-    document.getElementById('resetFilters').addEventListener('click',()=>{document.getElementById('filterForm').reset();document.getElementById('supportSearch').value='';document.getElementById('financeSearch').value='';document.getElementById('financePurpose').value='all';financeQuery='';financePurpose='all';selectedCropName='';updateRegion();document.getElementById('applicant').dispatchEvent(new Event('change'));});
+    document.getElementById('resetFilters').addEventListener('click',()=>{
+      document.getElementById('filterForm').reset();document.getElementById('supportSearch').value='';document.getElementById('financeSearch').value='';document.getElementById('financePurpose').value='all';document.getElementById('supportStateFilter').value='all';financeQuery='';financePurpose='all';supportViewFilter='all';supportPeriodFilter='all';selectedCropName='';
+      MunongsaCultivation.resetSelection();
+      const state=navigationFromUrl();state.crop='';state.detail=null;
+      history.replaceState({...history.state,...state,profile:readProfile(),modalEntry:false},'',navigationUrl(state));
+      updateRegion();
+    });
     document.querySelector('.nav').addEventListener('click',e=>{
       if(e.target.closest('[data-nav-home]')){e.preventDefault();navigateTo(null);return}
       const link=e.target.closest('[data-nav-category]');
