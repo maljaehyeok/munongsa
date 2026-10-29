@@ -83,6 +83,8 @@
   </main>
   <footer class="footer">무농사 · 농사의 시작을, 더 쉽게.<br>초보 농업인을 위한 영농 지원 길잡이</footer>
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-box"><div class="modal-head"><div><span class="tag warning" id="modalTag">사업 정보</span><h2 id="modalTitle"></h2><span class="status-pill" id="modalStatus"></span></div><button class="close" id="closeModal" aria-label="닫기">×</button></div><p id="modalSummary"></p><h3 id="modalEligibilityHeading">누가 신청할 수 있나요? · 확인할 조건</h3><ul id="modalEligibility"></ul><h3 id="modalSupportHeading">지원 내용·일정</h3><p id="modalSupport"></p><p id="modalSchedule"></p><div class="cite" id="modalSource"></div></div></div>
+  <link rel="stylesheet" href="./assets/cultivation-mvp.css">
+  <script src="./assets/cultivation-mvp.js"></script>
   <script src="./assets/ui-v2.js"></script>
   <script src="./assets/profile-matching.js"></script>
   <script src="./assets/support-public.js"></script>
@@ -242,28 +244,10 @@
       if(activeCategory==='equipment'){document.getElementById('resultTitle').textContent='농업장비';const list=rankForProfile(equipment.filter(i=>x.cultivation==='all'||!i.mode.length||i.mode.includes(x.cultivation)),'equipment',x);const ideas=list.filter(i=>i.recordType==='team_equipment_idea');const products=list.filter(i=>i.recordType==='team_workbook_product_candidate');const facilities=list.filter(i=>i.recordType==='team_workbook_facility_candidate');const verified=rankForProfile(x.cultivation==='facility'?[]:guidelineEquipment,'guideline',x);count.textContent='\uACF5\uC2DD \uC7A5\uBE44 \uBC94\uC8FC '+verified.length+'\uAC74 · \uD300 \uC544\uC774\uB514\uC5B4 '+ideas.length+'\uAC74 · \uC81C\uD488 \uBBF8\uD655\uC778 \uD6C4\uBCF4 '+(products.length+facilities.length)+'\uAC74';message.textContent='\uACF5\uC2DD \uC9C0\uCE68\uC0C1 \uC7A5\uBE44 \uBC94\uC8FC\uC640 \uD300 \uC544\uC774\uB514\uC5B4\u00B7\uC6CC\uD06C\uBD81 \uD6C4\uBCF4\uB97C \uAD6C\uBD84\uD588\uC2B5\uB2C8\uB2E4. \uC81C\uC870\uC0AC \uACF5\uC2DD \uD398\uC774\uC9C0\uC640 \uBAA8\uB378\uC744 \uD655\uC778\uD55C \uC81C\uD488\uC740 \uC544\uC9C1 \uC5C6\uC2B5\uB2C8\uB2E4.';const confirmed=verified.length?'<div class="data-note">\uACF5\uC2DD \uC790\uB8CC\uC5D0\uC11C \uD655\uC778\uB41C \uC7A5\uBE44\u00B7\uC194\uB8E8\uC158 \uBC94\uC8FC\uC785\uB2C8\uB2E4. \uD2B9\uC815 \uBAA8\uB378\u00B7\uC131\uB2A5\u00B7\uAC00\uACA9\u00B7\uC9C0\uC6D0 \uB300\uC0C1 \uC81C\uD488\uC744 \uC758\uBBF8\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.</div>'+verified.map(i=>compactCard(i.name,i.url?'\uACF5\uC2DD \uC790\uB8CC\uC5D0\uC11C \uD655\uC778 · \uC81C\uD488 \uC9C0\uC815 \uC544\uB2D8':'\uACF5\uC2DD \uBC94\uC8FC · \uC6D0\uBB38 URL \uD655\uC778 \uD544\uC694',i.use,'guideline',i.id)).join(''):'';const section=(title,rows,note)=>rows.length?'<details class="equipment-examples"><summary>'+title+' ('+rows.length+'\uAC74)</summary><div class="data-note">'+note+'</div>'+[...new Set(rows.map(i=>i.group))].map(g=>'<div class="equipment-group"><h3>'+esc(g)+'</h3></div>'+rows.filter(i=>i.group===g).map(i=>equipmentHtml(i,x)).join('')).join('')+'</details>':'';const review=section('\uD300 \uC544\uC774\uB514\uC5B4 · \uAC1C\uB150 \uAC80\uD1A0',ideas,'\uD300\uC5D0\uC11C \uC81C\uC548\uD55C \uC7A5\uBE44 \uAD6C\uC131\uC785\uB2C8\uB2E4. \uC2E4\uC81C \uC81C\uD488 \uC0AC\uC591\uC774\uB098 \uC9C0\uC6D0 \uC5EC\uBD80\uB85C \uAC80\uC99D\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.')+section('\uB18D\uAE30\uACC4 \uD6C4\uBCF4 · \uBAA8\uB378\u00B7\uAC00\uACA9 \uBBF8\uAC80\uC99D',products,'\uAE08\uC735 \uC5D1\uC140\uC5D0 \uC801\uD78C \uAE30\uC885\u00B7\uBAA8\uB378\u00B7\uAC00\uACA9 \uAE30\uB85D\uC785\uB2C8\uB2E4. \uC81C\uC870\uC0AC \uC6D0\uBB38, \uAC00\uACA9 \uAE30\uC900\uC77C, \uD310\uB9E4 \uC5EC\uBD80\uB97C \uD655\uC778\uD558\uAE30 \uC804\uC5D0\uB294 \uC81C\uD488 \uCD94\uCC9C\uC774 \uC544\uB2D9\uB2C8\uB2E4.')+section('\uC2DC\uC124\u00B7\uC2A4\uB9C8\uD2B8\uD31C \uC124\uBE44 \uD6C4\uBCF4 · \uC870\uAC74 \uBBF8\uAC80\uC99D',facilities,'\uC2DC\uC124\u00B7\uCD95\uC0B0 \uAD00\uB828 \uC6CC\uD06C\uBD81 \uAE30\uB85D\uC785\uB2C8\uB2E4. \uC81C\uD488 \uC0AC\uC591\u00B7\uC124\uCE58\uBE44\u00B7\uBCF4\uC870\uC728\u00B7\uC735\uC790\uC870\uAC74\uC740 \uACF5\uC2DD \uC6D0\uBB38\uACFC \uB300\uC870\uD558\uAE30 \uC804\uC785\uB2C8\uB2E4.')+(equipmentDataError?'<div class="empty">\uC7A5\uBE44 \uC790\uB8CC \uD30C\uC77C\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4. build_equipment_data.py \uC2E4\uD589 \uD6C4 \uB85C\uCEEC HTTP \uC11C\uBC84\uC5D0\uC11C \uB2E4\uC2DC \uC5F4\uC5B4 \uC8FC\uC138\uC694.</div>':'')+'<div class="data-note">\uC2E4\uC81C \uC81C\uD488\uC73C\uB85C \uD655\uC778\uB41C \uD56D\uBAA9: '+((equipmentData?.verifiedProducts||[]).length)+'\uAC74</div>';cards.innerHTML=confirmed+review;return}
       if(activeCategory==='cultivation'){
         document.getElementById('resultTitle').textContent='재배기술';
-        const cropNames={rice:'벼',garlic:'마늘',onion:'양파',apple:'사과',cabbage:'배추',radish:'무',potato:'감자',sweetpotato:'고구마',soybean:'콩',wheat:'밀',pepper:'고추',greenonion:'파',scallion:'쪽파'};const signature=[x.crop,x.region,x.district].join('|');if(signature!==cropFilterSignature){selectedCropName='';cropFilterSignature=signature}
-        let found=(cropData?.records||[]).filter(r=>x.crop==='all'||r.crop===cropNames[x.crop]||(x.crop==='other'&&!Object.values(cropNames).includes(r.crop)));
-        found=rankForProfile(found,'cultivationRecord',x);
-        let review=(cropData?.reviewRecords||[]).filter(r=>x.crop==='all'||r.crop===cropNames[x.crop]||(x.crop==='other'&&!Object.values(cropNames).includes(r.crop)));
-        review=rankForProfile(review,'cultivationReview',x);
-        const unavailable=cropDataError?'<div class="empty">통합 작물 자료를 불러오지 못했어요. 로컬 HTTP 서버에서 JSON 경로를 확인해 주세요.</div>':'';
-        if(!cropData){count.textContent='작물 데이터 연결 대기';message.textContent='작물 자료를 불러오고 있습니다.';cards.innerHTML=unavailable||'<div class="empty">작물 자료를 불러오고 있어요.</div>';return}
-        const warning='<div class="data-note"><b>자료 상태 안내</b> · 상세기록은 검토 중입니다. 원문과 적용 지역·작형을 확인하세요.</div>';
-        const names=[...new Set([...found.map(r=>r.crop),...review.map(r=>r.crop)])].sort((a,b)=>{const best=name=>Math.max(...found.filter(r=>r.crop===name).map(r=>profileMatches.get('cultivationRecord:'+r.id)?.score||0),...review.filter(r=>r.crop===name).map(r=>profileMatches.get('cultivationReview:'+r.id)?.score||0));return best(b)-best(a)||a.localeCompare(b,'ko')});
-        if(!selectedCropName||!names.includes(selectedCropName)){
-          count.textContent=`작물 ${names.length}종`;
-          message.textContent='작물 이름을 선택하면 재배 단계와 세부 자료를 볼 수 있어요.';
-          const tiles=names.map(name=>{const n=found.filter(r=>r.crop===name).length+review.filter(r=>r.crop===name).length;return `<article class="card compact-card crop-name-card"><button class="compact-open" type="button" data-crop-open="${esc(name)}"><span class="tag">재배기술</span><strong>${esc(name)}</strong><span class="compact-hint">자료 ${n}건 · 자세히 보기　↗</span></button></article>`}).join('');
-          cards.innerHTML=warning+unavailable+(tiles||'<div class="empty">선택한 조건에서 자료를 찾지 못했어요. 자료 미수집은 해당 작물 정보가 없다는 뜻이 아닙니다.</div>');return
-        }
-        const cropRecords=found.filter(r=>r.crop===selectedCropName);const cropReview=review.filter(r=>r.crop===selectedCropName);
-        count.textContent=`${selectedCropName} · 세부자료 ${cropRecords.length+cropReview.length}건`;
-        message.textContent='세부 항목을 선택하면 내용과 출처·근거를 확인할 수 있어요.';
-        const back='<button type="button" class="crop-back" data-crop-back>‹ 재배기술 작물 목록</button>';
-        const main=cropRecords.map(r=>compactCard(`${r.growthStageOrTopic||r.informationType||'재배 정보'}`,`${r.informationType||'재배자료'} · 검토 중`,r.content,'cultivationRecord',r.id)).join('');
-        const held=cropReview.map(r=>compactCard(`${r.growthStageOrTopic||r.informationType||'추가 검토 자료'}`,'출처 추가 검토',r.content,'cultivationReview',r.id)).join('');
-        cards.innerHTML=back+warning+unavailable+(main||'')+(held?`<details class="equipment-examples"><summary>출처 추가 검토 자료 ${cropReview.length}건 보기</summary><div class="data-note">원본 출처 매핑과 중복 여부를 확인 중이며 게시 보류 상태입니다.</div>${held}</details>`:'')+(!main&&!held?'<div class="empty">이 작물의 상세자료가 없습니다.</div>':'');return
+        const chosen=selectedCropName||(x.crop!=='all'?(labels[x.crop]||x.crop):'');
+        count.textContent='대표 작물 3종 · 공식 연결 8곳';
+        message.textContent='작물과 궁금한 주제를 고르면 공식 자료로 안내해요.';
+        cards.innerHTML=MunongsaCultivation.render(chosen,x);return;
       }
       document.getElementById('resultTitle').textContent=activeCategory==='support'?'지원사업':activeCategory==='bank'?'농업금융':'재배기술';if(activeCategory==='bank'){drawFinance();return}if(activeCategory!=='support'){if(!catalogData){count.textContent='데이터 목록 연결 대기';message.textContent='데이터 목록을 불러오지 못했어요.';cards.innerHTML='<div class="empty">이 화면을 VS Code의 Live Server로 열어 data/smart-agriculture-catalog.json을 불러와 주세요.</div>';return}const target=activeCategory==='bank'?'은행·정책금융':'재배기술';let found=catalogData.sampleRecords.filter(i=>i.category.includes(target));const x=readProfile();if(x.cultivation!=='all')found=found.filter(i=>i.cultivationMode==='both'||i.cultivationMode===x.cultivation);found=rankForProfile(found,'catalog',x);count.textContent=`데이터 목록 ${found.length}건`;message.textContent=activeCategory==='bank'?'공식 출처가 연결된 기존 금융 안내와, 검토 중인 팀 조사 후보를 구분해 보여줍니다. 대출 조건·신청 상태는 원문과 취급기관에서 확인하세요.':'각 카드에 출처와 적용 범위·주의사항을 표시합니다. 신청이나 구매 전에는 원문을 확인해 주세요.';cards.innerHTML=(found.length?found.map(catalogRecordHtml).join(''):'<div class="empty">현재 데이터 목록에서 조건에 맞는 자료를 찾지 못했어요. 자료가 없다는 뜻이 실제 지원·재배가 불가능하다는 뜻은 아닙니다.</div>')+(activeCategory==='bank'?financeReferenceSection():'');return}
       drawApprovedSupport(x);}
@@ -295,7 +279,7 @@
     function restoreNavigationDetail(){
       if(!navigationReady)return;
       const state=navigationFromUrl();
-      if(state.detail&&!homeView)openInfoModal(state.detail.kind,state.detail.key);
+      if(state.detail&&!homeView&&!['cultivationRecord','cultivationReview'].includes(state.detail.kind))openInfoModal(state.detail.kind,state.detail.key);
     }
     function applyNavigation(state,scroll=true){
       document.getElementById('modal').classList.remove('show');
@@ -364,6 +348,8 @@
       if(button)navigateTo(button.dataset.category);
     });
     cards.addEventListener('click',e=>{
+      const topic=e.target.closest('[data-cultivation-topic]');
+      if(topic){MunongsaCultivation.choose(Number(topic.dataset.cultivationTopic));draw();return}
       const crop=e.target.closest('[data-crop-open]');
       if(crop){navigateTo(activeCategory,crop.dataset.cropOpen);return}
       if(e.target.closest('[data-crop-back]')){navigateTo(activeCategory);return}
