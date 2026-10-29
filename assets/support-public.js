@@ -2,7 +2,7 @@
 (function(root){
   'use strict';
   const schema='munongsa-support-public-v1';
-  const names={applicant:'신청 주체',residence:'거주지',business_location:'사업장 소재지',age:'연령',farming_experience:'영농경력',independent_management:'독립경영 기간',farm_registration:'농업경영체 등록',crop:'작물',livestock:'축종',scale:'영농 규모',facility:'시설 조건',export_activity:'수출 활동',other_required:'기타 필수 조건',exclusion:'제외 조건'};
+  const names={applicant:'신청 주체',residence:'거주지',business_location:'사업장 소재지',age:'연령',farming_experience:'영농경력',independent_management:'독립경영 기간',farm_registration:'농업경영체 등록',crop:'작물',livestock:'축종',scale:'영농 규모',facility:'시설 조건',group_size:'\uACF5\uB3D9 \uC2E0\uCCAD \uC778\uC6D0',export_activity:'수출 활동',other_required:'기타 필수 조건',exclusion:'제외 조건'};
   const crops={rice:'벼',garlic:'마늘',onion:'양파',apple:'사과',cabbage:'배추',radish:'무',potato:'감자',sweetpotato:'고구마',soybean:'콩',wheat:'밀',pepper:'고추',greenonion:'파',scallion:'쪽파',strawberry:'딸기'};
   const selected=v=>v!==undefined&&v!==null&&v!==''&&!['all','unknown'].includes(v);
   const number=v=>selected(v)&&Number.isFinite(Number(v))&&Number(v)>=0?Number(v):null;
@@ -71,6 +71,9 @@
             actual=number(c.kind==='farming_experience'?p.farmingYears:p.independentYears);
             known=actual!==null&&v.unit==='years'&&!!date(v.basis_date)&&p.experienceBasisDate===v.basis_date;
             ok=known&&inRange(actual,v);detail=known?`공고 기준일 ${v.basis_date}의 입력 경력 비교`:'정확한 경력·단위·공고 기준일 확인 필요 (영농 단계만으로 추정하지 않음)';
+          }else if(c.kind==='group_size'){
+            actual=number(p.groupMemberCount);known=actual!==null&&Number.isInteger(actual)&&v.unit==='persons';ok=known&&inRange(actual,v);
+            detail=known?'입력한 공동 신청 인원과 공식 최소 인원 비교':'공동 신청 인원을 입력하면 비교합니다. 개인 신청 여부와 별개입니다.';
           }else if(c.kind==='export_activity'){
             known=['yes','no'].includes(p.exporterStatus)&&typeof v.required==='boolean';ok=known&&((p.exporterStatus==='yes')===v.required);
           }else if(c.kind==='farm_registration'){
@@ -101,7 +104,7 @@
     // A malformed graph must never silently omit a required condition.
     const used=new Set();function refs(n,d=0){if(!n||d>12)return;if(n.condition_id)used.add(n.condition_id);else if(Array.isArray(n.children))n.children.forEach(x=>refs(x,d+1))}refs(payload.logic);
     if(!conditions.length||used.size!==byId.size||[...used].some(id=>!byId.has(id))||ids.size!==conditions.length)conditionStatus='check';
-    if(p.applicant==='prospective'&&selected(p.experience)&&p.experience!=='planned')conditionStatus='check';
+    if(conditionStatus!=='mismatch'&&p.applicant==='prospective'&&selected(p.experience)&&p.experience!=='planned')conditionStatus='check';
     return {conditionStatus,conditions,matched:conditions.filter(c=>c.status==='match').map(c=>c.reason),
       unknown:conditions.filter(c=>c.status==='check').map(c=>c.reason),different:conditions.filter(c=>c.status==='mismatch').map(c=>c.reason),
       explanation:conditionStatus==='match'?'기록된 논리식 충족 · 공식 신청 자격 확정 아님':conditionStatus==='mismatch'?'전체 조건 논리식과 불일치 · 공식 탈락 판정 아님':'미확인 조건 또는 입력 정보 부족 · 신청 자격 판단 보류'};

@@ -1,7 +1,7 @@
 /* Compare facts already approved for display; never approve, mutate or invent eligibility. */
 (function(root){
  'use strict';
- const names={applicant:'신청 대상',residence:'거주 지역',farm_registration:'경영체 등록',crop:'재배 작물',export_activity:'수출 활동',age:'연령',independent_management:'독립경영 기간',farming_experience:'영농 경력'};
+ const names={applicant:'신청 대상',residence:'거주 지역',farm_registration:'경영체 등록',crop:'재배 작물',export_activity:'수출 활동',group_size:'공동 신청 인원',age:'연령',independent_management:'독립경영 기간',farming_experience:'영농 경력'};
  function project(item){
   if(item.verification_status!=='verified'||!['approved_reference','approved'].includes(item.publication)||!root.MunongsaSupport.safeUrl(item.url))return item;
   const target=item.target||'',original=item.eligibility||{},conditions=[...(original.conditions||[])],added=[];
@@ -13,6 +13,8 @@
   if(crop&&!/재배하는.{0,20}(?:제외|대상\s*아님)/.test(target))add('crop',{any_of:[crop[1]]});
   const residence=target.match(/(포항|전주)에\s*거주(?:하며|하는|하고)/),scopes={포항:'경북 포항시',전주:'전북 전주시'};
   if(residence)add('residence',{regions:[scopes[residence[1]]]});
+  const group=target.match(/(\d+)\s*인\s*이상[^.。]{0,30}(?:법인|모임|단체)/);
+  if(group&&!/(?:법인|모임|단체)(?:은|는)?\s*제외/.test(group[0]+target.slice(group.index+group[0].length,group.index+group[0].length+8))){const min=Number(group[1]);if(min>0&&min<=100000)add('group_size',{min,max:null,min_inclusive:true,max_inclusive:true,unit:'persons'})}
   const optionalExport=/수출실적(?:이)?\s*(?:없어도|무관|불필요)|수출(?:업체|농가).{0,8}(?:아니어도|않아도)|수출(?:업체|농가)(?:는|가)?\s*(?:제외|대상\s*아님)/.test(target);
   if(!optionalExport&&/수출업체|수출농가|수출실적(?:이\s*있는|\s*요건을\s*충족)|수출\s*농식품\s*업체/.test(target))add('export_activity',{required:true});
   if(!added.length)return item;

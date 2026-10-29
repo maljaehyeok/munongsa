@@ -6,6 +6,7 @@
  function period(item){const display=root.MunongsaSupportReview.displayDate,p=item.application_period||{},r=item.reference_application_dates||{};const fact=v=>v?.date?display(v.date)+(v.timezone==='Asia/Seoul'&&/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(v.time||'')?' '+v.time+' (한국시간)':''):null;return (p.start?display(p.start):fact(r.start)||'시작일 미확인')+' ~ '+(p.end?display(p.end):fact(r.end)||'마감일 미확인')}
  const situationApplicant={preparing:'prospective',family:'all',independent:'individual',organization:'organization',unknown:'all'};
  function applicantForSituation(value){return situationApplicant[value]||'all'}
+ function situationForApplicant(value,current){return ['organization','agricultural_corporation','group','business','municipality'].includes(value)?'organization':applicantForSituation(current)===value?current:'unknown'}
  function sourceButton(url,label='공식 공고 보기'){return root.MunongsaSupport.safeUrl(url)?`<a class="source-link source-action" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)} <span aria-hidden="true">↗</span></a>`:''}
  function supportDetail(item,row,display,period){
   const known=v=>typeof v==='string'&&v.trim()&&!['unknown','확인 필요'].includes(v),review=root.MunongsaSupportReview;
@@ -16,5 +17,23 @@
   const application=item.application_url_verified===true?sourceButton(item.application_url,'별도 신청 페이지'):'';
   return `<div class="detail-actions">${sourceButton(item.url)}${application}</div><dl class="support-detail-list user-facts">${fields.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl><h3>내 조건과 비교</h3><p>${row?esc(status[row.match.conditionStatus]||status.check):'참고 공고입니다. 신청 대상과 자격은 원문에서 확인해 주세요.'}</p><ul>${comparisons}</ul>${missing.length?`<details class="more-conditions"><summary>더 확인할 조건 ${missing.length}개</summary><p>${esc([...new Set(missing.map(v=>v.label))].join(' · '))}</p></details>`:''}<div class="detail-caution"><h3>신청 전 확인하세요</h3><p>${esc(display.chips.filter(c=>!['세부 자격 일부 미확인','마감 임박','기재 기간 경과','검토중 · 참고자료'].includes(c.text)).map(c=>c.text).join(' · '))}</p><p>기재 모집기간과 내 조건 비교는 신청 자격·접수 가능 확정이 아닙니다. 정정·연장·예산 소진·조기 종료 여부와 세부 자격은 공식 원문에서 확인하세요.</p></div><p class="notice-meta">게시일 ${esc(review.displayDate(item.published_at))}<br>정보 확인일 ${row?esc(review.displayDate(item.last_checked_at)):'검토 전'}<br>마지막 수집일 ${esc(review.displayDate(item.last_collected_at||item.collected_at||item.checked_at))}</p><p>${esc(item.institution)}</p>${sourceButton(item.url)}`;
  }
- root.MunongsaDisplay={title,period,applicantForSituation,sourceButton,supportDetail};
+ function profileFields(category,published,products=[],profile={}){
+  const support=category==='support',bank=category==='bank',cultivation=category==='cultivation';
+  const kinds=new Set();
+  if(support)for(const n of published?.notices||[]){const item=root.MunongsaPersonalization.project(n);for(const c of item.eligibility?.conditions||[])if(c.status==='verified'&&c.presence==='specified')kinds.add(c.kind)}
+  const precise=['organization','agricultural_corporation','group','business','municipality'].includes(profile.applicant)||profile.farmingSituation==='organization';
+  return {region:!bank,district:!bank,age:false,experience:false,budget:false,
+   applicant:precise&&(support&&kinds.has('applicant')||bank&&products.some(p=>p.applicants?.length)),
+   exporterStatus:support&&kinds.has('export_activity'),groupMemberCount:support&&precise&&kinds.has('group_size'),
+   crop:cultivation||support&&kinds.has('crop'),cultivation:cultivation||support&&kinds.has('facility'),area:support&&kinds.has('scale'),
+   residenceRegion:support&&kinds.has('residence'),residenceDistrict:support&&kinds.has('residence'),
+   birthDate:support&&kinds.has('age')||bank&&products.some(p=>p.birthYears?.length&&!root.MunongsaFinance.compare(p,profile).rows.some(c=>c.label==='신청 대상'&&c.state==='mismatch')),
+   farmRegistered:support&&kinds.has('farm_registration'),farmingYears:support&&kinds.has('farming_experience'),independentYears:support&&kinds.has('independent_management'),
+   experienceBasisDate:support&&(kinds.has('farming_experience')||kinds.has('independent_management'))};
+ }
+ function applyProfileFields(category,published,products,profile){const fields=profileFields(category,published,products,profile);for(const [id,show]of Object.entries(fields)){const el=document.getElementById(id);if(el)el.closest('.field').hidden=!show}
+  const additional=document.getElementById('additionalProfileFields');additional.hidden=!Object.entries(fields).some(([id,show])=>show&&!['region','district'].includes(id));
+  if(category==='bank'){const comparable=products.some(p=>p.applicants?.length);document.getElementById('farmingSituationField').hidden=!comparable;document.querySelector('.filters-intro').textContent=comparable?'현재 농업 상황만 알려주세요. 생년월일은 연령 조건이 있는 상품을 비교할 때만 입력해요.':'보증제도는 별도 상담과 심사가 필요합니다. 현재 입력값으로 보증 승인 여부를 판단하지 않아요.'}
+  return fields}
+ root.MunongsaDisplay={title,period,applicantForSituation,situationForApplicant,sourceButton,supportDetail,profileFields,applyProfileFields};
 })(globalThis);
