@@ -4,8 +4,32 @@
   const labels={support:'지원사업',bank:'농업금융',cultivation:'재배기술',equipment:'농업장비 · 보존된 이전 화면'};
   const byId=id=>document.getElementById(id);
   let profileCategory=null;
+  let browseState={homeView:true,activeCategory:'support'},browseQueued=false;
+  function queueBrowseContext(){if(browseQueued)return;browseQueued=true;requestAnimationFrame(()=>{browseQueued=false;updateBrowseContext()})}
+  function updateBrowseContext(){
+    const summary=byId('selectionSummary'),order=byId('browseOrder');if(!summary||!order)return;
+    summary.hidden=browseState.homeView;order.hidden=browseState.homeView;if(browseState.homeView)return;
+    const category=browseState.activeCategory,filters=[],add=(label,value)=>{if(value&&value!=='all')filters.push(label+' · '+value)},value=id=>byId(id)?.value?.trim(),selected=id=>{const el=byId(id);return el&&el.value!=='all'?el.selectedOptions[0]?.textContent.trim():''};
+    if(category==='support'){
+      add('검색',value('supportSearch'));
+      const state=document.querySelector('[data-support-status].active');if(state&&state.dataset.supportStatus!=='all')add('상태',state.childNodes[0]?.textContent.trim());
+      add('기간',selected('supportPeriodFilter'));
+      order.textContent='표시 순서 · 모집기간 → 조건 비교 → 관련도 → 마감일';
+    }else if(category==='bank'){
+      add('검색',value('financeSearch'));add('자금 목적',selected('financePurpose'));
+      order.textContent='표시 순서 · 기본 조건 비교 우선 / 대출·보증 승인과는 별개';
+    }else if(category==='cultivation'){
+      add('작물 검색',value('cropDirectorySearch'));add('분류',selected('cropDirectoryGroup'));
+      add('선택 작물',document.querySelector('[data-crop-open][aria-pressed="true"]')?.textContent.trim());
+      add('주제',document.querySelector('[data-cultivation-topic][aria-pressed="true"]')?.textContent.trim());
+      order.textContent='표시 순서 · 작물 검색은 이름·별칭 일치도 우선 / 자료는 검증된 직접 연결 우선';
+    }
+    const list=byId('browseFilterSummary');list.replaceChildren(...filters.map(text=>{const chip=document.createElement('span');chip.className='selection-chip';chip.textContent=text;return chip}));
+    const hasProfile=byId('profileSummary').childElementCount>0;byId('profileSelectionRow').hidden=!hasProfile;byId('browseSelectionRow').hidden=!filters.length;byId('browseSelectionEmpty').hidden=hasProfile||filters.length>0;
+  }
   function closeMenu(){byId('mainNav').classList.remove('is-open');byId('menuToggle').setAttribute('aria-expanded','false')}
   function sync({homeView,serviceHomeView,activeCategory}){
+    browseState={homeView,activeCategory};queueBrowseContext();
     document.body.dataset.view=homeView?(serviceHomeView?'service':'brand'):'explore';
     byId('top').hidden=!homeView||serviceHomeView;
     byId('serviceHome').hidden=!homeView||!serviceHomeView;
@@ -39,6 +63,8 @@
     byId('budget').closest('.field').hidden=activeCategory!=='equipment'||homeView;
   }
   function mount(navigate){
+    document.addEventListener('input',event=>{if(event.target.id==='cropDirectorySearch')queueBrowseContext()});
+    document.addEventListener('change',event=>{if(event.target.id==='cropDirectoryGroup')queueBrowseContext()});
     const media=window.matchMedia('(max-width:760px)');
     function setProfileExpanded(expanded){byId('filterForm').classList.toggle('is-collapsed',!expanded);byId('profileToggle').setAttribute('aria-expanded',String(expanded));byId('profileToggle').textContent=expanded?'접기':'내 조건 입력'}
     setProfileExpanded(!media.matches);
