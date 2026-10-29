@@ -25,9 +25,23 @@ if(!base){server=http.createServer((req,res)=>{const u=new URL(req.url,'http://l
 browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});
 let publicBefore;
 for(const width of [1280,390]){
- const page=await browser.newPage({viewport:{width,height:900}});page.setDefaultTimeout(8000);page.on('pageerror',e=>errors.push(e.message));page.on('requestfailed',r=>{if(new URL(r.url()).origin===new URL(base).origin)failedRequests.push({url:r.url(),error:r.failure()?.errorText})});
+ const context=await browser.newContext({viewport:{width,height:900}});
+ // Reuse verify-approved-batch.cjs transport: render actual HTTP response bytes
+ // from AWS in Chrome, without substituting local data for production responses.
+ if(production)await context.route('**/*',async route=>{
+  const u=new URL(route.request().url());
+  if(u.origin===new URL(base).origin){
+   if(u.pathname==='/favicon.ico')return route.fulfill({status:204});
+   try{const response=await context.request.get(u.href,{timeout:20000});if(response.status()>=400)failedRequests.push({path:u.pathname,status:response.status()});return route.fulfill({response})}
+   catch(e){failedRequests.push({path:u.pathname,error:e.name});return route.abort()}
+  }
+  if(route.request().isNavigationRequest())return route.fulfill({status:200,contentType:'text/plain',body:'Official destination URL check only; external contents not tested'});
+  return route.abort('blockedbyclient');
+ });
+ const page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);page.on('pageerror',e=>errors.push(e.message));page.on('requestfailed',r=>{if(new URL(r.url()).origin===new URL(base).origin)failedRequests.push({url:r.url(),error:r.failure()?.errorText})});
  await page.goto(base+'/#categories?category=bank',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>typeof financeMvp!=='undefined'&&financeMvp&&publicSupport&&supportReview);
  const current=await page.evaluate(()=>({public:publicSupport,review:supportReview}));if(!publicBefore)publicBefore=current;else assert.deepEqual(current,publicBefore);
+ if(production){const response=await context.request.get(base+'/data/finance-mvp.json');assert.equal(response.status(),200);assert.deepEqual(await response.json(),data)}
  check(width+' four finance cards visible',()=>assert.equal(true,true));assert.equal(await page.locator('[data-finance-id]').count(),4);assert.ok(await page.locator('[data-finance-id]').first().isVisible());
  assert.ok(!/unverified|approved_reference|AND\(|팀 엑셀|농기계/.test(await page.locator('#cards').innerText()));
  await page.locator('#financeSearch').fill('보증');assert.equal(await page.locator('[data-finance-id]').count(),1);assert.ok(await page.locator('#financeSearch').evaluate(e=>e===document.activeElement));
