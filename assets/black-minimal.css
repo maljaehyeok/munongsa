@@ -47,6 +47,10 @@ body,.topbar,.brand-home,body[data-view=brand] .footer{background:var(--brand-bl
 /* D-day visual priority only: the existing presentation decides dates and urgency. */
 .deadline-badge.urgent{background:#8f2929;color:#fff;border-color:#8f2929}.deadline-badge.urgent:is([data-deadline-days="6"],[data-deadline-days="7"],[data-deadline-days="8"],[data-deadline-days="9"],[data-deadline-days="10"]){background:#9a4a0b;color:#fff;border-color:#9a4a0b}.deadline-badge.upcoming{background:#e7e7e2;color:#4c4c47;border-color:#bcbcb5}
 
+/* Support is the primary entry; other services remain one clear action away. */
+.brand-actions{flex-wrap:wrap;gap:14px 20px}.brand-actions .secondary-action{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:10px 16px;color:#deded8;border:1px solid #666660;border-radius:4px;font-size:14px;text-decoration:none}.brand-actions .secondary-action:hover{background:#1e1e1e;border-color:#a0a09a}
+.categories{grid-template-columns:minmax(0,1.3fr) repeat(2,minmax(0,1fr))}.categories .category-primary{border:2px solid #93938a}.categories .category-primary .category-number{color:#333;font-weight:800}.categories .category-primary strong{font-size:32px}
+@media(max-width:760px){.categories{grid-template-columns:minmax(0,1fr)}.categories .category-primary{min-height:216px}.categories .category-primary strong{font-size:30px}.brand-actions{gap:10px;align-items:flex-start}.brand-actions .secondary-action{min-height:44px}}
 /* Final touch/readability pass. Date values, status calculations and data are unchanged. */
 .filters .field-grid:has(input[type=date]){grid-template-columns:minmax(0,1fr)}
 .filters input[type=date]{width:100%;min-width:0;min-height:48px;box-sizing:border-box}
