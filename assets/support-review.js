@@ -71,5 +71,35 @@
     const rank=r=>r.display.state==='elapsed'?4:r.display.urgent?0:r.display.state==='window'?1:r.display.state==='upcoming'?2:3;
     return rows.sort((a,b)=>rank(a)-rank(b)||(a.display.end||'9999-12-31').localeCompare(b.display.end||'9999-12-31')||String(b.item.published_at||'').localeCompare(String(a.item.published_at||'')));
   }
-  root.MunongsaSupportReview={schema,browse,label,publicRecords,presentation,sortRows};
+  function displayDate(value){
+    const raw=String(value||''),day=raw.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+    if(!validDay(day))return '확인 필요';
+    if(raw.length===10){const [y,m,d]=day.split('-').map(Number);return `${y}년 ${m}월 ${d}일`}
+    const token=raw.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})/);
+    if(!token||!Number.isFinite(Date.parse(token[0])))return '확인 필요';
+    const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(token[0]));
+    const p=Object.fromEntries(parts.map(v=>[v.type,v.value]));return `${p.year}.${p.month}.${p.day} ${p.hour}:${p.minute}`;
+  }
+  function conditionViews(item,match){
+    const names={applicant:'신청 대상',residence:'거주 지역',business_location:'사업장 소재지',age:'만 나이',farming_experience:'영농 경력',independent_management:'독립경영 경력',farm_registration:'농업경영체 등록',crop:'재배 작물',livestock:'사육 축종',scale:'영농 규모',facility:'시설 조건',other_required:'추가 자격조건',exclusion:'제외 조건'};
+    const applicants={individual_farmer:'개인 농업인',agricultural_corporation:'농업법인',corporation:'법인',institution_group:'기관·단체',group:'단체',business:'사업자'};
+    const negatives=new Set();
+    function walk(n,negative=false,depth=0){if(!n||depth>12)return;if(n.condition_id){if(negative)negatives.add(n.condition_id);return}for(const child of n.children||[])walk(child,n.op==='NOT'?!negative:negative,depth+1)}walk(item.eligibility?.logic);
+    return (match.conditions||[]).map(c=>{
+      const original=(item.eligibility?.conditions||[]).find(v=>v.condition_id===c.id),v=original?.value||{},negative=negatives.has(c.id)||c.field==='exclusion';
+      let fact='확인 필요';
+      if(original?.status==='verified'){
+        if(original.presence==='no_restriction')fact='공식적으로 확인된 제한 없음';
+        else if(original.presence==='specified'){
+          if(c.field==='applicant'&&Array.isArray(v.one_of))fact=v.one_of.map(x=>applicants[x]||'신청 대상 확인 필요').join(' 또는 ');
+          else if(['residence','business_location'].includes(c.field)&&Array.isArray(v.regions))fact=v.regions.join(', ');
+          else if(c.field==='farm_registration'&&typeof v.registered==='boolean')fact=v.registered?'농업경영체 등록 필요':'미등록 여부 확인 필요';
+          else if(c.field==='age'&&v.age_basis==='international')fact=[v.min!=null?`만 ${v.min}세 ${v.min_inclusive?'이상':'초과'}`:'',v.max!=null?`만 ${v.max}세 ${v.max_inclusive?'이하':'미만'}`:'',v.basis_date?`기준일 ${displayDate(v.basis_date)}`:'기준일 확인 필요'].filter(Boolean).join(' · ');
+        }
+      }
+      const status=negative?{match:'제외 조건에 해당',mismatch:'해당 제외 조건과 불일치',check:'확인 필요'}[c.status]:{match:'입력 조건 일치',mismatch:'입력 조건 불일치',check:'확인 필요'}[c.status];
+      return {label:(negative?'제외 조건 · ':'')+(names[c.field]||'추가 자격조건'),fact,status:status||'확인 필요',comparison:c.status,evidenceUrl:c.evidence?.url||''};
+    });
+  }
+  root.MunongsaSupportReview={schema,browse,label,publicRecords,presentation,sortRows,displayDate,conditionViews};
 })(globalThis);

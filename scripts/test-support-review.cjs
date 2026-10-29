@@ -4,9 +4,17 @@ vm.runInNewContext(fs.readFileSync(path.join(root,'assets/support-review.js'),'u
 const api=ctx.MunongsaSupportReview,now=new Date('2026-10-26T00:00:00Z');
 const row={id:'MOCK-ONLY',title:'모의 마늘 사업',institution:'모의 기관',summary:'격리 시험',region:'전북 김제시',origin:'test',record_type:'모의',publication:'review',recommendation_eligible:false};
 const feed=records=>({schema_version:api.schema,records});
+test('date presentation converts UTC without inventing a time for date-only facts',()=>{
+ assert.equal(api.displayDate('2026-10-29T02:45:34+00:00'),'2026.10.29 11:45');assert.equal(api.displayDate('2026-10-29'),'2026년 10월 29일');assert.equal(api.displayDate('2026-10-29T02:45:34'),'확인 필요');assert.equal(api.displayDate('2026-02-30'),'확인 필요');
+});
+test('friendly condition labels retain exclusion meaning and leave the engine payload untouched',()=>{
+ const n={eligibility:{conditions:[{condition_id:'text_applicant',kind:'applicant',status:'verified',presence:'specified',value:{one_of:['individual_farmer']}},{condition_id:'text_residence',kind:'residence',presence:'unknown'}],logic:{op:'NOT',children:[{condition_id:'text_applicant'}]}}};
+ const m={conditions:[{id:'text_applicant',field:'applicant',status:'match'},{id:'text_residence',field:'residence',status:'check'}]},before=JSON.stringify({n,m}),views=api.conditionViews(n,m);
+ assert.equal(views[0].label,'제외 조건 · 신청 대상');assert.equal(views[0].status,'제외 조건에 해당');assert.equal(views[1].label,'거주 지역');assert.equal(views[1].fact,'확인 필요');assert.equal(JSON.stringify({n,m}),before);assert.ok(!JSON.stringify(views).includes('text_applicant'));
+});
 test('display dates are readable and use KST rather than raw ISO timestamps',()=>{
- const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),start=html.indexOf('    function supportDisplayDate('),end=html.indexOf('    function supportBadges(',start),context={Intl,Date};vm.runInNewContext(html.slice(start,end),context);
- assert.equal(context.supportDisplayDate('2026-10-28T18:00:00+00:00'),'2026-10-29');assert.equal(context.supportDisplayDate(null),'미확인');assert.equal(context.supportDisplayDate('2026-10-25T08:08:17+00:00 (수집일 · 원문 검증일 아님)'),'2026-10-25');
+ const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),start=html.indexOf('    function supportDisplayDate('),end=html.indexOf('    function supportBadges(',start),context={Intl,Date,MunongsaSupportReview:api};vm.runInNewContext(html.slice(start,end),context);
+ assert.equal(context.supportDisplayDate('2026-10-28T18:00:00+00:00'),'2026.10.29 03:00');assert.equal(context.supportDisplayDate(null),'확인 필요');assert.equal(context.supportDisplayDate('2026-10-25T08:08:17+00:00 (수집일 · 원문 검증일 아님)'),'2026.10.25 17:08');
 });
 test('safe reference view contains only existing official RSS metadata',()=>{
  const source=JSON.parse(fs.readFileSync(path.join(root,'data/support-review.json'),'utf8')),rows=api.publicRecords(source);
