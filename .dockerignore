@@ -13,6 +13,7 @@ data/*
 !data/support-public.json
 !data/support-review.json
 !data/finance-products.json
+!data/finance-mvp.json
 !data/equipment-catalog.json
 
 # Keep explicit directory exclusions AFTER all inclusion rules.
