@@ -84,6 +84,7 @@
   <footer class="footer">무농사 · 농사의 시작을, 더 쉽게.<br>초보 농업인을 위한 영농 지원 길잡이</footer>
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-box"><div class="modal-head"><div><span class="tag warning" id="modalTag">사업 정보</span><h2 id="modalTitle"></h2><span class="status-pill" id="modalStatus"></span></div><button class="close" id="closeModal" aria-label="닫기">×</button></div><p id="modalSummary"></p><h3 id="modalEligibilityHeading">누가 신청할 수 있나요? · 확인할 조건</h3><ul id="modalEligibility"></ul><h3 id="modalSupportHeading">지원 내용·일정</h3><p id="modalSupport"></p><p id="modalSchedule"></p><div class="cite" id="modalSource"></div></div></div>
   <link rel="stylesheet" href="./assets/cultivation-mvp.css">
+  <script src="./assets/crop-directory.js"></script>
   <script src="./assets/cultivation-mvp.js"></script>
   <script src="./assets/ui-v2.js"></script>
   <script src="./assets/profile-matching.js"></script>
@@ -245,8 +246,8 @@
       if(activeCategory==='cultivation'){
         document.getElementById('resultTitle').textContent='재배기술';
         const chosen=selectedCropName||(x.crop!=='all'?(labels[x.crop]||x.crop):'');
-        count.textContent='대표 작물 3종 · 공식 연결 8곳';
         message.textContent='작물과 궁금한 주제를 고르면 공식 자료로 안내해요.';
+        count.textContent='작물 '+MunongsaCultivation.crops.length+'종 · 분류 8개';
         cards.innerHTML=MunongsaCultivation.render(chosen,x);return;
       }
       document.getElementById('resultTitle').textContent=activeCategory==='support'?'지원사업':activeCategory==='bank'?'농업금융':'재배기술';if(activeCategory==='bank'){drawFinance();return}if(activeCategory!=='support'){if(!catalogData){count.textContent='데이터 목록 연결 대기';message.textContent='데이터 목록을 불러오지 못했어요.';cards.innerHTML='<div class="empty">이 화면을 VS Code의 Live Server로 열어 data/smart-agriculture-catalog.json을 불러와 주세요.</div>';return}const target=activeCategory==='bank'?'은행·정책금융':'재배기술';let found=catalogData.sampleRecords.filter(i=>i.category.includes(target));const x=readProfile();if(x.cultivation!=='all')found=found.filter(i=>i.cultivationMode==='both'||i.cultivationMode===x.cultivation);found=rankForProfile(found,'catalog',x);count.textContent=`데이터 목록 ${found.length}건`;message.textContent=activeCategory==='bank'?'공식 출처가 연결된 기존 금융 안내와, 검토 중인 팀 조사 후보를 구분해 보여줍니다. 대출 조건·신청 상태는 원문과 취급기관에서 확인하세요.':'각 카드에 출처와 적용 범위·주의사항을 표시합니다. 신청이나 구매 전에는 원문을 확인해 주세요.';cards.innerHTML=(found.length?found.map(catalogRecordHtml).join(''):'<div class="empty">현재 데이터 목록에서 조건에 맞는 자료를 찾지 못했어요. 자료가 없다는 뜻이 실제 지원·재배가 불가능하다는 뜻은 아닙니다.</div>')+(activeCategory==='bank'?financeReferenceSection():'');return}
