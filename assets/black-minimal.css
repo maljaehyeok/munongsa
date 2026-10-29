@@ -46,3 +46,23 @@ body,.topbar,.brand-home,body[data-view=brand] .footer{background:var(--brand-bl
 
 /* D-day visual priority only: the existing presentation decides dates and urgency. */
 .deadline-badge.urgent{background:#8f2929;color:#fff;border-color:#8f2929}.deadline-badge.urgent:is([data-deadline-days="6"],[data-deadline-days="7"],[data-deadline-days="8"],[data-deadline-days="9"],[data-deadline-days="10"]){background:#9a4a0b;color:#fff;border-color:#9a4a0b}.deadline-badge.upcoming{background:#e7e7e2;color:#4c4c47;border-color:#bcbcb5}
+
+/* Final touch/readability pass. Date values, status calculations and data are unchanged. */
+.filters .field-grid:has(input[type=date]){grid-template-columns:minmax(0,1fr)}
+.filters input[type=date]{width:100%;min-width:0;min-height:48px;box-sizing:border-box}
+.filter-actions .reset-filters,.filters .equipment-examples>summary,.more-conditions>summary,.notice-period-details>summary{min-height:44px;box-sizing:border-box;display:flex;align-items:center;gap:8px}
+.filters .equipment-examples>summary,.more-conditions>summary,.notice-period-details>summary{display:list-item;padding-top:10px;padding-bottom:10px;line-height:1.8}
+.filter-actions .reset-filters{justify-content:center}
+.condition-result.mismatch{background:#f6e5e1;color:#7f2525;border:1px solid #c69d94}
+.empty[data-load-state=error],.notice-empty[data-load-state=error]{background:#f6e5e1;color:#702020;border:1px solid #c69d94;border-left:4px solid #8f2929}
+@media(max-width:760px){
+ .filters .field input,.filters .field select,.finance-toolbar input,.finance-toolbar select,.crop-directory-controls input,.crop-directory-controls select,#supportSearch,.support-period-toolbar select{font-size:16px;min-height:48px;max-width:100%;box-sizing:border-box}
+ .filter-actions button,.profile-toggle,.menu-toggle,.cultivation-options button,#cropDirectoryAll{min-height:44px}
+ .filter-actions .apply,.source-action,.cultivation-material .source-action{font-size:16px;min-height:48px;white-space:normal;overflow-wrap:anywhere;line-height:1.5}
+ .notice-footer .source-action,.detail-actions .source-action{max-width:100%}
+ .notice-filters button{min-height:44px;font-size:13px;white-space:nowrap}
+ .notice-card strong,.modal-head h2{line-height:1.6;overflow-wrap:anywhere}
+ .finance-card-terms>div{grid-template-columns:76px minmax(0,1fr);gap:10px}.finance-card-terms dd{min-width:0;overflow-wrap:anywhere}
+ .modal-box p,.modal-box li,.support-detail-list{font-size:15px;line-height:1.85}.support-detail-list dd{overflow-wrap:anywhere}
+ .selection-chip,.selection-summary .profile-chip{max-width:100%;overflow-wrap:anywhere}
+}
