@@ -1,7 +1,7 @@
 /* UI shell only. No data, eligibility, publication or recommendation changes. */
 (function(root){
   'use strict';
-  const labels={support:'지원사업',bank:'농업금융',cultivation:'공식 재배정보',equipment:'농업장비 · 보존된 이전 화면'};
+  const labels={support:'지원사업',bank:'농업금융',cultivation:'재배기술',equipment:'농업장비 · 보존된 이전 화면'};
   const byId=id=>document.getElementById(id);
   let profileCategory=null;
   function closeMenu(){byId('mainNav').classList.remove('is-open');byId('menuToggle').setAttribute('aria-expanded','false')}
@@ -23,13 +23,16 @@
     });
     // Presentation only: existing inputs and matching semantics stay unchanged.
     const support=activeCategory==='support';
-    byId('interestField').hidden=support;
-    byId('profileAvatar').hidden=support;
-    document.querySelector('.filters-intro').textContent=support
-      ?'먼저 영농 지역과 현재 나이, 영농 단계를 알려주세요. 정확한 자격 비교가 필요하면 추가 정보를 입력할 수 있어요.'
+    byId('interestField').hidden=support||activeCategory==='bank';
+    byId('profileAvatar').hidden=support||activeCategory==='bank';
+    byId('profileStatus').hidden=support||activeCategory==='bank';
+    byId('farmingSituationField').hidden=homeView||!['support','bank'].includes(activeCategory);
+    byId('supportNeedField').hidden=homeView||!support;
+    document.querySelector('.filters-intro').textContent=support||activeCategory==='bank'
+      ?'지역과 현재 농업 상황만 알려주세요. 잘 모르는 항목은 비워두고 둘러볼 수 있어요.'
       :'관심 분야와 내 상황을 선택하면 기록된 조건과 관련된 자료부터 보여드려요. 조건이 없는 자료는 확인이 필요한 후보로 표시합니다.';
     if(!homeView&&profileCategory!==activeCategory){
-      byId('additionalProfileFields').open=!support;
+      byId('additionalProfileFields').open=!['support','bank'].includes(activeCategory);
       profileCategory=activeCategory;
     }
     // Preserve the old budget control and value, but it has no place in the new menu.
