@@ -23,8 +23,8 @@
     const facts=item.reference_application_dates||{},valid=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v+'T00:00:00+09:00'))&&new Date(Date.parse(v+'T00:00:00+09:00')+9*3600000).toISOString().slice(0,10)===v;
     const start=facts.start?.date,end=facts.end?.date,today=new Date(now+9*3600000).toISOString().slice(0,10);
     const endTime=facts.end?.time;
-    const timed=facts.end?.timezone==='Asia/Seoul'&&typeof endTime==='string'&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(endTime);
-    if(valid(end)&&timed&&now>=Date.parse(end+'T'+endTime+':00+09:00'))return '기재 신청기한 경과 · 연장·재공고 확인 필요';
+    const timed=facts.end?.timezone==='Asia/Seoul'&&typeof endTime==='string'&&/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(endTime);
+    if(valid(end)&&timed&&now>=Date.parse(end+'T'+endTime+(endTime.length===5?':00':'')+'+09:00'))return '기재 신청기한 경과 · 연장·재공고 확인 필요';
     if(valid(end)&&today>end)return '기재 신청기한 경과 · 연장·재공고 확인 필요';
     if(valid(end)&&today===end&&!timed)return '마감일 당일 · 종료 시각 확인 필요';
     if(valid(start)&&today<start)return '기재 신청 시작일 전 · 접수 여부 확인 필요';

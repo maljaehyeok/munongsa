@@ -75,7 +75,7 @@ def reference_dates(grant, record):
             raise ValueError('reference date needs a checked evidence location')
         result[key] = {'date': value, 'evidence': evidence}
         if part.get('time') not in (None, 'unknown'):
-            if not re.fullmatch(r'(?:[01]\d|2[0-3]):[0-5]\d', part['time']) or part.get('timezone') != 'Asia/Seoul':
+            if not re.fullmatch(r'(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?', part['time']) or part.get('timezone') != 'Asia/Seoul':
                 raise ValueError('invalid reference time')
             result[key].update(time=part['time'], timezone='Asia/Seoul')
     if result.get('start') and result.get('end') and result['start']['date'] > result['end']['date']:

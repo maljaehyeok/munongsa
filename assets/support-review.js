@@ -44,14 +44,14 @@
     const awareDay=v=>typeof v==='string'&&/(Z|[+-]\d{2}:\d{2})$/.test(v)&&Number.isFinite(Date.parse(v))?new Date(Date.parse(v)+9*3600000).toISOString().slice(0,10):null;
     const start=validDay(dates.start?.date)?dates.start.date:validDay(item.start_date)?item.start_date:awareDay(aware.start);
     const end=validDay(dates.end?.date)?dates.end.date:validDay(item.end_date)?item.end_date:awareDay(aware.end);
-    let cutoff=dates.end?.timezone==='Asia/Seoul'&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(dates.end?.time||'')?dates.end.time:null;
-    if(!cutoff&&awareDay(aware.end)){const d=new Date(Date.parse(aware.end)+9*3600000);cutoff=d.toISOString().slice(11,16)}
-    const closed=item.known_closed===true||(end&&(end<today||(end===today&&cutoff&&ms>=Date.parse(end+'T'+cutoff+':00+09:00'))));
+    let cutoff=dates.end?.timezone==='Asia/Seoul'&&/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(dates.end?.time||'')?dates.end.time:null;
+    if(!cutoff&&awareDay(aware.end)){const d=new Date(Date.parse(aware.end)+9*3600000);cutoff=d.toISOString().slice(11,19)}
+    const closed=item.known_closed===true||(end&&(end<today||(end===today&&cutoff&&ms>=Date.parse(end+'T'+cutoff+(cutoff.length===5?':00':'')+'+09:00'))));
     const state=closed?'elapsed':start&&start>today?'upcoming':start&&end&&start<=today&&today<=end&&(today!==end||cutoff)?'window':'unknown';
     const days=end?Math.round((Date.parse(end+'T00:00:00Z')-Date.parse(today+'T00:00:00Z'))/86400000):null;
     const urgent=!closed&&state!=='upcoming'&&days!==null&&days>=0&&days<=10;
     let headline=closed?'마감':state==='upcoming'?'모집 예정':days===0?'오늘 기재 기한':days===1?'D-1 · 내일 마감':urgent?'D-'+days+' · '+days+'일 후 마감':state==='window'?'기재 모집기간 내':'기간 확인 필요';
-    if(!closed&&days===0&&cutoff)headline='오늘 '+Number(cutoff.slice(0,2))+'시'+(cutoff.slice(3)==='00'?'':cutoff.slice(3)+'분')+' 마감';
+    if(!closed&&days===0&&cutoff)headline='오늘 '+Number(cutoff.slice(0,2))+'시'+(cutoff.slice(3,5)==='00'?'':Number(cutoff.slice(3,5))+'분')+(cutoff.length===8&&cutoff.slice(6)!=='00'?Number(cutoff.slice(6))+'초':'')+' 마감';
     const chips=[];
     if(reference)chips.push({text:'검토중 · 참고자료',tone:'review'});
     if(urgent)chips.push({text:'마감 임박',tone:'urgent'});
