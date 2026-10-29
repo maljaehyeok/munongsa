@@ -2,7 +2,7 @@
 (function(root){
   'use strict';
   const schema='munongsa-support-public-v1';
-  const names={applicant:'신청 주체',residence:'거주지',business_location:'사업장 소재지',age:'연령',farming_experience:'영농경력',independent_management:'독립경영 기간',farm_registration:'농업경영체 등록',crop:'작물',livestock:'축종',scale:'영농 규모',facility:'시설 조건',other_required:'기타 필수 조건',exclusion:'제외 조건'};
+  const names={applicant:'신청 주체',residence:'거주지',business_location:'사업장 소재지',age:'연령',farming_experience:'영농경력',independent_management:'독립경영 기간',farm_registration:'농업경영체 등록',crop:'작물',livestock:'축종',scale:'영농 규모',facility:'시설 조건',export_activity:'수출 활동',other_required:'기타 필수 조건',exclusion:'제외 조건'};
   const crops={rice:'벼',garlic:'마늘',onion:'양파',apple:'사과',cabbage:'배추',radish:'무',potato:'감자',sweetpotato:'고구마',soybean:'콩',wheat:'밀',pepper:'고추',greenonion:'파',scallion:'쪽파',strawberry:'딸기'};
   const selected=v=>v!==undefined&&v!==null&&v!==''&&!['all','unknown'].includes(v);
   const number=v=>selected(v)&&Number.isFinite(Number(v))&&Number(v)>=0?Number(v):null;
@@ -42,7 +42,7 @@
         else if(c.presence==='specified'){
           let actual=null,known=false,ok=false;
           if(c.kind==='applicant'){
-            actual={individual:'individual_farmer',young:'individual_farmer',municipality:'institution_group'}[p.applicant];
+            actual={individual:'individual_farmer',young:'individual_farmer',municipality:'institution_group',agricultural_corporation:'agricultural_corporation',group:'group',business:'business'}[p.applicant];
             // The existing UI groups corporations with producer associations.
             // That combined selection does not establish a specific legal form.
             // Prospective status does not establish that the user is already a farmer.
@@ -71,6 +71,8 @@
             actual=number(c.kind==='farming_experience'?p.farmingYears:p.independentYears);
             known=actual!==null&&v.unit==='years'&&!!date(v.basis_date)&&p.experienceBasisDate===v.basis_date;
             ok=known&&inRange(actual,v);detail=known?`공고 기준일 ${v.basis_date}의 입력 경력 비교`:'정확한 경력·단위·공고 기준일 확인 필요 (영농 단계만으로 추정하지 않음)';
+          }else if(c.kind==='export_activity'){
+            known=['yes','no'].includes(p.exporterStatus)&&typeof v.required==='boolean';ok=known&&((p.exporterStatus==='yes')===v.required);
           }else if(c.kind==='farm_registration'){
             known=['yes','no'].includes(p.farmRegistered);ok=known&&((p.farmRegistered==='yes')===v.registered);
           }else if(c.kind==='crop'){

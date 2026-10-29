@@ -81,7 +81,7 @@
     const p=Object.fromEntries(parts.map(v=>[v.type,v.value]));return `${p.year}.${p.month}.${p.day} ${p.hour}:${p.minute}`;
   }
   function conditionViews(item,match){
-    const names={applicant:'신청 대상',residence:'거주 지역',business_location:'사업장 소재지',age:'만 나이',farming_experience:'영농 경력',independent_management:'독립경영 경력',farm_registration:'농업경영체 등록',crop:'재배 작물',livestock:'사육 축종',scale:'영농 규모',facility:'시설 조건',other_required:'추가 자격조건',exclusion:'제외 조건'};
+    const names={applicant:'신청 대상',residence:'거주 지역',business_location:'사업장 소재지',age:'만 나이',farming_experience:'영농 경력',independent_management:'독립경영 경력',farm_registration:'농업경영체 등록',crop:'재배 작물',livestock:'사육 축종',scale:'영농 규모',facility:'시설 조건',export_activity:'수출 활동',other_required:'추가 자격조건',exclusion:'제외 조건'};
     const applicants={individual_farmer:'개인 농업인',agricultural_corporation:'농업법인',corporation:'법인',institution_group:'기관·단체',group:'단체',business:'사업자'};
     const negatives=new Set();
     function walk(n,negative=false,depth=0){if(!n||depth>12)return;if(n.condition_id){if(negative)negatives.add(n.condition_id);return}for(const child of n.children||[])walk(child,n.op==='NOT'?!negative:negative,depth+1)}walk(item.eligibility?.logic);
@@ -94,6 +94,8 @@
           if(c.field==='applicant'&&Array.isArray(v.one_of))fact=v.one_of.map(x=>applicants[x]||'신청 대상 확인 필요').join(' 또는 ');
           else if(['residence','business_location'].includes(c.field)&&Array.isArray(v.regions))fact=v.regions.join(', ');
           else if(c.field==='farm_registration'&&typeof v.registered==='boolean')fact=v.registered?'농업경영체 등록 필요':'미등록 여부 확인 필요';
+          else if(c.field==='export_activity'&&v.required===true)fact='수출업체·수출농가 또는 수출실적 등 공고별 수출 요건 있음';
+          else if(c.field==='crop'&&Array.isArray(v.any_of))fact=v.any_of.join(', ');
           else if(c.field==='age'&&v.age_basis==='international')fact=[v.min!=null?`만 ${v.min}세 ${v.min_inclusive?'이상':'초과'}`:'',v.max!=null?`만 ${v.max}세 ${v.max_inclusive?'이하':'미만'}`:'',v.basis_date?`기준일 ${displayDate(v.basis_date)}`:'기준일 확인 필요'].filter(Boolean).join(' · ');
         }
       }
