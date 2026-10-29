@@ -22,6 +22,6 @@
   return entries.filter(e=>(group==='all'||e.group===group)&&(!q||[e.name,...e.aliases].some(v=>norm(v).includes(q)))).sort((a,b)=>score(a)-score(b)||priority(a)-priority(b)||a.name.localeCompare(b.name,'ko'));
  }
  root.MunongsaCropDirectory={groups:groups.map(g=>g[0]),entries,representative,find,search,
-  classificationSource:'https://nongsaro.go.kr/portal/ps/psx/psxj/cropManualMain.mo?farmerMainFlag=VC011205',
+  classificationSource:'https://nongsaro.go.kr/portal/ps/psx/psxj/cropManualMain.mo',
   statisticsSource:'https://kostat.go.kr/boardDownload.es?bid=11843&list_no=434749&seq=1'};
 })(globalThis);
