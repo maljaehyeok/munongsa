@@ -183,3 +183,7 @@ GitHub 저장소는 **Private 유지**를 전제로 하며, 제출 시 필요한
 ## Input UX deployment status
 
 Verified AWS application commit: `e317a3f`. Searchable crop/region inputs, explicit applied conditions, and typed birth-date validation passed PC 1440px and mobile 390px production checks. Operational records, approved feed and 07:00 KST schedule were preserved.
+
+## Mobile readability deployment status
+
+Verified AWS application commit: `d11503d`. Full-width search/date inputs, compact action rows, query-only autocomplete and reviewed support facts passed PC 1440px and mobile 320/360/390/430px production checks. Operational records, approved feed and 07:00 KST schedule were preserved.
