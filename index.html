@@ -13,14 +13,14 @@
   <header class="topbar">
     <a class="brand" href="#top" aria-label="무농사 브랜드 홈"><img class="brand-nav-logo" src="./assets/brand/munongsa-brand-logo-transparent.svg" alt="" width="1114" height="1114" decoding="async"><span class="brand-wordmark">MUNONGSA</span></a>
     <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="mainNav">메뉴 <span aria-hidden="true">☰</span></button>
-    <nav class="nav" id="mainNav" aria-label="주요 메뉴"><a href="#service" data-nav-service>서비스 홈</a><a href="#categories?category=support" data-nav-category="support">지원사업</a><a href="#categories?category=bank" data-nav-category="bank">농업금융</a><a href="#categories?category=cultivation" data-nav-category="cultivation">재배기술</a></nav>
+    <nav class="nav" id="mainNav" aria-label="주요 메뉴"><a href="#top" data-nav-service>서비스 홈</a><a href="#categories?category=support" data-nav-category="support">지원사업</a><a href="#categories?category=bank" data-nav-category="bank">농업금융</a><a href="#categories?category=cultivation" data-nav-category="cultivation">재배기술</a></nav>
   </header>
   <section class="brand-home" id="top" aria-labelledby="brandHeading">
     <div class="brand-content">
       <p class="eyebrow">MUNONGSA / 농사를 시작하는 당신에게</p>
       <img class="brand-hero-logo" src="./assets/brand/munongsa-brand-logo-transparent.svg" alt="무농사 MUNONGSA 브랜드 로고" width="1114" height="1114" fetchpriority="high" decoding="async">
-      <h1 id="brandHeading">농사의 시작을,<br>더 쉽게<span>.</span></h1>
-      <h2>내 상황에 필요한 농업정보.</h2>
+      <h1 id="brandHeading">농사의 시작을<br>더 쉽게</h1>
+      <h2>내 상황에 필요한 농업정보</h2>
       <p class="brand-description">지원사업은 내 조건과 비교하고,<br>금융·재배기술은 공식 자료로 확인하세요.</p>
 
 
@@ -99,7 +99,7 @@
   <link rel="stylesheet" href="./assets/black-minimal.css?v=brand-motion-20261030">
   <script src="./assets/crop-directory.js"></script>
   <script src="./assets/cultivation-mvp.js?v=input-20261030"></script>
-  <script src="./assets/ui-v2.js?v=brand-motion-20261030"></script>
+  <script src="./assets/ui-v2.js?v=home-entry-20261030"></script>
   <script src="./assets/profile-matching.js"></script>
   <script src="./assets/support-public.js"></script>
   <script src="./assets/finance-mvp.js?v=information-20261030"></script>
@@ -275,11 +275,11 @@
       const category=anchor==='categories'&&navigationCategories.includes(params.get('category'))?params.get('category'):null;
       const kinds=['program','catalog','guideline','equipment','financeProduct','machineryFinance','financeMvp','cultivationRecord','cultivationReview','supportReference','supportPublic','supportReview'];
       const kind=params.get('kind'),key=params.get('key');
-      return {category,serviceHome:anchor==='service',crop:category==='cultivation'?(params.get('crop')||''):'',
+      return {category,serviceHome:false,crop:category==='cultivation'?(params.get('crop')||''):'',
         detail:category&&kinds.includes(kind)&&key?{kind,key}:null};
     }
     function navigationUrl(state){
-      if(!state.category)return state.serviceHome?'#service':'#top';
+      if(!state.category)return '#top';
       const params=new URLSearchParams({category:state.category});
       if(state.crop)params.set('crop',state.crop);
       if(state.detail){params.set('kind',state.detail.kind);params.set('key',state.detail.key)}
@@ -299,7 +299,7 @@
     function applyNavigation(state,scroll=true){
       document.getElementById('modal').classList.remove('show');
       homeView=!state.category;
-      serviceHomeView=!!state.serviceHome;
+      serviceHomeView=false;
       MunongsaUI.closeMenu();
       if(state.category)activeCategory=state.category;
       selectedCropName=state.crop||'';
@@ -313,7 +313,7 @@
       }
     }
     function navigateTo(category,crop='',detail=null){
-      const state={category:navigationCategories.includes(category)?category:null,serviceHome:category==='service',crop,detail};
+      const state={category:navigationCategories.includes(category)?category:null,serviceHome:false,crop,detail};
       if(!state.category){state.crop='';state.detail=null}
       const url=navigationUrl(state);
       if(location.hash!==url){

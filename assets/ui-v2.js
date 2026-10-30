@@ -30,17 +30,17 @@
   function closeMenu(){byId('mainNav').classList.remove('is-open');byId('menuToggle').setAttribute('aria-expanded','false')}
   function sync({homeView,serviceHomeView,activeCategory}){
     browseState={homeView,activeCategory};queueBrowseContext();
-    document.body.dataset.view=homeView?(serviceHomeView?'service':'brand'):'explore';
-    byId('top').hidden=!homeView||serviceHomeView;
-    byId('brandServices').hidden=!homeView||serviceHomeView;
-    byId('serviceHome').hidden=!homeView||!serviceHomeView;
+    document.body.dataset.view=homeView?'brand':'explore';
+    byId('top').hidden=!homeView;
+    byId('brandServices').hidden=!homeView;
+    byId('serviceHome').hidden=true;
     byId('exploreToolbar').hidden=homeView;
-    byId('serviceNotice').hidden=homeView&&!serviceHomeView;
+    byId('serviceNotice').hidden=homeView;
     byId('currentServiceLabel').textContent=labels[activeCategory]||'자료 탐색';
     document.querySelector('#modal h3').textContent=activeCategory==='cultivation'?'어디에 적용할 수 있나요? · 확인할 조건':'누가 신청할 수 있나요? · 확인할 조건';
     const serviceLink=document.querySelector('[data-nav-service]');
-    serviceLink.classList.toggle('active',homeView&&serviceHomeView);
-    if(homeView&&serviceHomeView)serviceLink.setAttribute('aria-current','page');else serviceLink.removeAttribute('aria-current');
+    serviceLink.classList.toggle('active',homeView);
+    if(homeView)serviceLink.setAttribute('aria-current','page');else serviceLink.removeAttribute('aria-current');
     document.querySelectorAll('[data-nav-category]').forEach(link=>{
       const current=!homeView&&link.dataset.navCategory===activeCategory;
       link.classList.toggle('active',current);
@@ -87,7 +87,7 @@
       const homeService=event.target.closest('[data-home-service]');
       if(homeService){event.preventDefault();navigate(homeService.dataset.homeService);return}
       if(event.target.closest('.skip-link')){event.preventDefault();const target=document.body.dataset.view==='brand'?byId('brandHeading'):document.body.dataset.view==='service'?byId('serviceHeading'):byId('results');target.tabIndex=-1;target.focus({preventScroll:true});target.scrollIntoView({block:'start'});return}
-      if(event.target.closest('[data-service-home],[data-nav-service]')){event.preventDefault();navigate('service');return}
+      if(event.target.closest('[data-service-home],[data-nav-service]')){event.preventDefault();navigate(null);return}
       if(event.target.closest('[data-open-support]')){event.preventDefault();navigate('support')}
     });
     document.addEventListener('keydown',event=>{if(event.key==='Escape'&&byId('mainNav').classList.contains('is-open')){closeMenu();byId('menuToggle').focus()}});
