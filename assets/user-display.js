@@ -28,7 +28,7 @@
   if(support)for(const n of published?.notices||[]){const item=root.MunongsaPersonalization.project(n);for(const c of item.eligibility?.conditions||[])if(c.status==='verified'&&c.presence==='specified')kinds.add(c.kind)}
   const precise=['organization','agricultural_corporation','group','business','municipality'].includes(profile.applicant)||profile.farmingSituation==='organization';
   return {region:!bank,district:!bank,age:false,experience:false,budget:false,
-   applicant:precise&&(support&&kinds.has('applicant')||bank&&products.some(p=>p.applicants?.length)),
+   requiredFundsMan:bank,applicant:precise&&(support&&kinds.has('applicant')||bank&&products.some(p=>p.applicants?.length)),
    exporterStatus:support&&kinds.has('export_activity'),groupMemberCount:support&&precise&&kinds.has('group_size'),
    crop:cultivation||support&&kinds.has('crop'),cultivation:cultivation||support&&kinds.has('facility'),area:support&&kinds.has('scale'),
    residenceRegion:support&&kinds.has('residence'),residenceDistrict:support&&kinds.has('residence'),
@@ -37,8 +37,9 @@
    experienceBasisDate:support&&(kinds.has('farming_experience')||kinds.has('independent_management'))};
  }
  function applyProfileFields(category,published,products,profile){const fields=profileFields(category,published,products,profile);for(const [id,show]of Object.entries(fields)){const el=document.getElementById(id);if(el)el.closest('.field').hidden=!show}
-  const additional=document.getElementById('additionalProfileFields');additional.hidden=!Object.entries(fields).some(([id,show])=>show&&!['region','district'].includes(id));
-  if(category==='bank'){const comparable=products.some(p=>p.applicants?.length);document.getElementById('farmingSituationField').hidden=!comparable;document.querySelector('.filters-intro').textContent=comparable?'현재 농업 상황만 알려주세요. 생년월일은 연령 조건이 있는 상품을 비교할 때만 입력해요.':'보증제도는 별도 상담과 심사가 필요합니다. 현재 입력값으로 보증 승인 여부를 판단하지 않아요.'}
+  const additional=document.getElementById('additionalProfileFields');additional.hidden=!Object.entries(fields).some(([id,show])=>show&&!['region','district','crop','requiredFundsMan'].includes(id));
+  document.querySelector('#supportProfileFields>.hint').hidden=category==='bank';
+  if(category==='bank'){const comparable=products.some(p=>p.applicants?.length);document.getElementById('farmingSituationField').hidden=!comparable;document.querySelector('.filters-intro').textContent=comparable?'신청자 유형·일부 연령을 비교해요. 필요 자금은 한도 참고에만 사용해요.':'보증은 별도 상담·심사가 필요해요. 필요 자금으로 보증 승인을 판단하지 않아요.'}
   return fields}
  root.MunongsaDisplay={title,period,recruitment,applicantForSituation,situationForApplicant,sourceButton,supportDetail,profileFields,applyProfileFields};
 })(globalThis);

@@ -10,8 +10,15 @@
   if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
   const d=new Date(value+'T00:00:00Z');return Number.isFinite(+d)&&d.toISOString().slice(0,10)===value&&value<=today&&Number(value.slice(0,4))>0;
  }
- function profile(){return {...custom}}
- function restore(p={}){for(const k of Object.keys(custom))custom[k]=typeof p[k]==='string'?p[k].slice(0,100):'';restored=!!Object.keys(p).length;sync(true)}
+ let requiredFundsWon=null,fundsDirty=false;
+ const validFunds=v=>Number.isSafeInteger(v)&&v>0&&v%10000===0;
+ const fundsText=v=>validFunds(v)?(v/10000).toLocaleString('ko-KR')+'만원':'';
+ function profile(){return {...custom,requiredFundsWon}}
+ function restore(p={}){for(const k of Object.keys(custom))custom[k]=typeof p[k]==='string'?p[k].slice(0,100):'';requiredFundsWon=validFunds(p.requiredFundsWon)?p.requiredFundsWon:null;fundsDirty=false;restored=!!Object.keys(p).length;sync(true)}
+ function parseFunds(raw){const text=String(raw).trim();if(!text)return null;if(!/^(?:\d+|[1-9]\d{0,2}(?:,\d{3})+)$/.test(text))return NaN;const won=Number(text.replace(/,/g,''))*10000;return validFunds(won)?won:NaN}
+ function syncFunds(force=false){const input=by('requiredFundsMan');if(!input||fundsDirty&&!force)return;fundsDirty=false;input.value=requiredFundsWon===null?'':(requiredFundsWon/10000).toLocaleString('ko-KR');input.setAttribute('aria-invalid','false');by('requiredFundsStatus').textContent=requiredFundsWon===null?'':'적용된 필요 자금: '+fundsText(requiredFundsWon);}
+ function applyFunds(clear=false){const input=by('requiredFundsMan'),value=clear?null:parseFunds(input.value);if(Number.isNaN(value)){requiredFundsWon=null;fundsDirty=true;refresh('funds');input.setAttribute('aria-invalid','true');by('requiredFundsStatus').textContent='만원 단위의 0보다 큰 정수를 입력해 주세요. 잘못된 금액은 비교하지 않아요.';return}requiredFundsWon=value;fundsDirty=false;syncFunds(true);refresh('funds')}
+ function mountFunds(){const input=by('requiredFundsMan');input.addEventListener('input',()=>{fundsDirty=true;input.setAttribute('aria-invalid','false');by('requiredFundsStatus').textContent=requiredFundsWon===null?(input.value.trim()?'아직 적용하지 않음':''):'적용 중: '+fundsText(requiredFundsWon)+' · 수정 내용 미적용'});input.addEventListener('change',e=>e.stopPropagation());input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();applyFunds()}});by('applyRequiredFunds').addEventListener('click',()=>applyFunds());by('clearRequiredFunds').addEventListener('click',()=>{applyFunds(true);input.focus()})}
  function fieldCrop(){const f=by('crop');return f.value==='all'?'':root.MunongsaCropDirectory.find(f.selectedOptions[0]?.textContent)?.name||f.selectedOptions[0]?.textContent||''}
  function placeText(residence=false){const a=by(residence?'residenceRegion':'region').value,b=by(residence?'residenceDistrict':'district').value;return [provinceNames[a]||a,b].filter(v=>v&&!['all','unknown'].includes(v)).join(' ')}
  function applied(kind){return kind==='crop'?(custom.customCrop||fieldCrop()):kind==='farm'?(custom.customFarmRegion||placeText()):kind==='residence'?(custom.customResidence||placeText(true)):by('birthDate').value}
@@ -87,8 +94,8 @@
   const customKey={crop:'customCrop',farm:'customFarmRegion',residence:'customResidence'}[w.kind];
   w.status.textContent=value?(custom[customKey]?'입력값 보관: '+value+' · 목록에서 확인되지 않아 자격 비교에 사용하지 않아요.':(restored?'복원된 조건: ':'적용된 조건: ')+value+(w.kind==='birth'?' · 공고·제도 기준으로 연령을 비교해요.':w.kind==='crop'?' · 지원사업·재배기술에서 함께 사용해요.':w.kind==='farm'?' · 거주지와 별도이며 재배자료의 지역별 처방을 뜻하지 않아요.':'')):'조건 없음 · 입력 없이 전체 탐색';
   w.status.dataset.state=value?(custom[customKey]?'unknown':'applied'):'empty';w.input.setAttribute('aria-invalid','false');
- }}
- function reset(){custom={customCrop:'',customFarmRegion:'',customResidence:''};for(const w of widgets){w.dirty=false;w.close()}sync(true)}
+ }syncFunds(force)}
+ function reset(){custom={customCrop:'',customFarmRegion:'',customResidence:''};requiredFundsWon=null;fundsDirty=false;for(const w of widgets){w.dirty=false;w.close()}sync(true)}
  function mount(districts,onApply){
   refresh=onApply;
   for(const [code,text]of Object.entries(provinceNames)){
@@ -100,9 +107,9 @@
   widget('farm','region','영농지역 검색','예: 전주, 전북');widget('crop','crop','재배 작물 검색','예: 딸기, 벼');widget('residence','residenceRegion','거주지 검색','예: 전주, 전북');widget('birth','birthDate','생년월일','YYYY-MM-DD');
   // Move the existing crop field out of the long optional section; keep its storage values.
   by('region').closest('.field').after(by('crop').closest('.field'));
-  by('filterForm').addEventListener('submit',()=>{for(const w of widgets)if(w.dirty)commit(w.kind,w.input.value)});
+  mountFunds();by('filterForm').addEventListener('submit',()=>{for(const w of widgets)if(w.dirty)commit(w.kind,w.input.value);if(fundsDirty)applyFunds()});
   by('crop').addEventListener('change',()=>{if(by('crop').value!=='all')custom.customCrop='';sync()});
   ready=true;sync(true);
  }
- root.MunongsaInputUX={mount,profile,restore,sync,reset,commit,validBirth,region,crop};
+ root.MunongsaInputUX={mount,profile,restore,sync,reset,commit,validBirth,region,crop,parseFunds};
 })(globalThis);

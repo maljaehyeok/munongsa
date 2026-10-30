@@ -16,3 +16,22 @@
 .official-notice .notice-funding .notice-fact-value{font-weight:700;color:#111}
 .official-notice .compact-open>.notice-period{font-size:14px}
 @media(max-width:480px){.input-ux-row{gap:6px}.input-ux .input-ux-actions button{padding:8px 12px}.official-notice .notice-fact{padding:8px 10px}}
+
+/* Shared reading hierarchy: quiet hints, legible cautions, visible reset action. */
+.filters .hint,.ux-status{font-size:13px;line-height:1.65;color:#4b4b48}
+.filters .field{padding-bottom:14px;margin-bottom:14px}
+.filters .field>.hint{margin-top:5px}
+.filters .no-save{font-size:12px;line-height:1.65;color:#555}
+.filter-actions .reset-filters{display:flex;justify-content:center;align-items:center;min-height:44px;width:100%;border:1px solid #787872;border-radius:5px;background:#f5f5f3;color:#222;font-size:14px;font-weight:650;padding:9px 12px}
+.filter-actions .reset-filters:hover{background:#e1e1dc;border-color:#333}
+.notice-card .notice-meta,.cultivation-material .notice-meta{font-size:13px;line-height:1.7;color:#555}
+.notice-meta b,.notice-period .notice-fact-value{color:#292929;font-weight:700;word-break:keep-all}
+.finance-card-terms dd{font-weight:600;color:#252525}
+.finance-caution,.detail-caution,.finance-amount-scope{font-size:14px;line-height:1.75;color:#343431}
+.finance-caution,.detail-caution{border-left:3px solid #777}
+.finance-funding-guide{margin:12px 0;padding:12px;border:1px solid #c8c8c1;border-radius:5px;background:#ececea;color:#222;font-size:14px;line-height:1.7;overflow-wrap:anywhere}
+.finance-funding-guide p{margin:6px 0}.finance-funding-guide [data-funding-row]{font-weight:650}
+.finance-funding-guide [data-funding-row=over]{color:#8a3027}
+.finance-funding-guide .finance-funding-caution{font-size:13px;color:#444;font-weight:500}
+#requiredFundsStatus:empty{display:none}#requiredFundsField label small{font-weight:400;color:#555}
+@media(max-width:480px){.filters .no-save{font-size:13px}.filters .field{padding-bottom:12px;margin-bottom:12px}.finance-funding-guide{padding:10px}.ux-status{margin-top:5px}}
