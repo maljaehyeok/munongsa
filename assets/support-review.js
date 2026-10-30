@@ -100,8 +100,13 @@
           else if(c.field==='age'&&v.age_basis==='international')fact=[v.min!=null?`만 ${v.min}세 ${v.min_inclusive?'이상':'초과'}`:'',v.max!=null?`만 ${v.max}세 ${v.max_inclusive?'이하':'미만'}`:'',v.basis_date?`기준일 ${displayDate(v.basis_date)}`:'기준일 확인 필요'].filter(Boolean).join(' · ');
         }
       }
-      const status=negative?{match:'제외 조건에 해당',mismatch:'해당 제외 조건과 불일치',check:'확인 필요'}[c.status]:{match:'입력 조건 일치',mismatch:'입력 조건 불일치',check:'확인 필요'}[c.status];
-      return {label:(negative?'제외 조건 · ':'')+(names[c.field]||'추가 자격조건'),fact,status:status||'확인 필요',comparison:c.status,evidenceUrl:c.evidence?.url||''};
+      const individualExclusion=negative&&c.field==='applicant'&&v.one_of?.length===1&&v.one_of[0]==='individual_farmer';
+      if(individualExclusion)fact='개인 단독 신청 제외 · 단체의 인원·조직 요건은 별도 확인';
+      const comparison=negative?({match:'mismatch',mismatch:'match',check:'check'}[c.status]||'check'):c.status;
+      let status=negative?{match:'명시된 제외 조건에 해당',mismatch:'이 제외 조건에는 해당하지 않음',check:'확인 필요'}[c.status]:{match:'입력 조건 일치',mismatch:'입력 조건 불일치',check:'확인 필요'}[c.status];
+      if(individualExclusion)status={match:'개인 단독 신청 대상 아님',mismatch:'개인 단독 신청 제외 조건에는 해당하지 않음',check:'신청자 유형 확인 필요'}[c.status];
+      if(!negative&&c.field==='export_activity')status={match:'수출 관련 기본 응답 일치 · 세부 요건 별도 확인',mismatch:'수출 관련 기본 응답 불일치',check:'수출 관련 응답 확인 필요'}[c.status];
+      return {label:(negative?'제외 조건 · ':'')+(names[c.field]||'추가 자격조건'),fact,status:status||'확인 필요',comparison,evidenceUrl:c.evidence?.url||''};
     });
   }
   root.MunongsaSupportReview={schema,browse,label,publicRecords,presentation,sortRows,displayDate,conditionViews};

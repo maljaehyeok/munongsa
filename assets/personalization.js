@@ -23,7 +23,11 @@
  }
  function reasons(item,match){
   const negative=new Set();function walk(n,not=false){if(!n)return;if(n.condition_id){if(not)negative.add(n.condition_id);return}for(const c of n.children||[])walk(c,n.op==='NOT'?!not:not)}walk(item.eligibility?.logic);
-  return match.conditions.filter(c=>c.status!=='check').map(c=>{const not=negative.has(c.id),state=not?{match:'mismatch',mismatch:'match'}[c.status]:c.status,label=names[c.field]||'확인된 조건';return {state,weight:not?0:1,text:not?(state==='mismatch'?'명시된 제외 조건에 해당':'해당 제외 조건과 다름'):(label+(state==='match'?' 일치':' 불일치'))}});
+  return match.conditions.filter(c=>c.status!=='check').map(c=>{const not=negative.has(c.id),state=not?{match:'mismatch',mismatch:'match'}[c.status]:c.status,label=names[c.field]||'확인된 조건';
+   const condition=(item.eligibility?.conditions||[]).find(v=>v.condition_id===c.id),individual=not&&c.field==='applicant'&&condition?.value?.one_of?.length===1&&condition.value.one_of[0]==='individual_farmer';
+   const text=individual?(state==='mismatch'?'개인 단독 신청 대상 아님':'개인 단독 신청 제외 조건에는 해당하지 않음'):not?(state==='mismatch'?'명시된 제외 조건에 해당':'이 제외 조건에는 해당하지 않음'):c.field==='export_activity'?(state==='match'?'수출 관련 기본 응답 일치 · 품목·실적·회원사 등 세부 요건 별도 확인':'수출 관련 기본 응답 불일치'):(label+(state==='match'?' 일치':' 불일치'));
+   return {state,weight:not?0:1,text};
+  });
  }
  function support(data,profile,now=Date.now()){
   const groups=root.MunongsaSupport.explore(data,profile,now),rows=[...groups.recommendations,...groups.excluded,...groups.references];
