@@ -72,7 +72,7 @@ body,.topbar,.brand-home,body[data-view=brand] .footer{background:var(--brand-bl
 }
 
 /* Home UX stage 1: keep the original logo and give all services equal entry space. */
-.brand-nav-logo,.brand-hero-logo{mix-blend-mode:screen}
+.brand-nav-logo,.brand-hero-logo{mix-blend-mode:normal}
 .brand-home{padding-top:42px}
 .brand-content:has(.brand-hero-logo){grid-template-columns:minmax(0,1.3fr) minmax(220px,.7fr);column-gap:40px}
 .brand-hero-logo{max-width:310px;grid-row:1/5}
