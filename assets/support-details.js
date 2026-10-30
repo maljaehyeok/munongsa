@@ -22,7 +22,7 @@
   const r=records.find(r=>r.basis.id===item.id&&canonical(r.basis)===canonical(basis(item)));
   return r||null;
  }
- function card(item,escape){const r=get(item);if(!r)return '';return ['summary','funding'].filter(k=>r.fields[k]).map(k=>`<span class="notice-target">${k==='summary'?'지원 내용':'지원 금액·비율'} · ${escape(r.fields[k].value)}</span>`).join('')}
+ function card(item,escape){const r=get(item);if(!r)return '';return ['summary','funding'].filter(k=>r.fields[k]).map(k=>`<span class="notice-fact${k==='funding'?' notice-funding':''}"><b class="notice-fact-label">${k==='summary'?'지원 내용':'지원 금액·비율'}</b><span class="notice-fact-value">${escape(r.fields[k].value)}</span></span>`).join('')}
  function detail(item,escape,date){
   const r=get(item);if(!r)return '';
   const labels={summary:'지원 내용',funding:'지원 금액·비율',conditions:'지원 조건',method:'신청 방법',office:'접수처',documents_required:'필수 제출서류',documents_conditional:'해당자만 필요한 서류',documents_bonus:'가점자료',contact:'문의처',warnings:'중요한 제한사항',unconfirmed:'아직 확인되지 않은 사항'};

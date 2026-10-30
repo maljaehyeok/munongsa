@@ -35,6 +35,7 @@
   const w=widgets.find(w=>w.kind===kind);if(w){w.dirty=false;w.close();}sync(true);refresh(kind);
  }
  function suggestions(kind,q){
+  if(!norm(q))return [];
   if(kind==='crop')return root.MunongsaCropDirectory.search(q).slice(0,8).map(e=>e.name);
   const n=norm(q);return places.filter(p=>!n||p.aliases.some(a=>norm(a).includes(n))).sort((a,b)=>Number(norm(b.text)===n)-Number(norm(a.text)===n)).slice(0,8).map(p=>p.text);
  }
@@ -49,7 +50,8 @@
   oldLabel.htmlFor=input.id;
   const apply=document.createElement('button');apply.type='button';apply.textContent='적용';apply.className='ux-apply';apply.setAttribute('aria-label',label+' 적용');
   const clear=document.createElement('button');clear.type='button';clear.textContent='지우기';clear.className='ux-clear';clear.setAttribute('aria-label',label+' 삭제');
-  row.append(input,apply,clear);const list=document.createElement('div');list.className='ux-suggestions';list.id=input.id+'List';list.setAttribute('role','listbox');list.hidden=true;
+  const actions=document.createElement('div');actions.className='input-ux-actions';actions.append(apply,clear);
+  row.append(input,actions);const list=document.createElement('div');list.className='ux-suggestions';list.id=input.id+'List';list.setAttribute('role','listbox');list.hidden=true;
   const status=document.createElement('p');status.className='ux-status';status.id=input.id+'Status';status.setAttribute('role','status');input.setAttribute('aria-describedby',status.id);
   if(kind!=='birth'){input.setAttribute('role','combobox');input.setAttribute('aria-autocomplete','list');input.setAttribute('aria-controls',list.id);input.setAttribute('aria-expanded','false');}
   else{input.inputMode='numeric';input.maxLength=10;by('birthDateHint').hidden=true;}
@@ -65,9 +67,9 @@
    if(kind==='birth'){
     input.setAttribute('aria-invalid',String(!!v&&!validBirth(v)));
     if(v&&!validBirth(v))status.dataset.state='invalid';
-    status.textContent=!v?'입력 전 · 생년월일 없이도 탐색할 수 있어요.':validBirth(v)?'입력 중 · Enter 또는 적용으로 확정하세요.':'날짜를 확인해 주세요. YYYY-MM-DD 형식의 실제 날짜만 입력할 수 있어요.';
+    status.textContent=!v?'생년월일 없이 탐색 중':validBirth(v)?'아직 적용하지 않음':'날짜를 확인해 주세요. YYYY-MM-DD 형식의 실제 날짜만 입력할 수 있어요.';
     if(by('birthDate').value){by('birthDate').value='';refresh(kind);}
-   }else{status.textContent='입력 중 · 목록 선택, Enter 또는 적용으로 확정하세요.';w.open();}
+   }else{const current=applied(kind);status.textContent=current?'적용 중: '+current+' · 수정 내용 미적용':v?'아직 적용하지 않음':'조건 없음 · 전체 탐색';w.open();}
   });
   input.addEventListener('focus',()=>{if(kind!=='birth')w.open()});
   // Draft text must not trigger the legacy form's change redraw on blur.
@@ -79,10 +81,6 @@
   });
   apply.addEventListener('click',()=>commit(kind,input.value));clear.addEventListener('click',()=>{commit(kind,'');input.focus()});
   box.addEventListener('focusout',()=>setTimeout(()=>{if(!box.contains(document.activeElement))w.close()},0));
-  if(kind==='crop'){
-   const quick=document.createElement('div');quick.className='ux-quick';quick.setAttribute('aria-label','주요 작물 빠른 선택');
-   for(const name of root.MunongsaCropDirectory.representative.slice(0,6)){const b=document.createElement('button');b.type='button';b.textContent=name;b.addEventListener('click',()=>commit(kind,name));quick.append(b)}box.append(quick);
-  }
  }
  function sync(force=false){if(!ready)return;for(const w of widgets){
   const value=applied(w.kind);if(w.dirty&&!force)continue;if(force)w.dirty=false;w.input.value=value;
@@ -99,7 +97,7 @@
    places.push({region:code,district:'',text,aliases:[code,text,...(code==='전북'?['전라북도']:code==='강원'?['강원도']:code==='제주'?['제주도']:[])]});
    for(const d of districts[code]||[])places.push({region:code,district:d,text:text+' '+d,aliases:[text+' '+d,code+' '+d,d,d.replace(/[시군]$/,'')]});
   }
-  widget('farm','region','영농지역 검색','예: 전주, 전북특별자치도');widget('crop','crop','재배 작물 검색','예: 딸기, 벼, 키위');widget('residence','residenceRegion','거주지 검색','예: 전주 → 전북특별자치도 전주시');widget('birth','birthDate','생년월일','YYYY-MM-DD · 예: 2003-07-31');
+  widget('farm','region','영농지역 검색','예: 전주, 전북');widget('crop','crop','재배 작물 검색','예: 딸기, 벼');widget('residence','residenceRegion','거주지 검색','예: 전주, 전북');widget('birth','birthDate','생년월일','YYYY-MM-DD');
   // Move the existing crop field out of the long optional section; keep its storage values.
   by('region').closest('.field').after(by('crop').closest('.field'));
   by('filterForm').addEventListener('submit',()=>{for(const w of widgets)if(w.dirty)commit(w.kind,w.input.value)});

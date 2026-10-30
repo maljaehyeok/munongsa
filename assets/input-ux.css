@@ -1,3 +1,18 @@
 /* Searchable inputs within the existing light panels. */
 .ux-status[data-state=draft]{color:#555;font-weight:400}.ux-status[data-state=invalid]{color:#9a2a24;font-weight:650}
 .ux-native-only{display:none!important}.input-ux{position:relative;min-width:0}.input-ux-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;align-items:center}.input-ux input{width:100%;min-width:0;font-size:16px;min-height:44px}.input-ux button{min-height:44px;cursor:pointer;font:inherit;border:1px solid #c6c6c0;border-radius:5px;padding:8px 10px;background:#ececea;color:#222}.input-ux .ux-apply{background:#151515;color:#fff;border-color:#151515}.input-ux button:focus-visible,.input-ux input:focus-visible{outline:3px solid #555;outline-offset:2px}.ux-suggestions{margin-top:5px;max-height:260px;overflow:auto;border:1px solid #b7b7b0;border-radius:5px;background:#fff}.ux-suggestions button{display:block;width:100%;text-align:left;border:0;border-radius:0;background:#fff;overflow-wrap:anywhere}.ux-suggestions button:hover,.ux-suggestions button[aria-selected=true]{background:#e5e5e1}.ux-status{margin:7px 0 0;font-size:13px;line-height:1.6;color:#555;overflow-wrap:anywhere}.ux-status[data-state=applied]{color:#222;font-weight:650}.ux-status[data-state=unknown],.input-ux input[aria-invalid=true]+button{color:#854a18}.ux-quick{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.ux-quick button{min-height:36px;padding:5px 10px;font-size:13px}.ux-field>input[hidden],.ux-field>select[hidden],.ux-field>.field-grid[hidden]{display:none!important}@media(max-width:480px){.input-ux-row{gap:4px}.input-ux button{padding:8px}.ux-suggestions{max-height:220px}.ux-quick button{min-height:40px}}
+
+/* A full-width input followed by compact, non-wrapping actions at every size. */
+.ux-field{grid-column:1/-1;min-width:0}
+.input-ux-row{grid-template-columns:minmax(0,1fr);gap:6px}
+.input-ux-row>input{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0;padding:10px 12px;line-height:1.5}
+.input-ux-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:6px;min-width:0}
+.input-ux .input-ux-actions button{flex:0 0 auto;width:auto;min-width:60px;min-height:44px;padding:8px 12px;white-space:nowrap;word-break:keep-all;line-height:1.4}
+.input-ux .ux-suggestions[hidden]{display:none}
+.ux-status:empty{display:none}
+.official-notice .notice-fact{display:grid;grid-template-columns:minmax(0,1fr);gap:3px;padding:9px 11px;background:#ececea;border:1px solid #d8d8d2;border-radius:4px;font-size:14px;line-height:1.7;overflow-wrap:anywhere;min-width:0}
+.official-notice .notice-fact-label{font-size:13px;font-weight:700;color:#555;line-height:1.5}
+.official-notice .notice-fact-value{font-size:14px;font-weight:500;color:#222;line-height:1.7;white-space:normal;min-width:0}
+.official-notice .notice-funding .notice-fact-value{font-weight:700;color:#111}
+.official-notice .compact-open>.notice-period{font-size:14px}
+@media(max-width:480px){.input-ux-row{gap:6px}.input-ux .input-ux-actions button{padding:8px 12px}.official-notice .notice-fact{padding:8px 10px}}
