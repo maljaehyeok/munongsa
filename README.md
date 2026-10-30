@@ -45,34 +45,42 @@
 
 ## 프로젝트 구조
 
+아래는 **웹서비스 실행에 필요한 주요 파일 중심의 구조**입니다. 모든 개발·검증 파일을 나열한 목록은 아닙니다.
+
 ```text
 .
-├── index.html                         # HTML·내장 CSS·화면 제어 JavaScript
+├── index.html                         # 메인 정적 웹사이트
 ├── assets/
-│   └── profile-matching.js            # 브라우저 내부 프로필 비교·관련도 정렬
+│   ├── ui-v2.css / ui-v2.js           # UI·화면 동작
+│   ├── profile-matching.js            # 브라우저 기반 관련도 비교
+│   ├── personalization.js             # 영농 상황 입력·활용
+│   ├── support-public.js              # 공개 지원사업 표시
+│   ├── support-review.js              # 지원사업 검토 관련 화면 로직
+│   ├── support-details.js             # 공고 상세정보
+│   ├── finance-mvp.js / finance-mvp.css
+│   ├── cultivation-mvp.js / cultivation-mvp.css
+│   └── crop-directory.js              # 작물 탐색
 ├── data/
 │   ├── smart-agriculture-catalog.json # 기존 카탈로그·출처·사업 카드
-│   ├── crop-cultivation-records.json  # 작물 재배자료·검토 보류 기록
 │   ├── support-programs.json          # 지원사업 상세·참고자료
-│   ├── finance-products.json          # 농업 금융자료·검증 상태
-│   ├── equipment-catalog.json         # 장비 범주·팀 아이디어·제품 후보
-│   ├── *-integration-audit.json       # 네 분야 통합 검증 기록
-│   └── source/                       # 원본 CSV·엑셀 (Git 제외)
-├── scripts/
-│   ├── build_support_data.py          # 지원사업 데이터 생성
-│   ├── build_finance_data.py          # 금융 데이터 생성
-│   └── build_equipment_data.py        # 장비 데이터 생성
-├── Dockerfile                        # Nginx 정적 사이트 이미지
-├── .dockerignore                     # Docker 빌드에 필요한 파일만 포함
-├── .gitignore                        # 원본·작업자료·인증 정보 제외
+│   ├── support-public.json            # 공개 지원사업 표시용 데이터
+│   ├── support-review.json            # 검토 상태 관련 데이터
+│   ├── finance-mvp.json               # 화면에서 사용하는 금융 4개 제도 안내
+│   ├── finance-products.json          # 금융 원천·검증 관련 자료
+│   ├── crop-cultivation-records.json  # 작물 재배자료·검토 기록
+│   └── equipment-catalog.json         # 장비 관련 카탈로그
+├── scripts/                           # 데이터 생성·관리 스크립트
+├── Dockerfile                         # Nginx 정적 웹사이트 이미지
+├── .dockerignore / .gitignore
 ├── README.md
-├── app.py                            # 별도로 구현된 Flask 시연 앱
-└── index-before-redesign.html         # 이전 화면 보존본 (Git 제외)
+└── app.py                             # 별도 Flask 시연 앱
 ```
 
-`work/`, `outputs/`, `data/source/`, `index-before-redesign.html`은 로컬에 보관하며 Git에서 제외합니다. 서비스용 JSON과 audit JSON은 제외하지 않습니다. audit JSON과 생성 스크립트는 정적 사이트 실행에는 필요하지 않으며 Docker 이미지에도 포함하지 않습니다.
+**실제 웹서비스 배포용 JSON은 5개가 아닌 8개입니다.** `Dockerfile`에서 `smart-agriculture-catalog.json`, `crop-cultivation-records.json`, `support-programs.json`, `support-public.json`, `support-review.json`, `finance-mvp.json`, `finance-products.json`, `equipment-catalog.json`을 복사합니다.
 
-지원사업·금융 생성 스크립트를 다시 실행하려면 별도로 보관한 원본 CSV·엑셀이 필요합니다. 장비 생성 스크립트는 기존 카탈로그와 생성된 금융 JSON을 읽습니다. 원본이 없는 EC2에서 재생성을 실행하지 않고, 검토한 서비스 JSON을 함께 배포합니다.
+`work/`, `outputs/`, `data/source/` 등 일부 원본·작업자료는 Git 추적에서 제외됩니다. 별도 원본 CSV·엑셀이 필요한 생성 스크립트는 GitHub만 복제한 환경에서 재생성되지 않을 수 있습니다. 운영 DB, 승인 이력, 수집 예약 상태는 정적 JSON 파일만으로 모두 복원되는 것이 아닙니다.
+
+일부 선택적 첨부파일 판독 모듈과 내부 검사 자료는 이 저장소에 포함되지 않습니다. **이 저장소는 공개 웹 화면과 관련 데이터·수집·검토 코드의 주요 부분을 포함하지만, 운영환경 전체를 완전히 재현하는 배포 패키지는 아닙니다.**
 
 ## 정적 웹사이트 실행
 
@@ -80,7 +88,7 @@
 2. Live Server 확장 기능을 설치한 뒤 `index.html`을 엽니다.
 3. 편집기에서 **Open with Live Server**를 선택합니다.
 
-`index.html`은 `assets/profile-matching.js`를 로드하고 위의 서비스 JSON 5개를 `fetch()`로 읽습니다. 지역·작물·영농 단계·관심 분야를 선택하면 기록된 조건에 따라 관련 자료를 먼저 표시합니다. 조건이 없거나 불분명한 자료에는 확인 필요 상태를 표시하며, 신청 자격이나 현재 신청 가능 여부를 확정하지 않습니다. 입력값은 현재 브라우저 화면에서 관리합니다.
+`index.html`은 `assets/profile-matching.js`를 로드하고 필요한 서비스 JSON 파일을 `fetch()`로 읽습니다. 지역·작물·영농 단계·관심 분야를 선택하면 기록된 조건에 따라 관련 자료를 먼저 표시합니다. 조건이 없거나 불분명한 자료에는 확인 필요 상태를 표시하며, 신청 자격이나 현재 신청 가능 여부를 확정하지 않습니다. 입력값은 현재 브라우저 화면에서 관리합니다.
 
 브라우저에서 HTML을 `file://` 방식으로 직접 여는 경우 JSON 접근이 제한될 수 있으므로 로컬 HTTP 서버로 실행하는 것을 권장합니다.
 
@@ -95,7 +103,7 @@ docker run --rm -d --name munongsa -p 127.0.0.1:8080:80 munongsa:local
 
 브라우저에서 `http://localhost:8080`으로 접속합니다. 중지할 때는 `docker stop munongsa`를 실행합니다. 위 명령은 `--rm`을 사용하므로 중지하면 해당 컨테이너가 제거되며 프로젝트 파일과 이미지는 남습니다. 같은 이름의 기존 컨테이너가 있다면 상태를 확인하거나 새 컨테이너 이름을 사용하세요.
 
-Dockerfile은 `nginx:stable-alpine`을 사용하고 `index.html`, `assets/`, 서비스 JSON 5개를 `/usr/share/nginx/html/`에 복사합니다. Nginx는 컨테이너 내부 80번 포트에서 정적 파일을 제공합니다. 이번 배포에는 Flask·Python 서버나 데이터베이스가 필요하지 않습니다.
+Dockerfile은 `nginx:stable-alpine`을 사용하고 `index.html`, `assets/`, 서비스 JSON 8개를 `/usr/share/nginx/html/data/`에 복사합니다. Nginx는 컨테이너 내부 80번 포트에서 정적 파일을 제공합니다. 이 Docker 이미지는 정적 웹 화면과 JSON 제공용으로 Flask·Python 서버 또는 데이터베이스를 실행하지 않습니다. 운영 중인 자동수집·검토·승인 체계의 서버 측 작업과 상태 저장은 이 이미지의 실행만으로 재현되지 않습니다.
 
 화면 외에 다음 주소의 응답도 확인합니다.
 
@@ -113,7 +121,7 @@ Dockerfile은 `nginx:stable-alpine`을 사용하고 `index.html`, `assets/`, 서
 배포 대상은 Docker가 설치된 Ubuntu 24.04 EC2입니다. 다음은 수동 배포 시의 절차이며 자동 배포 설정은 포함하지 않습니다.
 
 1. 허가된 인증 방식으로 GitHub 저장소를 복제하고, 프로젝트 루트에서 실행합니다. 비공개 저장소 인증용 키·토큰은 저장소에 넣지 않습니다.
-2. `Dockerfile`, `index.html`, `assets/`, 서비스 JSON 5개가 포함되어 있는지 확인합니다.
+2. `Dockerfile`, `index.html`, `assets/`, 서비스 JSON 8개가 포함되어 있는지 확인합니다.
 3. 이미 사용 중인 컨테이너 이름과 포트를 확인한 뒤 이미지를 빌드하고 실행합니다. 아래는 EC2의 80번 포트로 직접 제공하는 예시입니다.
 
 ```bash
@@ -162,4 +170,4 @@ python app.py
 
 우선 검토할 개선 과제는 공식 공고의 원문 검증률 및 데이터 확보 범위 확대, 미구조화된 자격조건의 비교 정확도 향상, 작물별 재배자료 보강, 외부 링크 상태 관리, HTTPS·도메인 도입입니다. 현재 보류된 외부 API 연동은 중간발표 이후 별도 검토 대상으로 유지합니다.
 
-GitHub 저장소는 비공개 운영을 전제로 하며, 제출·공유 시에는 열람 권한과 비밀정보 포함 여부를 확인해야 합니다. **README 문서 변경과 실제 AWS 서비스 배포는 별개**입니다.
+GitHub 저장소는 비공개 운영을 전제로 하며, 제출·공유 시에는 열람 권한과 비밀정보 포함 여부를 확인해야 합니다. 특히 재배기술 검토 데이터 및 팀 제공 자료의 공개·재배포 권한은 별도 확인이 필요하므로, 현재 저장소를 검토 없이 Public으로 전환하지 않습니다. **README 문서 변경과 실제 AWS 서비스 배포는 별개**입니다.
