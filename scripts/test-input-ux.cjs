@@ -1,7 +1,18 @@
 /* Focused local/production UX paths. Local responses never touch operational state. */
 const fs=require('fs'),path=require('path'),assert=require('assert/strict'),cp=require('child_process');
-const {chromium}=require('playwright'),root=path.resolve(__dirname,'..'),production=!!process.env.MUNONGSA_FINANCE_BASE,base=process.env.MUNONGSA_FINANCE_BASE||'http://127.0.0.1:38173',out=path.join(root,'work/input-ux');
-fs.mkdirSync(out,{recursive:true});const checks=[],errors=[],requests=[],began=Date.now();let browser,page;
+const {chromium}=require('playwright'),root=path.resolve(__dirname,'..'),production=!!process.env.MUNONGSA_FINANCE_BASE,preview=process.env.MUNONGSA_INPUT_UX_PREVIEW==='1',base=process.env.MUNONGSA_FINANCE_BASE||'http://127.0.0.1:38173',out=path.join(root,'work/input-ux');
+fs.mkdirSync(out,{recursive:true});const checks=[],errors=[],requests=[],networkTimings=[],began=Date.now();let browser,page,phase='launch',activeTransfers=0;const waiting=[];
+// Do not block Playwright's event loop with a synchronous Python process per asset.
+async function liveResponse(u){
+ if(activeTransfers>=4)await new Promise(resolve=>waiting.push(resolve));else activeTransfers++;
+ const started=Date.now();
+ try{
+  if(preview&&process.env.MUNONGSA_INPUT_UX_TRANSFER_DELAY_MS)await new Promise(r=>setTimeout(r,Number(process.env.MUNONGSA_INPUT_UX_TRANSFER_DELAY_MS)));
+  const py='import urllib.request,urllib.error,json,base64,sys\ntry:\n r=urllib.request.urlopen(sys.argv[1],timeout=20)\nexcept urllib.error.HTTPError as e:\n r=e\nwith r: print(json.dumps({"status":r.status,"type":r.headers.get("Content-Type"),"body":base64.b64encode(r.read()).decode()}))';
+  const output=await new Promise((resolve,reject)=>cp.execFile('python',['-B','-c',py,u.href],{maxBuffer:12*1024*1024,timeout:25000},(error,stdout)=>error?reject(error):resolve(stdout)));
+  const r=JSON.parse(output);networkTimings.push({path:u.pathname,status:r.status,elapsedMs:Date.now()-started});assert.equal(r.status,200,'HTTP '+r.status+' '+u.pathname);return {status:r.status,contentType:r.type,body:Buffer.from(r.body,'base64')};
+ }finally{const next=waiting.shift();if(next)next();else activeTransfers--;}
+}
 const pass=name=>checks.push(name);
 async function nav(cat){if(await page.locator('#menuToggle').isVisible()&&await page.locator('#menuToggle').getAttribute('aria-expanded')==='false')await page.locator('#menuToggle').click();await page.locator('[data-nav-category="'+cat+'"]').click();await page.waitForFunction(c=>activeCategory===c&&!homeView,cat);}
 async function profile(){if(await page.locator('#profileToggle').getAttribute('aria-expanded')==='false')await page.locator('#profileToggle').click();await page.locator('#additionalProfileFields').evaluate(e=>e.open=true);}
@@ -12,12 +23,13 @@ async function enter(id,text){await page.locator('#'+id+'Entry').fill(text);awai
   const context=await browser.newContext({viewport:{width,height:1000},isMobile:width===390,hasTouch:width===390});
   await context.route('**/*',async route=>{const u=new URL(route.request().url());requests.push(u.pathname);if(u.origin!==base)return route.abort();if(u.pathname==='/favicon.ico')return route.fulfill({status:204});
    try{
-    if(production){const py='import urllib.request,json,base64,sys\nr=urllib.request.urlopen(sys.argv[1],timeout=20)\nprint(json.dumps({"status":r.status,"type":r.headers.get("Content-Type"),"body":base64.b64encode(r.read()).decode()}))';const r=JSON.parse(cp.execFileSync('python',['-B','-c',py,u.href],{maxBuffer:12*1024*1024,timeout:25000}));return route.fulfill({status:r.status,contentType:r.type,body:Buffer.from(r.body,'base64')});}
+    const overlay=preview&&['/','/index.html','/assets/input-ux.js','/assets/input-ux.css','/assets/cultivation-mvp.js'].includes(u.pathname);
+    if(production&&!overlay)return route.fulfill(await liveResponse(u));
     const f=u.pathname==='/data/support-public.json'?process.env.MUNONGSA_SUPPORT_FIXTURE||path.join(out,'public.json'):path.resolve(root,'.'+(u.pathname==='/'?'/index.html':u.pathname));assert.ok(f.startsWith(root+path.sep)||f===process.env.MUNONGSA_SUPPORT_FIXTURE);
     const type=f.endsWith('.json')?'application/json':f.endsWith('.js')?'text/javascript':f.endsWith('.css')?'text/css':f.endsWith('.svg')?'image/svg+xml':f.endsWith('.png')?'image/png':'text/html; charset=utf-8';return route.fulfill({status:200,contentType:type,body:fs.readFileSync(f)});
    }catch(e){errors.push({path:u.pathname,error:e.message.slice(0,140)});return route.abort();}
   });
-  page=await context.newPage();page.setDefaultTimeout(10000);page.on('pageerror',e=>errors.push(e.message));await page.goto(base+'/#top');await page.waitForFunction(()=>navigationReady&&publicSupport&&financeMvp&&cropData&&supportReview);
+  page=await context.newPage();page.setDefaultTimeout(10000);page.setDefaultNavigationTimeout(30000);page.on('pageerror',e=>errors.push(e.message));phase=width+': navigation';await page.goto(base+'/#top',{waitUntil:'domcontentloaded'});phase=width+': application data';await page.waitForFunction(()=>navigationReady&&publicSupport&&financeMvp&&cropData&&supportReview,null,{timeout:30000});phase=width+': user actions';
   assert.equal(await page.locator('[data-home-service]').count(),3);await nav('cultivation');await profile();assert.equal(await page.locator('#crop').inputValue(),'all');assert.equal(await page.locator('[data-cultivation-source]').count(),0);assert.match(await page.locator('#cropEntryStatus').innerText(),/조건 없음/);pass(width+': initial neutral profile');
   await nav('support');await profile();assert.equal(await page.locator('[data-official-id]').count(),11);
   await page.locator('#cropEntry').fill('딸');assert.equal(await page.locator('#crop').inputValue(),'all');assert.match(await page.locator('#cropEntryStatus').innerText(),/입력 중/);await page.locator('#cropEntryList button').filter({hasText:'딸기'}).click();assert.equal(await page.evaluate(()=>readProfile().crop),'딸기');assert.match(await page.locator('#cropEntryStatus').innerText(),/적용된/);
@@ -37,5 +49,5 @@ async function enter(id,text){await page.locator('#'+id+'Entry').fill(text);awai
   await context.unrouteAll({behavior:'ignoreErrors'});await context.close();
  }
  assert.deepEqual(errors,[]);
-}catch(e){errors.push(e.stack);if(page&&!page.isClosed())await page.screenshot({path:path.join(out,'failure.png')}).catch(()=>{});}
-finally{await browser?.close();const r={passed:!errors.length,production,checks,errors,requests:[...new Set(requests)],elapsedSeconds:(Date.now()-began)/1000};fs.writeFileSync(path.join(out,production?'aws-result.json':'local-result.json'),JSON.stringify(r,null,2));console.log(JSON.stringify(r));process.exitCode=errors.length?1:0;}})();
+}catch(e){errors.push(e.stack);if(page&&!page.isClosed()){await page.screenshot({path:path.join(out,'failure.png')}).catch(()=>{});fs.writeFileSync(path.join(out,'failure.html'),await page.content().catch(()=>''));}}
+finally{await browser?.close();const r={passed:!errors.length,production,preview,serverApplicationVerified:production&&!preview,phase,checks,errors,requests:[...new Set(requests)],networkTimings,elapsedSeconds:(Date.now()-began)/1000};fs.writeFileSync(path.join(out,preview?'transport-result.json':production?'aws-result.json':'local-result.json'),JSON.stringify(r,null,2));console.log(JSON.stringify(r));process.exitCode=errors.length?1:0;}})();
