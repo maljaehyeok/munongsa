@@ -14,7 +14,7 @@
   records=[];
   const preview=data?.preview===true&&['localhost','127.0.0.1'].includes(root.location?.hostname)&&new URLSearchParams(root.location.search).get('support-details-preview')==='1';
   if(data?.schema!=='munongsa-support-details-v1'||!Array.isArray(data.records)||data.preview&&!preview)return;
-  records=data.records.filter(r=>r.approval?.state===(preview?'preview':'approved')&&r.approval?.reviewer&&r.approval?.reference&&r.approval?.checked_at&&r.rights?.facts_only===true&&r.basis&&r.fields&&Object.keys(r.fields).every(k=>fields.includes(k)&&validField(r.fields[k])));
+  records=data.records.filter(r=>(r.approval?.state==='approved'||preview&&r.approval?.state==='preview')&&r.approval?.reviewer&&r.approval?.reference&&r.approval?.checked_at&&r.rights?.facts_only===true&&r.basis&&r.fields&&Object.keys(r.fields).every(k=>fields.includes(k)&&validField(r.fields[k])));
  }
  function validField(f){return f?.evidence?.url?.startsWith('https://')&&f.evidence.location&&f.evidence.checked_at&&(typeof f.value==='string'||Array.isArray(f.value)&&f.value.every(x=>typeof x==='string'))}
  function get(item){

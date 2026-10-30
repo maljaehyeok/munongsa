@@ -18,14 +18,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def validate(plan):
     assert plan['schema'] == 'munongsa-support-details-plan-v1'
-    assert len(plan['records']) == 3, 'only the three reviewed notices are in scope'
+    assert 1 <= len(plan['records']) <= 11, 'review only an explicit bounded batch'
     identities = set()
     for r in plan['records']:
         b = r['basis']
         assert b['id'] not in identities
         identities.add(b['id'])
         host = urlsplit(b['url']).hostname
-        assert host in {'www.rda.go.kr', 'www.gochang.go.kr', 'global.at.or.kr'}
+        assert host in {'www.rda.go.kr', 'www.gochang.go.kr', 'global.at.or.kr',
+                        'www.buan.go.kr', 'www.jeonbuk.go.kr', 'www.jeonju.go.kr', 'www.oads.or.kr'}
         assert r['rights']['facts_only'] is True and r['rights']['policy_url']
         assert r['fields'] and set(r['fields']) <= FIELDS
         for f in r['fields'].values():
@@ -55,6 +56,7 @@ def main():
     p.add_argument('--reviewer')
     p.add_argument('--approval-reference')
     p.add_argument('--approved-plan-sha256')
+    p.add_argument('--preserve-sha256', help='Exact existing approved asset hash, required to append')
     args = p.parse_args()
     raw = args.plan.read_bytes()
     digest = hashlib.sha256(raw).hexdigest()
@@ -67,10 +69,17 @@ def main():
     elif not output.is_relative_to(ROOT / 'work'):
         p.error('preview output must remain in private work/')
     doc = build(json.loads(raw), args.reviewer or 'local-preview', args.approval_reference or digest, args.approve)
-    if args.approve and output.exists():
-        old = json.loads(output.read_text('utf-8'))
-        if old.get('records'):
-            p.error('existing approved details require a separate reviewed merge; refusing overwrite')
+    asset = ROOT / 'assets/support-details.json'
+    old_raw = asset.read_bytes()
+    old = json.loads(old_raw)
+    old_records = old.get('records', [])
+    if old.get('preview') is not False or any(r.get('approval', {}).get('state') != 'approved' for r in old_records):
+        p.error('existing asset must contain approved records only')
+    if {r['basis']['id'] for r in old_records} & {r['basis']['id'] for r in doc['records']}:
+        p.error('append only: existing reviewed notices cannot be replaced')
+    if args.approve and old_records and args.preserve_sha256 != hashlib.sha256(old_raw).hexdigest():
+        p.error('exact preservation hash of existing approved descriptions required')
+    doc['records'] = old_records + doc['records']
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + '\n', 'utf-8')
     print(json.dumps({'approved': args.approve, 'count': len(doc['records']), 'plan_sha256': digest}))

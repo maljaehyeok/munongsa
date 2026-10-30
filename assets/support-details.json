@@ -438,6 +438,1150 @@
         "reference": "owner-approval-20261030-support-details-three",
         "checked_at": "2026-10-29T19:44:09.232166+00:00"
       }
+    },
+    {
+      "basis": {
+        "id": "NOTICE-0e7513c42a20a18de5949c24",
+        "url": "https://www.buan.go.kr/jbares/board/view.buan?boardId=BBS_0000147&dataSid=371110&menuCd=DOM_000000906001000000",
+        "title": "(재공고)2026년 청년농업인 R&D 기술창업 통합관리 지원사업 모집",
+        "target": "단체 대상: 만 18~39세 청년 대표의 5인 이상 창업(예정) 법인·품목모임체 등. 개인 단독 신청 대상 아님. 조직별 세부 적용·연령 기준일은 확인 필요.",
+        "region": "unknown",
+        "dates": {
+          "start": {
+            "date": "2026-10-27",
+            "time": null,
+            "timezone": null
+          },
+          "end": {
+            "date": "2026-11-11",
+            "time": "18:00",
+            "timezone": "Asia/Seoul"
+          }
+        },
+        "period": {},
+        "eligibility": {
+          "conditions": [
+            {
+              "condition_id": "business_location_unknown",
+              "kind": "business_location",
+              "presence": "unknown",
+              "status": "unverified",
+              "value": null
+            },
+            {
+              "condition_id": "remaining_unknown",
+              "kind": "other_required",
+              "presence": "unknown",
+              "status": "unverified",
+              "value": null
+            },
+            {
+              "condition_id": "text_age",
+              "kind": "age",
+              "presence": "unknown",
+              "status": "unverified",
+              "value": null
+            },
+            {
+              "condition_id": "individual_only_excluded",
+              "kind": "applicant",
+              "presence": "specified",
+              "status": "verified",
+              "value": {
+                "one_of": [
+                  "individual_farmer"
+                ]
+              }
+            }
+          ],
+          "logic": {
+            "children": [
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "condition_id": "business_location_unknown"
+                      },
+                      {
+                        "condition_id": "remaining_unknown"
+                      }
+                    ],
+                    "op": "AND"
+                  },
+                  {
+                    "condition_id": "text_age"
+                  }
+                ],
+                "op": "AND"
+              },
+              {
+                "children": [
+                  {
+                    "condition_id": "individual_only_excluded"
+                  }
+                ],
+                "op": "NOT"
+              }
+            ],
+            "op": "AND"
+          }
+        }
+      },
+      "rights": {
+        "facts_only": true,
+        "policy_url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=197742",
+        "note": "기존 출처 정책과 최소 사실정보 공개 범위 내의 독자적 안내. 본문·이미지·첨부 복제 허락을 의미하지 않음."
+      },
+      "fields": {
+        "summary": {
+          "value": "공공기관 농업기술을 활용한 단체 창업에 전문컨설팅과 창업 기반 조성 지원",
+          "evidence": {
+            "url": "https://www.buan.go.kr/jbares/board/download.buan?boardId=BBS_0000147&menuCd=DOM_000000906001000000&paging=ok&startPage=1&dataSid=371110&command=update&fileSid=273597",
+            "location": "첨부 사업내용 문단 56~58",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "funding": {
+          "value": "사업 전체 예산 200백만원(2억원), 1개소 규모, 국비·지방비 각 50%. 개인별 지급한도가 아닙니다.",
+          "evidence": {
+            "url": "https://www.buan.go.kr/jbares/board/view.buan?boardId=BBS_0000147&dataSid=371110&menuCd=DOM_000000906001000000",
+            "location": "공식 본문 사업비·사업량 / 첨부 문단 52~54",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "conditions": {
+          "value": [
+            "만 18~39세 청년농업인이 대표인 5인 이상 창업(예정) 법인·품목모임체 등 단체 대상. 개인 단독 신청 대상 아님",
+            "주소 요건: 2026년 10월 1일 기준 부안군 거주",
+            "공공기관 개발 농업 R&D 기술의 이전·공동활용을 통한 사업화 추진",
+            "인력·시설·영농실적을 갖추거나 확보 계획 필요"
+          ],
+          "evidence": {
+            "url": "https://www.buan.go.kr/jbares/board/download.buan?boardId=BBS_0000147&menuCd=DOM_000000906001000000&paging=ok&startPage=1&dataSid=371110&command=update&fileSid=273597",
+            "location": "첨부 신청자격 문단 99~102",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "method": {
+          "value": "농업기술센터 농촌지원과 농업인력육성팀에 방문 접수",
+          "evidence": {
+            "url": "https://www.buan.go.kr/jbares/board/view.buan?boardId=BBS_0000147&dataSid=371110&menuCd=DOM_000000906001000000",
+            "location": "공식 본문 접수처 / 첨부 문단 103~105",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "office": {
+          "value": "부안군 농업기술센터 농촌지원과 농업인력육성팀",
+          "evidence": {
+            "url": "https://www.buan.go.kr/jbares/board/view.buan?boardId=BBS_0000147&dataSid=371110&menuCd=DOM_000000906001000000",
+            "location": "공식 본문 접수처",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "documents_required": {
+          "value": [
+            "신청서(제1호서식)",
+            "법인·품목모임체 단체현황",
+            "사업계획서",
+            "주민등록초본",
+            "보조금 지원 실적 확인서(제6호서식)",
+            "비교견적 포함 견적서·물품설명서·설계서 등",
+            "견적서 제출 업체의 사업자등록증 사본"
+          ],
+          "evidence": {
+            "url": "https://www.buan.go.kr/jbares/board/download.buan?boardId=BBS_0000147&menuCd=DOM_000000906001000000&paging=ok&startPage=1&dataSid=371110&command=update&fileSid=273597",
+            "location": "첨부 제출서류 공통 문단 115~125",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "documents_conditional": {
+          "value": [
+            "시설공사: 설계도면·공사내역서",
+            "품목모임체: 운영규약·회칙, 대표자 경영체 등록증, 회원명부·회의록·활동 증빙, 법인화·중요재산 사후관리 이행 확약서",
+            "법인: 등기사항전부증명서·법인 경영체 등록증·사업자등록증·인감증명서 또는 사용인감계·정관·주주/조합원 명부·국세/지방세/4대보험 완납증명서",
+            "창업 예정 법인: 창업 공약서 또는 확약서"
+          ],
+          "evidence": {
+            "url": "https://www.buan.go.kr/jbares/board/download.buan?boardId=BBS_0000147&menuCd=DOM_000000906001000000&paging=ok&startPage=1&dataSid=371110&command=update&fileSid=273597",
+            "location": "첨부 유형별 제출서류 문단 124~145",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "contact": {
+          "value": "부안군 농업인력육성팀 063-580-3837",
+          "evidence": {
+            "url": "https://www.buan.go.kr/jbares/board/download.buan?boardId=BBS_0000147&menuCd=DOM_000000906001000000&paging=ok&startPage=1&dataSid=371110&command=update&fileSid=273597",
+            "location": "첨부 문의처 문단 105",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "warnings": {
+          "value": [
+            "동일·유사 사업의 중앙부처·지자체 보조금 중복 수령 제한",
+            "휴·폐업, 세금 체납, 보조금 부정수급 이력 등 제외 요건 확인",
+            "품목모임체는 사업 완료 후 1년 이내 법인화 등 확약 내용 확인 필요"
+          ],
+          "evidence": {
+            "url": "https://www.buan.go.kr/jbares/board/download.buan?boardId=BBS_0000147&menuCd=DOM_000000906001000000&paging=ok&startPage=1&dataSid=371110&command=update&fileSid=273597",
+            "location": "첨부 문단 101~102 및 법인화 확약서 문단 915",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "unconfirmed": {
+          "value": [
+            "대표자 연령의 구체적 산정 방법은 담당기관 확인 필요. 주소 기준일을 연령 기준일로 임의 적용하지 않습니다."
+          ],
+          "evidence": {
+            "url": "https://www.buan.go.kr/jbares/board/download.buan?boardId=BBS_0000147&menuCd=DOM_000000906001000000&paging=ok&startPage=1&dataSid=371110&command=update&fileSid=273597",
+            "location": "첨부 신청자격 문단 100",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        }
+      },
+      "approval": {
+        "state": "approved",
+        "reviewer": "user",
+        "reference": "owner-approval-20261030-support-stage4-eight",
+        "checked_at": "2026-10-30T00:58:32.667270+00:00"
+      }
+    },
+    {
+      "basis": {
+        "id": "NOTICE-2593a32e903d2f3e3ac46fea",
+        "url": "https://www.jeonbuk.go.kr/newsroom/board/view.jeonbuk?boardId=BBS_0000090&dataSid=671793&menuCd=DOM_000001101000000000",
+        "title": "2026년 전북 마늘 농작물재해보험 보험료 지원",
+        "target": "농업경영체에 등록하고 전북에서 마늘을 재배하는 농업인·농업법인. 가입 심사와 보험 약관 확인 필요. 가입 심사·상품 조건 및 최신 변경 여부 확인 필요. 현재 접수 가능 확정 아님.",
+        "region": "전북 재배 농지 조건. 주민등록상 거주 요건으로 바꾸지 않음.",
+        "dates": {
+          "start": {
+            "date": "2026-10-12",
+            "time": null,
+            "timezone": null
+          },
+          "end": {
+            "date": "2026-11-27",
+            "time": null,
+            "timezone": null
+          }
+        },
+        "period": {},
+        "eligibility": {
+          "conditions": [],
+          "logic": {
+            "op": "UNKNOWN",
+            "children": []
+          }
+        }
+      },
+      "rights": {
+        "facts_only": true,
+        "policy_url": "https://www.jeonbuk.go.kr/newsroom/board/view.jeonbuk?boardId=BBS_0000090&dataSid=671793&menuCd=DOM_000001101000000000",
+        "note": "기존 출처 정책과 최소 사실정보 공개 범위 내의 독자적 안내. 본문·이미지·첨부 복제 허락을 의미하지 않음."
+      },
+      "fields": {
+        "summary": {
+          "value": "전북 마늘 재배 농가의 농작물재해보험 보험료 일부 지원",
+          "evidence": {
+            "url": "https://www.jeonbuk.go.kr/newsroom/board/view.jeonbuk?boardId=BBS_0000090&dataSid=671793&menuCd=DOM_000001101000000000",
+            "location": "공식 보도자료 보험료 지원·가입대상 문단",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "funding": {
+          "value": "보험료의 정부 지원 50%, 도·시군 지원 35~50%. 농가 부담은 15% 이하이며 실제 부담액은 농지 면적·상품 등에 따라 다릅니다.",
+          "evidence": {
+            "url": "https://www.jeonbuk.go.kr/newsroom/board/view.jeonbuk?boardId=BBS_0000090&dataSid=671793&menuCd=DOM_000001101000000000",
+            "location": "공식 본문 보험료 지원비율 문단",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "conditions": {
+          "value": [
+            "농업경영체에 등록한 전북 마늘 재배 농업인·농업법인 대상",
+            "약관에서 정한 자연재해 피해에 대한 보상이며 모든 피해·손실을 보장하는 것은 아닙니다."
+          ],
+          "evidence": {
+            "url": "https://www.jeonbuk.go.kr/newsroom/board/view.jeonbuk?boardId=BBS_0000090&dataSid=671793&menuCd=DOM_000001101000000000",
+            "location": "공식 본문 가입대상·보상 범위 문단",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "method": {
+          "value": "작물 가입기간 안에 농지 소재지 인근 지역농협을 방문해 신청",
+          "evidence": {
+            "url": "https://www.jeonbuk.go.kr/newsroom/board/view.jeonbuk?boardId=BBS_0000090&dataSid=671793&menuCd=DOM_000001101000000000",
+            "location": "공식 본문 가입 신청방법 문단",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "office": {
+          "value": "농지 소재지 인근 지역농협",
+          "evidence": {
+            "url": "https://www.jeonbuk.go.kr/newsroom/board/view.jeonbuk?boardId=BBS_0000090&dataSid=671793&menuCd=DOM_000001101000000000",
+            "location": "공식 본문 가입 신청방법 문단",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "unconfirmed": {
+          "value": [
+            "확인한 보도자료 본문에는 가입 필수서류와 공고 전용 문의번호가 없습니다. 지역농협에 준비서류·상품 조건 확인이 필요합니다.",
+            "마감 시각은 확인한 본문에 기재되어 있지 않습니다."
+          ],
+          "evidence": {
+            "url": "https://www.jeonbuk.go.kr/newsroom/board/view.jeonbuk?boardId=BBS_0000090&dataSid=671793&menuCd=DOM_000001101000000000",
+            "location": "공식 본문 가입기간·가입방법 문단",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        }
+      },
+      "approval": {
+        "state": "approved",
+        "reviewer": "user",
+        "reference": "owner-approval-20261030-support-stage4-eight",
+        "checked_at": "2026-10-30T00:58:32.667270+00:00"
+      }
+    },
+    {
+      "basis": {
+        "id": "NOTICE-3c1fa3ff958b07b3b63d44c4",
+        "url": "https://www.rda.go.kr/young/custom/policy/view.do?sId=46921&cp=1",
+        "title": "2026년 청년농업인 농지 임대료 지원사업 신청 안내",
+        "target": "포항에 거주하며 실제 영농에 종사하는 경영체 등록 청년농. 농지은행 임대차 요건 있음. 만 나이 문구와 출생연도 범위 충돌. 연령 적합 확정 금지.",
+        "region": "포항",
+        "dates": {
+          "start": {
+            "date": "2026-06-26",
+            "time": null,
+            "timezone": null
+          },
+          "end": {
+            "date": "2026-11-30",
+            "time": null,
+            "timezone": null
+          }
+        },
+        "period": {},
+        "eligibility": {
+          "conditions": [],
+          "logic": {
+            "op": "UNKNOWN",
+            "children": []
+          }
+        }
+      },
+      "rights": {
+        "facts_only": true,
+        "policy_url": "https://www.rda.go.kr/datacprprot.do",
+        "note": "기존 출처 정책과 최소 사실정보 공개 범위 내의 독자적 안내. 본문·이미지·첨부 복제 허락을 의미하지 않음."
+      },
+      "fields": {
+        "summary": {
+          "value": "농지은행을 통해 계약한 청년농업인의 농지 임대료 일부 지원",
+          "evidence": {
+            "url": "https://www.rda.go.kr/young/custom/policy/view.do?sId=46921&cp=1",
+            "location": "공식 상세 지원내용",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "funding": {
+          "value": "임대료의 50%, 1인당 연간 보조금 최대 200만원. 매년 신청하며 최대 3년 지원",
+          "evidence": {
+            "url": "https://www.rda.go.kr/young/custom/policy/view.do?sId=46921&cp=1",
+            "location": "공식 상세 지원내용·지원한도·지원기간",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "conditions": {
+          "value": [
+            "한국농어촌공사 농지은행을 통한 농지임대차 계약 필요",
+            "농업경영체 등록 및 신청일 현재 포항시 거주·실제 영농 요건",
+            "경북 다른 시·군 거주자는 해당 시·군에 신청"
+          ],
+          "evidence": {
+            "url": "https://www.rda.go.kr/young/custom/policy/view.do?sId=46921&cp=1",
+            "location": "공식 상세 신청자격·지원조건",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "method": {
+          "value": "서류를 지참해 주소지 읍·면 행정복지센터에 방문 신청. 동지역은 포항시청 농업정책과",
+          "evidence": {
+            "url": "https://www.rda.go.kr/young/custom/policy/view.do?sId=46921&cp=1",
+            "location": "공식 상세 신청장소·신청 안내",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "office": {
+          "value": "주소지 읍·면 행정복지센터 / 동지역 포항시청 농업정책과",
+          "evidence": {
+            "url": "https://www.rda.go.kr/young/custom/policy/view.do?sId=46921&cp=1",
+            "location": "공식 상세 신청장소",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "documents_required": {
+          "value": [
+            "청년농업인 농지 임대료 지원 신청서(별지1호)",
+            "농업경영체 등록확인서",
+            "농어촌공사 농지임대차 계약서",
+            "임대료 납부약정서",
+            "주민등록등본"
+          ],
+          "evidence": {
+            "url": "https://www.rda.go.kr/young/custom/policy/view.do?sId=46921&cp=1",
+            "location": "공식 상세 제출서류",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "contact": {
+          "value": "포항시 농업정책과 054-270-2666",
+          "evidence": {
+            "url": "https://www.rda.go.kr/young/custom/policy/view.do?sId=46921&cp=1",
+            "location": "공식 상세 담당부서 표",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "warnings": {
+          "value": [
+            "임대료 감면 대상 농지는 감면 기준으로 보조금 산정",
+            "지원기간에도 매년 신청 필요"
+          ],
+          "evidence": {
+            "url": "https://www.rda.go.kr/young/custom/policy/view.do?sId=46921&cp=1",
+            "location": "공식 상세 지원내용·지원기간",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "unconfirmed": {
+          "value": [
+            "공고의 ‘만 18세 이상 만 40세 미만’과 출생연도 범위(1986.1.1.~2008.12.31.)의 적용 기준은 추가 확인이 필요합니다.",
+            "확인한 본문에는 마감 시각이 없습니다."
+          ],
+          "evidence": {
+            "url": "https://www.rda.go.kr/young/custom/policy/view.do?sId=46921&cp=1",
+            "location": "공식 상세 신청자격·신청기한",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        }
+      },
+      "approval": {
+        "state": "approved",
+        "reviewer": "user",
+        "reference": "owner-approval-20261030-support-stage4-eight",
+        "checked_at": "2026-10-30T00:58:32.667270+00:00"
+      }
+    },
+    {
+      "basis": {
+        "id": "NOTICE-4753ef5fedcfd8ce196e53ce",
+        "url": "https://www.oads.or.kr/board/annc/selectAnnounce.do?annc_seq=89",
+        "title": "[ 안전성 검사 ] 2026년 국내반입 활성화 지원사업 (안전성 검사) 신청기업 모집 공고",
+        "target": "2026년 직접 생산 농산물의 국내 반입을 추진하는 해외농업 신고기업. 현재 잔여예산·조기종료 여부 미확인.",
+        "region": "해외농업 진출기업 전용; 지역 제한 미확인",
+        "dates": {
+          "start": {
+            "date": "2026-04-01",
+            "time": "09:00",
+            "timezone": "Asia/Seoul"
+          },
+          "end": {
+            "date": "2026-12-22",
+            "time": "23:59",
+            "timezone": "Asia/Seoul"
+          }
+        },
+        "period": {},
+        "eligibility": {
+          "conditions": [],
+          "logic": {
+            "op": "UNKNOWN",
+            "children": []
+          }
+        }
+      },
+      "rights": {
+        "facts_only": true,
+        "policy_url": "https://www.oads.or.kr/board/annc/selectAnnounce.do?annc_seq=89",
+        "note": "기존 출처 정책과 최소 사실정보 공개 범위 내의 독자적 안내. 본문·이미지·첨부 복제 허락을 의미하지 않음."
+      },
+      "fields": {
+        "summary": {
+          "value": "해외에서 직접 생산해 국내로 반입하는 대상 농산물의 안전성 검사비 지원",
+          "evidence": {
+            "url": "https://www.oads.or.kr/board/annc/selectAnnounce.do?annc_seq=89",
+            "location": "공식 본문 사업목적·지원내용",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "funding": {
+          "value": "안전성 확인 검사비의 100% 지원. 개별 한도·부가세 처리 기준은 추가 확인 필요",
+          "evidence": {
+            "url": "https://www.oads.or.kr/board/annc/selectAnnounce.do?annc_seq=89",
+            "location": "공식 본문 지원내용",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "conditions": {
+          "value": [
+            "사업 신청일까지 해외농업자원개발 사업계획 신고가 완료된 기업",
+            "2026년 직접생산을 통한 국내반입 추진 기업 대상. 일반 개인농 대상 사업 아님",
+            "공고에 명시된 식용 대두·콩나물콩·귀리·옥수수 및 HS코드에 해당해야 함"
+          ],
+          "evidence": {
+            "url": "https://www.oads.or.kr/board/annc/selectAnnounce.do?annc_seq=89",
+            "location": "공식 본문 지원대상·대상품목",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "method": {
+          "value": "해외농업개발서비스 공식 공고의 신청 버튼을 통해 홈페이지 접수",
+          "evidence": {
+            "url": "https://www.oads.or.kr/board/annc/selectAnnounce.do?annc_seq=89",
+            "location": "공식 본문 접수방법",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "office": {
+          "value": "해외농업개발서비스 홈페이지 / 해외농업자원개발협회 사업관리실",
+          "evidence": {
+            "url": "https://www.oads.or.kr/board/annc/selectAnnounce.do?annc_seq=89",
+            "location": "공식 본문 접수방법·문의처",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "documents_required": {
+          "value": [
+            "사업 신청 공문",
+            "해외농업개발사업계획 신고 수리 공문 사본",
+            "사업자등록증 사본",
+            "안전성 검사비 지원신청서(붙임1)",
+            "중소기업 빅데이터 플랫폼 기업(신용)정보 수집·이용·제공 동의서(붙임2)",
+            "검사기관 검사 의뢰서 및 견적서",
+            "선하증권(B/L) 등 제반서류",
+            "별도 제출: 검사성적서·수입신고확인증 등(제출 시점은 기관 확인 필요)"
+          ],
+          "evidence": {
+            "url": "https://www.oads.or.kr/board/annc/selectAnnounce.do?annc_seq=89",
+            "location": "공식 본문 제출서류·별도제출",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "contact": {
+          "value": "해외농업자원개발협회 사업관리실 02-6257-6572",
+          "evidence": {
+            "url": "https://www.oads.or.kr/board/annc/selectAnnounce.do?annc_seq=89",
+            "location": "공식 본문 문의처",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "unconfirmed": {
+          "value": [
+            "확인한 본문에는 기업별 지원한도·부가세 처리·별도 증빙 제출 시점이 명시되지 않았습니다. 첨부 HWP의 추가 대조가 필요한 항목은 확정하지 않습니다.",
+            "잔여 예산과 조기 종료 여부는 확인하지 못했습니다."
+          ],
+          "evidence": {
+            "url": "https://www.oads.or.kr/board/annc/selectAnnounce.do?annc_seq=89",
+            "location": "공식 본문 사업개요·제출서류",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        }
+      },
+      "approval": {
+        "state": "approved",
+        "reviewer": "user",
+        "reference": "owner-approval-20261030-support-stage4-eight",
+        "checked_at": "2026-10-30T00:58:32.667270+00:00"
+      }
+    },
+    {
+      "basis": {
+        "id": "NOTICE-5db02076c5e5481f3b1a50af",
+        "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8210&proj_detail_id=0",
+        "title": "2026년 베트남 복합형 거점 물류센터(DC) 지원사업 참가업체 수시 모집",
+        "target": "베트남 수출 농식품 업체. 지정 거래조건과 제외 업종 확인 필요. 상황에 따라 조기 마감 가능. 수시 신청·접수 상태 확인 필요.",
+        "region": "한국 농식품 수출업체",
+        "dates": {
+          "start": {
+            "date": "2026-07-16",
+            "time": null,
+            "timezone": null
+          },
+          "end": null
+        },
+        "period": {},
+        "eligibility": {
+          "conditions": [],
+          "logic": {
+            "op": "UNKNOWN",
+            "children": []
+          }
+        }
+      },
+      "rights": {
+        "facts_only": true,
+        "policy_url": "https://www.at.or.kr/contents/apko344711/view.action",
+        "note": "기존 출처 정책과 최소 사실정보 공개 범위 내의 독자적 안내. 본문·이미지·첨부 복제 허락을 의미하지 않음."
+      },
+      "fields": {
+        "summary": {
+          "value": "베트남 하노이·호치민 거점 물류센터의 운송·입출고·보관 등 물류 서비스 이용료 지원",
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8210&proj_detail_id=0",
+            "location": "공식 첨부 PDF 1~2쪽 사업내용",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "funding": {
+          "value": "품목·보관방식 등에 따라 이용료 50~90% 지원. 업체당 5백만~50백만원(500만~5천만원) 배정 범위이며 실제 배정은 심사에 따릅니다.",
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8210&proj_detail_id=0",
+            "location": "공식 첨부 PDF 1쪽 지원한도·지원비율 표",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "conditions": {
+          "value": [
+            "한국 농림축산식품 수출업체 대상. 임산물·수산물(가공품 포함) 수출업체 제외",
+            "물품 거래조건 DPU·DDP에 한하며 바이어·현지 대행업체를 통한 간접 이용은 지원 불가",
+            "하노이·호치민 DC 중 1개소 선택, 선정 후 운영사와 개별 계약 필요"
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8210&proj_detail_id=0",
+            "location": "공식 첨부 PDF 1쪽 신청자격·사업내용",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "method": {
+          "value": "aT 수출종합지원시스템에서 온라인 신청. 무역통계 제공 동의 기관은 공고에서 지정한 해외사업처 확인",
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8210&proj_detail_id=0",
+            "location": "공식 상세 안내사항 / 첨부 PDF 2쪽 신청방법",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "office": {
+          "value": "aT 수출종합지원시스템 온라인 접수",
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8210&proj_detail_id=0",
+            "location": "공식 첨부 PDF 2쪽 신청경로",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "documents_required": {
+          "value": [
+            "참가 신청서 및 DC 이용 계획",
+            "사업자등록증",
+            "계좌 사본",
+            "무역통계 제공 동의서"
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8210&proj_detail_id=0",
+            "location": "공식 첨부 PDF 2쪽 제출서류 및 4~5쪽 신청서",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "documents_conditional": {
+          "value": [
+            "국산 원료 사용 품목: 주원료의 국내산 표시가 있는 품목제조보고서(선택서류)",
+            "선정평가 완료 후: DC 운영사 약정서·계약서"
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8210&proj_detail_id=0",
+            "location": "공식 첨부 PDF 2·4쪽 제출서류",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "contact": {
+          "value": "참가자격·지원내용: aT 신시장개척부 061-931-0994 / DC 이용: 하노이 070-4617-7102, 호치민 070-4617-3276",
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8210&proj_detail_id=0",
+            "location": "공식 첨부 PDF 2쪽 사업 문의처",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "warnings": {
+          "value": [
+            "수시 신청·접수 상태 확인 필요. 상황에 따라 조기 마감 가능",
+            "12월 31일은 첨부에 기재된 이용기간 종료일이며 확정 신청 마감일로 사용하지 않습니다.",
+            "공시대상·상호출자제한 기업집단 제외, 선정평가 50점 미만 제외"
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8210&proj_detail_id=0",
+            "location": "공식 첨부 PDF 1~3쪽 자격·신청기간·선정기준",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "unconfirmed": {
+          "value": [
+            "확정 신청 마감일과 현재 접수·예산 상태 미확인. 모집기간 내 확정 건수에 포함하지 않습니다."
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8210&proj_detail_id=0",
+            "location": "공식 첨부 PDF 2쪽 신청기간·이용기간",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        }
+      },
+      "approval": {
+        "state": "approved",
+        "reviewer": "user",
+        "reference": "owner-approval-20261030-support-stage4-eight",
+        "checked_at": "2026-10-30T00:58:32.667270+00:00"
+      }
+    },
+    {
+      "basis": {
+        "id": "NOTICE-6256203b1389e81e3666cda8",
+        "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8173&proj_detail_id=0",
+        "title": "2026년 대일수출가공식품 사전등록 지원사업 안내",
+        "target": "자체 공장 또는 OEM 생산 품목에 대한 수출실적이 있는 한국 식품 수출업체. 첨부의 선택 확인 범위에서 조기종료 문구 미발견. 조기종료 불가를 뜻하지 않음.",
+        "region": "한국 식품 수출업체; 세부 지역 제한 미확인",
+        "dates": {
+          "start": {
+            "date": "2026-04-15",
+            "time": null,
+            "timezone": null
+          },
+          "end": {
+            "date": "2026-12-01",
+            "time": "18:00",
+            "timezone": "Asia/Seoul"
+          }
+        },
+        "period": {},
+        "eligibility": {
+          "conditions": [],
+          "logic": {
+            "op": "UNKNOWN",
+            "children": []
+          }
+        }
+      },
+      "rights": {
+        "facts_only": true,
+        "policy_url": "https://www.at.or.kr/contents/apko344711/view.action",
+        "note": "기존 출처 정책과 최소 사실정보 공개 범위 내의 독자적 안내. 본문·이미지·첨부 복제 허락을 의미하지 않음."
+      },
+      "fields": {
+        "summary": {
+          "value": "한국 식품 수출업체의 일본 후생노동성 가공식품 사전등록 행정절차 지원",
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8173&proj_detail_id=0",
+            "location": "공식 첨부 안내 PDF 1쪽 지원내용",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "conditions": {
+          "value": [
+            "자가공장 또는 OEM 생산 품목에 현재·과거 수출실적이 있는 한국 식품 수출업체 대상",
+            "HACCP 인증 또는 HACCP 관리방식을 도입하고 한국 위생당국의 정기점검을 받는 제조시설",
+            "1차 생산품·간이 가공품·일본 명령검사 대상 품목은 제외"
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8173&proj_detail_id=0",
+            "location": "공식 첨부 안내 PDF 1쪽 지원대상·신청조건·대상품목",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "method": {
+          "value": "품목별 수입업체를 통해 aT 도쿄지사와 사전 협의 후 at@atcenter.or.jp로 서류 제출",
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8173&proj_detail_id=0",
+            "location": "공식 첨부 안내 PDF 1쪽 추진절차·신청방법",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "office": {
+          "value": "aT 도쿄지사 이메일 접수: at@atcenter.or.jp",
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8173&proj_detail_id=0",
+            "location": "공식 첨부 안내 PDF 1쪽 제출방법",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "documents_required": {
+          "value": [
+            "신청서 및 위생점검표(후생성 양식)",
+            "성분배합표",
+            "제조공정도",
+            "상품리스트",
+            "제품사진"
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8173&proj_detail_id=0",
+            "location": "공식 첨부 안내 PDF 2쪽 공통서류 ①~⑤",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "documents_conditional": {
+          "value": [
+            "일본 측 요구 시 시험성적증명서(인정 검사기관 발급, 수입업체 발급 성적증명서 제출 가능)",
+            "HACCP 인증시설: 품목별 HACCP 인증서",
+            "HACCP 관리방식 도입시설 등: HACCP 위생관리 기록부·한국 위생당국 공장 점검일지 등"
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8173&proj_detail_id=0",
+            "location": "공식 첨부 안내 PDF 2쪽 공통·개별서류",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "contact": {
+          "value": "aT 도쿄지사 at@atcenter.or.jp / 070-4617-1709, 식품수출부 061-931-0741",
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8173&proj_detail_id=0",
+            "location": "공식 첨부 안내 PDF 2쪽 문의처",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "warnings": {
+          "value": [
+            "공통서류 ①~⑤는 대표자 날인 전 파일 제출 안내 준수",
+            "첨부의 연중상시 안내와 시스템의 12월 1일 18시 표기를 함께 확인하고 실제 접수 여부는 도쿄지사에 확인",
+            "등록 완료 시점은 일본 후생노동성 처리에 따라 달라짐"
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8173&proj_detail_id=0",
+            "location": "공식 첨부 안내 PDF 1~2쪽 및 상세 접수기간",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "unconfirmed": {
+          "value": [
+            "확인한 안내문은 등록 행정지원 사업이며 정액 지원금·지원비율은 기재되어 있지 않습니다. 금액을 임의로 표시하지 않습니다."
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8173&proj_detail_id=0",
+            "location": "공식 첨부 안내 PDF 1쪽 지원내용",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        }
+      },
+      "approval": {
+        "state": "approved",
+        "reviewer": "user",
+        "reference": "owner-approval-20261030-support-stage4-eight",
+        "checked_at": "2026-10-30T00:58:32.667270+00:00"
+      }
+    },
+    {
+      "basis": {
+        "id": "NOTICE-ad792916c9574b1c4b48e414",
+        "url": "https://www.jeonju.go.kr/planweb/board/view.9is?boardUid=ff8080818bad9295018bae4a18f609a7&contentUid=ff8080818990c349018b041a9b013a46&dataUid=9be517a8a0cba6ef01a0e58bbc087280",
+        "title": "2026년 농업용 면세유 가격안정 지원사업 신청 안내",
+        "target": "전주시 주소·농업경영체 등록·면세유 구입카드 요건이 있는 농업인. 세부 제외 조건은 확인 필요.",
+        "region": "전주시 주소 요건. 영농지만으로 거주 요건을 충족한다고 판단하지 않음.",
+        "dates": {
+          "start": {
+            "date": "2026-09-28",
+            "time": null,
+            "timezone": null
+          },
+          "end": {
+            "date": "2026-10-30",
+            "time": null,
+            "timezone": null
+          }
+        },
+        "period": {},
+        "eligibility": {
+          "conditions": [
+            {
+              "condition_id": "business_location_unknown",
+              "kind": "business_location",
+              "presence": "unknown",
+              "status": "unverified",
+              "value": null
+            },
+            {
+              "condition_id": "remaining_unknown",
+              "kind": "other_required",
+              "presence": "unknown",
+              "status": "unverified",
+              "value": null
+            },
+            {
+              "condition_id": "text_applicant",
+              "kind": "applicant",
+              "presence": "specified",
+              "status": "verified",
+              "value": {
+                "one_of": [
+                  "individual_farmer"
+                ]
+              }
+            },
+            {
+              "condition_id": "text_residence",
+              "kind": "residence",
+              "presence": "specified",
+              "status": "verified",
+              "value": {
+                "regions": [
+                  "전북 전주시"
+                ]
+              }
+            },
+            {
+              "condition_id": "text_registration",
+              "kind": "farm_registration",
+              "presence": "specified",
+              "status": "verified",
+              "value": {
+                "registered": true
+              }
+            }
+          ],
+          "logic": {
+            "children": [
+              {
+                "children": [
+                  {
+                    "condition_id": "business_location_unknown"
+                  },
+                  {
+                    "condition_id": "remaining_unknown"
+                  }
+                ],
+                "op": "AND"
+              },
+              {
+                "condition_id": "text_applicant"
+              },
+              {
+                "condition_id": "text_residence"
+              },
+              {
+                "condition_id": "text_registration"
+              }
+            ],
+            "op": "AND"
+          }
+        }
+      },
+      "rights": {
+        "facts_only": true,
+        "policy_url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=197742",
+        "note": "기존 출처 정책과 최소 사실정보 공개 범위 내의 독자적 안내. 본문·이미지·첨부 복제 허락을 의미하지 않음."
+      },
+      "fields": {
+        "summary": {
+          "value": "해당 기간 농업용 면세유 사용량의 일부에 유종별 단가를 적용해 지원",
+          "evidence": {
+            "url": "https://www.jeonju.go.kr/planweb/board/view.9is?boardUid=ff8080818bad9295018bae4a18f609a7&contentUid=ff8080818990c349018b041a9b013a46&dataUid=9be517a8a0cba6ef01a0e58bbc087280",
+            "location": "공식 본문 지급대상물량·지원유종 및 단가",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "funding": {
+          "value": "대상 사용량의 50%에 유종별 단가 적용(경유 20원/ℓ 등). 천원 미만 절사, 예산 부족 시 감액될 수 있습니다.",
+          "evidence": {
+            "url": "https://www.jeonju.go.kr/planweb/board/view.9is?boardUid=ff8080818bad9295018bae4a18f609a7&contentUid=ff8080818990c349018b041a9b013a46&dataUid=9be517a8a0cba6ef01a0e58bbc087280",
+            "location": "공식 본문 지급대상물량·지원단가·지급단위",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "conditions": {
+          "value": [
+            "전주시 주소·농업경영체 등록·면세유류 구입카드 발급 농업인 대상",
+            "기준 사용기간: 2025년 9월~2026년 8월. 상반기 지급 물량은 하반기 신청에서 제외",
+            "유종별 단가: 경유 20원/ℓ, 휘발유 19원/ℓ, 등유 26원/ℓ",
+            "중유 53원/ℓ, LPG 난방 54원/ℓ·차량 28원/ℓ, 부생연료유 1·2호 각 52원/ℓ"
+          ],
+          "evidence": {
+            "url": "https://www.jeonju.go.kr/planweb/board/view.9is?boardUid=ff8080818bad9295018bae4a18f609a7&contentUid=ff8080818990c349018b041a9b013a46&dataUid=9be517a8a0cba6ef01a0e58bbc087280",
+            "location": "공식 본문 신청대상·지급대상물량·지원유종 및 단가",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "method": {
+          "value": "주소지 동 주민센터에 신청",
+          "evidence": {
+            "url": "https://www.jeonju.go.kr/planweb/board/view.9is?boardUid=ff8080818bad9295018bae4a18f609a7&contentUid=ff8080818990c349018b041a9b013a46&dataUid=9be517a8a0cba6ef01a0e58bbc087280",
+            "location": "공식 본문 신청장소",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "office": {
+          "value": "전주시 주소지 동 주민센터",
+          "evidence": {
+            "url": "https://www.jeonju.go.kr/planweb/board/view.9is?boardUid=ff8080818bad9295018bae4a18f609a7&contentUid=ff8080818990c349018b041a9b013a46&dataUid=9be517a8a0cba6ef01a0e58bbc087280",
+            "location": "공식 본문 신청장소",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "warnings": {
+          "value": [
+            "예산 부족 시 부족한 비율만큼 전체 신청자 지급액 감액",
+            "기재 마감일은 10월 30일. 마감 시각이 확인되지 않아 당일 접수 가능을 확정하지 않습니다."
+          ],
+          "evidence": {
+            "url": "https://www.jeonju.go.kr/planweb/board/view.9is?boardUid=ff8080818bad9295018bae4a18f609a7&contentUid=ff8080818990c349018b041a9b013a46&dataUid=9be517a8a0cba6ef01a0e58bbc087280",
+            "location": "공식 본문 신청기간·예산 부족 시 안내",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "unconfirmed": {
+          "value": [
+            "확인한 공고 본문에는 제출서류 목록·담당 문의번호·마감 시각이 없습니다. 주소지 동 주민센터에서 확인이 필요합니다."
+          ],
+          "evidence": {
+            "url": "https://www.jeonju.go.kr/planweb/board/view.9is?boardUid=ff8080818bad9295018bae4a18f609a7&contentUid=ff8080818990c349018b041a9b013a46&dataUid=9be517a8a0cba6ef01a0e58bbc087280",
+            "location": "공식 본문 신청장소·신청기간",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        }
+      },
+      "approval": {
+        "state": "approved",
+        "reviewer": "user",
+        "reference": "owner-approval-20261030-support-stage4-eight",
+        "checked_at": "2026-10-30T00:58:32.667270+00:00"
+      }
+    },
+    {
+      "basis": {
+        "id": "NOTICE-c0a58a0bf6c10446688ce877",
+        "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8232&proj_detail_id=0",
+        "title": "2026년 농식품글로벌성장패키지(K-Fresh) 지원사업 모집공고",
+        "target": "신선농산물 통합조직 회원사 중 지정 기간 수출실적 요건을 충족하는 업체. 배정 우선순위에 따라 예산 소진 시까지 선정. 잔여예산 미확인.",
+        "region": "국가 지원사업; 전북 지역본부 안내 확인",
+        "dates": {
+          "start": {
+            "date": "2026-10-26",
+            "time": null,
+            "timezone": null
+          },
+          "end": {
+            "date": "2026-11-04",
+            "time": "16:00",
+            "timezone": "Asia/Seoul"
+          }
+        },
+        "period": {},
+        "eligibility": {
+          "conditions": [],
+          "logic": {
+            "op": "UNKNOWN",
+            "children": []
+          }
+        }
+      },
+      "rights": {
+        "facts_only": true,
+        "policy_url": "https://www.at.or.kr/contents/apko344711/view.action",
+        "note": "기존 출처 정책과 최소 사실정보 공개 범위 내의 독자적 안내. 본문·이미지·첨부 복제 허락을 의미하지 않음."
+      },
+      "fields": {
+        "summary": {
+          "value": "신선농산물 수출업체가 배정 한도 안에서 수확 후 관리·운송·통관 등 메뉴를 선택해 비용 정산",
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8232&proj_detail_id=0",
+            "location": "공식 첨부 PDF 2·6쪽 지원내용·사업메뉴",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "funding": {
+          "value": "국고 지원비율 중소기업 90%·중견기업 80%. 기본 10백만원(1천만원), 최대 50백만원(5천만원·국고 기준) 배정이며 심사·수출실적·예산에 따라 달라집니다.",
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8232&proj_detail_id=0",
+            "location": "공식 첨부 PDF 1~2쪽 지원비율·배정액",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "conditions": {
+          "value": [
+            "2025년 10월~2026년 9월 해당 11개 품목 수출실적 1만 달러 이상(직·간접)인 통합조직 회원사",
+            "신청 마감일까지 통합조직 회원가입 완료 필요",
+            "수확 후 관리·운송·통관 9개 메뉴를 우선 사용하고 해당 통합조직 품목 수출 관련 비용만 정산"
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8232&proj_detail_id=0",
+            "location": "공식 첨부 PDF 1~2쪽 신청자격·정산조건",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "method": {
+          "value": "aT 수출종합지원시스템 로그인 후 역량진단을 실시하고 해당 공고의 사업 신청에서 서류 업로드",
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8232&proj_detail_id=0",
+            "location": "공식 첨부 PDF 3쪽 신청방법",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "office": {
+          "value": "aT 수출종합지원시스템 온라인 접수 / 관할 지역본부 검토",
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8232&proj_detail_id=0",
+            "location": "공식 첨부 PDF 2~3쪽 절차·신청방법",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "documents_required": {
+          "value": [
+            "참가신청서",
+            "메뉴이용 계획서",
+            "유사 사업 중복지원 불가 서약서",
+            "사업자등록증명원(발급 3개월 이내, aT One-click 제출 가능)",
+            "온라인 무역통계정보 제공 동의"
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8232&proj_detail_id=0",
+            "location": "공식 첨부 PDF 3쪽 필수 제출서류",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "documents_conditional": {
+          "value": [
+            "중소·중견기업 확인은 NICE기업데이터로 aT 자체 조회하며 미확인 시 별도 서류 요청",
+            "2026년 9월 30일 관리 회원사 명단에 포함된 업체는 별도 회원 확인서 제출 불필요",
+            "신규업체의 세금·4대보험 관련 증빙은 약정 시 제출 안내 확인"
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8232&proj_detail_id=0",
+            "location": "공식 첨부 PDF 1·3·5쪽 회원 확인·기업확인·제외대상",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "contact": {
+          "value": "aT 수출기업육성부 061-931-0863·0864 / 전북지역본부 063-904-5873·5875",
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8232&proj_detail_id=0",
+            "location": "공식 상세 담당부서·연락처 / 첨부 PDF 4쪽 문의처",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "warnings": {
+          "value": [
+            "예산 소진 시까지 선정하며 실제 배정액은 신청금액·최대한도·수출실적 기준 배정액 중 적은 금액",
+            "다른 수출바우처 등 중복선정 제한 및 동일 증빙 중복지원 금지",
+            "무역통계 동의서 기관은 공식 정정 안내에 따라 수출기반처가 아닌 수출전략처 선택",
+            "비용 집행 인정기간은 2026년 12월 31일까지, 정산 신청은 2027년 1월 10일까지. 모집 마감과 별개",
+            "부가세 지원 제외. 검사기계 등 기자재 구매 지원 제외"
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8232&proj_detail_id=0",
+            "location": "공식 상세 정정 안내 및 첨부 PDF 1~3·5~6쪽",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        },
+        "unconfirmed": {
+          "value": [
+            "현재 잔여 예산·선정 여력은 확인되지 않았으므로 접수 가능을 확정하지 않습니다."
+          ],
+          "evidence": {
+            "url": "https://global.at.or.kr/front/bizReq/brView.do?proj_id=8232&proj_detail_id=0",
+            "location": "공식 첨부 PDF 2쪽 선정기준·배정액",
+            "checked_at": "2026-10-30T00:54:37.052285+00:00"
+          }
+        }
+      },
+      "approval": {
+        "state": "approved",
+        "reviewer": "user",
+        "reference": "owner-approval-20261030-support-stage4-eight",
+        "checked_at": "2026-10-30T00:58:32.667270+00:00"
+      }
     }
   ]
 }
