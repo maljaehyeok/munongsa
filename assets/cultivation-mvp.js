@@ -34,7 +34,7 @@
   return topics[topic]+'에 필요한 '+(source.id==='consult'?'전문가 상담':source.id==='pest'?'병해충 정보':source.id==='pesticide'?'등록농약과 안전사용기준':'작물별 처방 조건')+'을 확인할 수 있습니다.';
  }
  function inputGuide(source,crop,profile={}){
-  const place=[profile.region,profile.district].filter(v=>v&&!['all','unknown'].includes(v)).join(' '),mode={open:'노지',facility:'시설'}[profile.cultivation],context=[place,mode].filter(Boolean).join(' · ');
+  const place=profile.customFarmRegion||[profile.region,profile.district].filter(v=>v&&!['all','unknown'].includes(v)).join(' '),mode={open:'노지',facility:'시설'}[profile.cultivation],context=[place,mode].filter(Boolean).join(' · ');
   if(source.crop)return (source.overview?'작물 '+crop+'은 공식 페이지에 전달했습니다. ':'해당 작물의 자료로 연결합니다. ')+(context?'입력한 '+context+' 조건은 외부에 자동 전달되지 않습니다. 자료의 적용 범위를 확인하세요.':'지역·작형은 해당 자료에서 확인하세요.');
   if(source.id==='soil')return '선택 작물: '+crop+'. 흙토람에서 작물·실제 필지·토양검정 결과·재배면적 등 요구 정보를 직접 확인해야 합니다. 현재 입력만으로 비료 처방을 완료하지 않습니다.';
   if(source.id==='water')return '선택 작물: '+crop+'. 노지용 서비스에서 지역·작물과 서비스가 요구하는 재배 조건을 다시 선택하세요. 현재 입력만으로 물 사용량을 계산하지 않습니다.';
