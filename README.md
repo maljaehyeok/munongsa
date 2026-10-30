@@ -187,3 +187,7 @@ Verified AWS application commit: `e317a3f`. Searchable crop/region inputs, expli
 ## Mobile readability deployment status
 
 Verified AWS application commit: `d11503d`. Full-width search/date inputs, compact action rows, query-only autocomplete and reviewed support facts passed PC 1440px and mobile 320/360/390/430px production checks. Operational records, approved feed and 07:00 KST schedule were preserved.
+
+## Readability and funding deployment status
+
+Verified AWS application commit: `f1332d6`. Reading hierarchy and optional funding-ceiling guidance passed PC 1440px and mobile 320/390px production checks. Funding amounts do not change eligibility or ranking. Operational records, approved feed and 07:00 KST schedule were preserved.
