@@ -48,14 +48,14 @@
     });
     // Presentation only: existing inputs and matching semantics stay unchanged.
     const support=activeCategory==='support';
-    byId('interestField').hidden=support||activeCategory==='bank';
+    byId('interestField').hidden=true;
     byId('profileAvatar').hidden=support||activeCategory==='bank';
     byId('profileStatus').hidden=support||activeCategory==='bank';
     byId('farmingSituationField').hidden=homeView||!['support','bank'].includes(activeCategory);
     byId('supportNeedField').hidden=homeView||!support;
     document.querySelector('.filters-intro').textContent=support||activeCategory==='bank'
       ?'지역과 현재 농업 상황만 알려주세요. 잘 모르는 항목은 비워두고 둘러볼 수 있어요.'
-      :'관심 분야와 내 상황을 선택하면 기록된 조건과 관련된 자료부터 보여드려요. 조건이 없는 자료는 확인이 필요한 후보로 표시합니다.';
+      :'작물은 입력창이나 작물 목록에서 선택하세요. 재배 방식은 자료의 적용 범위를 살펴볼 때 사용해요.';
     if(!homeView&&profileCategory!==activeCategory){
       byId('additionalProfileFields').open=!['support','bank'].includes(activeCategory);
       profileCategory=activeCategory;
@@ -64,6 +64,14 @@
     byId('budget').closest('.field').hidden=activeCategory!=='equipment'||homeView;
   }
   function mount(navigate){
+    // Reuse the 67 discovery names, retaining legacy values used by saved profiles.
+    const cropSelect=byId('crop'),directory=root.MunongsaCropDirectory;
+    for(const crop of directory.entries){
+      const existing=[...cropSelect.options].find(o=>directory.find(o.textContent)?.name===crop.name);
+      if(existing)existing.textContent=crop.name;
+      else{const option=document.createElement('option');option.value=crop.name;option.textContent=crop.name;cropSelect.append(option)}
+    }
+    cropSelect.append(cropSelect.querySelector('option[value="other"]'));
     document.addEventListener('input',event=>{if(event.target.id==='cropDirectorySearch')queueBrowseContext()});
     document.addEventListener('change',event=>{if(event.target.id==='cropDirectoryGroup')queueBrowseContext()});
     const media=window.matchMedia('(max-width:760px)');
