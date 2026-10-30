@@ -76,6 +76,8 @@
       byId('menuToggle').setAttribute('aria-expanded',String(open));
     });
     document.addEventListener('click',event=>{
+      const homeService=event.target.closest('[data-home-service]');
+      if(homeService){event.preventDefault();navigate(homeService.dataset.homeService);return}
       if(event.target.closest('.skip-link')){event.preventDefault();const target=document.body.dataset.view==='brand'?byId('brandHeading'):document.body.dataset.view==='service'?byId('serviceHeading'):byId('results');target.tabIndex=-1;target.focus({preventScroll:true});target.scrollIntoView({block:'start'});return}
       if(event.target.closest('[data-service-home],[data-nav-service]')){event.preventDefault();navigate('service');return}
       if(event.target.closest('[data-open-support]')){event.preventDefault();navigate('support')}

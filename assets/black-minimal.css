@@ -70,3 +70,47 @@ body,.topbar,.brand-home,body[data-view=brand] .footer{background:var(--brand-bl
  .modal-box p,.modal-box li,.support-detail-list{font-size:15px;line-height:1.85}.support-detail-list dd{overflow-wrap:anywhere}
  .selection-chip,.selection-summary .profile-chip{max-width:100%;overflow-wrap:anywhere}
 }
+
+/* Home UX stage 1: keep the original logo and give all services equal entry space. */
+.brand-nav-logo,.brand-hero-logo{mix-blend-mode:screen}
+.brand-home{padding-top:42px}
+.brand-content:has(.brand-hero-logo){grid-template-columns:minmax(0,1.3fr) minmax(220px,.7fr);column-gap:40px}
+.brand-hero-logo{max-width:310px;grid-row:1/5}
+.brand-home .eyebrow{margin-bottom:20px}
+.brand-content:has(.brand-hero-logo) h1{font-size:clamp(48px,5.5vw,76px);margin-bottom:22px}
+.brand-description{margin-bottom:0}
+.brand-content:has(.brand-hero-logo) .home-services{grid-column:1/-1}
+.home-services{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:36px}
+.home-service{display:flex;flex-direction:column;min-width:0;min-height:206px;padding:24px;text-decoration:none;background:var(--surface-reading);color:var(--text-reading);border:1px solid var(--border-soft);border-radius:6px}
+.home-service-kicker{font-size:12px;color:var(--text-secondary);line-height:1.6}
+.home-service strong{font-size:27px;letter-spacing:-.04em;margin:12px 0 10px;line-height:1.25}
+.home-service-description{font-size:14px;color:#555;line-height:1.75}
+.home-service-action{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;padding-top:20px;margin-top:auto;color:#222}
+.home-service[data-home-service=support] .home-service-kicker{font-weight:800;color:#222}
+.home-service:hover{background:#e9e9e5;border-color:#92928b}
+.home-service:focus-visible{outline:3px solid #b0cce8;outline-offset:4px}
+.categories{grid-template-columns:repeat(3,minmax(0,1fr))}
+.categories .category-primary{border:1px solid var(--border-soft)}
+.categories .category-primary strong{font-size:30px}
+@media(max-width:1024px){.home-service{padding:20px}.home-service strong{font-size:25px}.brand-hero-logo{max-width:260px}}
+@media(max-width:760px){
+ .brand-home{padding:24px 20px 28px;min-height:calc(100svh - 68px)}
+ .brand-content:has(.brand-hero-logo){display:grid;grid-template-columns:minmax(0,1fr) 100px;column-gap:8px}
+ .brand-content:has(.brand-hero-logo) .eyebrow{grid-column:1/-1;font-size:10px;margin-bottom:20px}
+ .brand-hero-logo{grid-column:2;grid-row:2/4;width:100%;max-width:100px;margin:0;align-self:start;justify-self:end}
+ .brand-content:has(.brand-hero-logo) h1{font-size:clamp(29px,7.8vw,44px);margin:0 0 18px;line-height:1.2}
+ .brand-content:has(.brand-hero-logo) h2{grid-column:1/-1;font-size:18px;margin-bottom:8px}
+ .brand-content:has(.brand-hero-logo) .brand-description{grid-column:1/-1;font-size:13px}
+ .home-services{grid-template-columns:minmax(0,1fr);gap:10px;margin-top:24px}
+ .home-service{min-height:132px;padding:16px 18px;position:relative}
+ .home-service strong{font-size:24px;margin:6px 0}
+ .home-service-kicker{font-size:11px}
+ .home-service-description{font-size:13px;padding-right:24px}
+ .home-service-description br{display:none}
+ .home-service-action{position:absolute;right:18px;top:50%;padding:0;font-size:0;line-height:1}
+ .home-service-action span{font-size:24px}
+ .categories{grid-template-columns:minmax(0,1fr)}
+ .categories .category-primary{min-height:200px}
+ .categories .category-primary strong{font-size:28px}
+ .brand-footnote{font-size:10px;margin-top:18px}
+}
