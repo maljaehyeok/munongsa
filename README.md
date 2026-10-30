@@ -179,3 +179,7 @@ python app.py
 우선 검토할 개선 과제는 공식 공고의 원문 검증률 및 데이터 확보 범위 확대, 미구조화된 자격조건의 비교 정확도 향상, 작물별 재배자료 보강, 외부 링크 상태 관리, HTTPS·도메인 도입입니다. 현재 보류된 외부 API 연동은 중간발표 이후 별도 검토 대상으로 유지합니다.
 
 GitHub 저장소는 **Private 유지**를 전제로 하며, 제출 시 필요한 열람 권한을 별도로 설정해야 합니다. 과거 Git 커밋 작성자 이메일은 저장소 소유자 본인의 것이며 공개에 동의했지만, 재배기술 원본·팀 금융/장비 자료·멘토 제공 내용·일부 이미지 등의 **공개·재배포 권한은 아직 확인되지 않았습니다.** 현재 파일만 삭제해도 과거 Git 이력에 자료가 남으므로 기존 저장소 전체를 검토 없이 Public으로 전환하지 않습니다. **README 문서 변경과 실제 AWS 서비스 배포는 별개**입니다.
+
+## Input UX deployment status
+
+Verified AWS application commit: `e317a3f`. Searchable crop/region inputs, explicit applied conditions, and typed birth-date validation passed PC 1440px and mobile 390px production checks. Operational records, approved feed and 07:00 KST schedule were preserved.
