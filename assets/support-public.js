@@ -79,7 +79,8 @@
           }else if(c.kind==='farm_registration'){
             known=['yes','no'].includes(p.farmRegistered);ok=known&&((p.farmRegistered==='yes')===v.registered);
           }else if(c.kind==='crop'){
-            actual=crops[p.crop];known=!!actual&&Array.isArray(v.any_of);ok=known&&v.any_of.includes(actual);
+            // Keep legacy stored codes; accept exact names from the shared 67-crop list only.
+            actual=crops[p.crop]||(root.MunongsaCropDirectory?.entries.some(e=>e.name===p.crop)?p.crop:null);known=!!actual&&Array.isArray(v.any_of);ok=known&&v.any_of.includes(actual);
           }else if(c.kind==='scale'){
             actual=number(p.area);known=actual!==null&&v.unit==='ha'&&v.metric==='cultivated_area';ok=known&&inRange(actual,v);
           }else detail='현재 프로필로 확인할 수 없는 조건 · 원문과 담당 기관 확인';
