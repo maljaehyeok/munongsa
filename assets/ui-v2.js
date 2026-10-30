@@ -32,6 +32,7 @@
     browseState={homeView,activeCategory};queueBrowseContext();
     document.body.dataset.view=homeView?(serviceHomeView?'service':'brand'):'explore';
     byId('top').hidden=!homeView||serviceHomeView;
+    byId('brandServices').hidden=!homeView||serviceHomeView;
     byId('serviceHome').hidden=!homeView||!serviceHomeView;
     byId('exploreToolbar').hidden=homeView;
     byId('serviceNotice').hidden=homeView&&!serviceHomeView;
@@ -76,6 +77,13 @@
       byId('menuToggle').setAttribute('aria-expanded',String(open));
     });
     document.addEventListener('click',event=>{
+      if(event.target.closest('[data-scroll-services]')){
+        event.preventDefault();
+        const target=byId('brandServicesHeading');
+        target.focus({preventScroll:true});
+        byId('brandServices').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'});
+        return;
+      }
       const homeService=event.target.closest('[data-home-service]');
       if(homeService){event.preventDefault();navigate(homeService.dataset.homeService);return}
       if(event.target.closest('.skip-link')){event.preventDefault();const target=document.body.dataset.view==='brand'?byId('brandHeading'):document.body.dataset.view==='service'?byId('serviceHeading'):byId('results');target.tabIndex=-1;target.focus({preventScroll:true});target.scrollIntoView({block:'start'});return}

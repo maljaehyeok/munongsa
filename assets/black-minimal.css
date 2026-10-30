@@ -114,3 +114,37 @@ body,.topbar,.brand-home,body[data-view=brand] .footer{background:var(--brand-bl
  .categories .category-primary strong{font-size:28px}
  .brand-footnote{font-size:10px;margin-top:18px}
 }
+
+/* Brand UX stage 2: first-screen brand, next-section services, restrained motion. */
+.brand-home{min-height:calc(100svh - 80px);display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;padding-top:48px;padding-bottom:24px;gap:28px}
+.brand-content:has(.brand-hero-logo){margin-block:auto;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);column-gap:48px}
+.brand-hero-logo{max-width:400px;grid-row:1/5}
+.brand-content:has(.brand-hero-logo) h1{font-size:clamp(54px,6.2vw,88px)}
+.service-scroll-cue{display:inline-flex;align-items:center;gap:14px;align-self:center;min-height:44px;padding:10px 14px;color:#b8b8b2;font-size:13px;text-decoration:none;border-radius:4px}
+.service-scroll-cue:hover{color:#f5f5f3;background:#181818}
+.brand-services{max-width:1360px;width:calc(100% - 64px);margin:0 auto;padding:52px 0 64px;scroll-margin-top:0}
+.brand-services header h2{font-size:clamp(23px,3vw,34px);font-weight:750;letter-spacing:-.04em;color:#f5f5f3;line-height:1.5;margin:8px 0 0}
+.brand-services .home-services{margin-top:28px}
+.service-scroll-cue:focus-visible,.brand-services h2:focus-visible,.home-service:focus-visible,button:focus-visible,.source-action:focus-visible{outline:3px solid #b0cce8;outline-offset:4px}
+@keyframes brand-arrive{from{transform:translateY(10px)}to{transform:translateY(0)}}
+@keyframes results-arrive{from{transform:translateY(3px)}to{transform:translateY(0)}}
+@media(prefers-reduced-motion:no-preference){
+ body[data-view=brand] .brand-content{animation:brand-arrive .65s ease-out}
+ #cards>*{animation:results-arrive .18s ease-out}
+ .home-service,.category,button,.source-action,.service-scroll-cue{transition:transform .18s ease,border-color .18s ease,background-color .18s ease,color .18s ease}
+ .home-service:active,.category:active,button:active,.source-action:active{transform:translateY(1px)}
+}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){.home-service:hover,.category:hover{transform:translateY(-3px)}}
+@media(prefers-reduced-motion:reduce){.brand-content,#cards>*,.home-service,.category,button,.source-action,.service-scroll-cue{animation:none!important;transition:none!important;transform:none!important;scroll-behavior:auto!important}}
+@media(max-width:760px){
+ .brand-home{min-height:calc(100svh - 68px);padding:28px 20px 14px;gap:20px}
+ .brand-content:has(.brand-hero-logo){display:flex;flex-direction:column;align-items:center;text-align:center;margin-block:auto;gap:0}
+ .brand-content:has(.brand-hero-logo) .eyebrow{font-size:10px;margin-bottom:16px}
+ .brand-hero-logo{width:180px;max-width:55vw;margin:0 0 22px;align-self:center}
+ .brand-content:has(.brand-hero-logo) h1{font-size:clamp(35px,9.5vw,52px);line-height:1.2;margin:0 0 20px}
+ .brand-content:has(.brand-hero-logo) h2{font-size:18px;margin-bottom:10px}
+ .brand-content:has(.brand-hero-logo) .brand-description{font-size:13px;margin:0;max-width:340px;line-height:1.9}
+ .brand-services{width:calc(100% - 40px);padding:32px 0 40px}
+ .brand-services .home-services{margin-top:22px;gap:12px}
+ .service-scroll-cue{font-size:12px;flex-shrink:0}
+}
