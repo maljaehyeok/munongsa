@@ -9,7 +9,7 @@
   function updateBrowseContext(){
     const summary=byId('selectionSummary'),order=byId('browseOrder');if(!summary||!order)return;
     summary.hidden=browseState.homeView;order.hidden=browseState.homeView;if(browseState.homeView)return;
-    const category=browseState.activeCategory,filters=[],add=(label,value)=>{if(value&&value!=='all')filters.push(label+' · '+value)},value=id=>byId(id)?.value?.trim(),selected=id=>{const el=byId(id);return el&&el.value!=='all'?el.selectedOptions[0]?.textContent.trim():''};
+    const category=browseState.activeCategory,filters=[],add=(label,value)=>{if(value&&value!=='all')filters.push({label,value})},value=id=>byId(id)?.value?.trim(),selected=id=>{const el=byId(id);return el&&el.value!=='all'?el.selectedOptions[0]?.textContent.trim():''};
     if(category==='support'){
       add('검색',value('supportSearch'));
       const state=document.querySelector('[data-support-status].active');if(state&&state.dataset.supportStatus!=='all')add('상태',state.childNodes[0]?.textContent.trim());
@@ -24,7 +24,7 @@
       add('주제',document.querySelector('[data-cultivation-topic][aria-pressed="true"]')?.textContent.trim());
       order.textContent='표시 순서 · 작물 검색은 이름·별칭 일치도 우선 / 자료는 검증된 직접 연결 우선';
     }
-    const list=byId('browseFilterSummary');list.replaceChildren(...filters.map(text=>{const chip=document.createElement('span');chip.className='selection-chip';chip.textContent=text;return chip}));
+    const list=byId('browseFilterSummary');list.replaceChildren(...filters.map(({label,value})=>{const chip=document.createElement('span'),name=document.createElement('span'),chosen=document.createElement('strong');chip.className='selection-chip';name.className='condition-label';chosen.className='condition-value';name.textContent=label;chosen.textContent=value;chip.append(name,chosen);return chip}));
     const hasProfile=byId('profileSummary').childElementCount>0;byId('profileSelectionRow').hidden=!hasProfile;byId('browseSelectionRow').hidden=!filters.length;byId('browseSelectionEmpty').hidden=hasProfile||filters.length>0;
   }
   function closeMenu(){byId('mainNav').classList.remove('is-open');byId('menuToggle').setAttribute('aria-expanded','false')}

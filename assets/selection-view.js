@@ -17,8 +17,7 @@
  }
  function chips(p,category,fields,optionText){
   const rows=[];
-  const effect=id=>id==='crop'&&p.customCrop||id==='region'&&p.customFarmRegion||id==='residenceRegion'&&p.customResidence?'참고':category==='support'&&id==='region'?'지역 필터':category==='bank'&&id==='requiredFundsWon'?'한도 비교':category==='cultivation'&&['crop','cultivation'].includes(id)?'자료 탐색':['support','bank'].includes(category)&&['applicant','farmingSituation'].includes(id)?'기본 조건 비교':category!=='cultivation'&&fields[id]?'기본 조건 비교':'참고';
-  const add=(id,label,value)=>{if(selected(value))rows.push({id,text:label+': '+value+' · '+effect(id)})};
+  const add=(id,label,value)=>{if(selected(value))rows.push({id,label,value:String(value),text:label+': '+value})};
   const text=id=>optionText(id,p[id])||p[id];
   add('farmingSituation','영농 형태',selected(p.farmingSituation)?text('farmingSituation'):'');
   add('applicant','신청자 유형',selected(p.applicant)?text('applicant'):'');
