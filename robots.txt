@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://43.201.72.109/sitemap.xml
