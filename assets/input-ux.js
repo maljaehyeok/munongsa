@@ -12,7 +12,7 @@
  }
  let requiredFundsWon=null,fundsDirty=false;
  const validFunds=v=>Number.isSafeInteger(v)&&v>0&&v%10000===0;
- const fundsText=v=>validFunds(v)?(v/10000).toLocaleString('ko-KR')+'만원':'';
+ const fundsText=v=>root.MunongsaSelection.money(v);
  function profile(){return {...custom,requiredFundsWon}}
  function restore(p={}){for(const k of Object.keys(custom))custom[k]=typeof p[k]==='string'?p[k].slice(0,100):'';requiredFundsWon=validFunds(p.requiredFundsWon)?p.requiredFundsWon:null;fundsDirty=false;restored=!!Object.keys(p).length;sync(true)}
  function parseFunds(raw){const text=String(raw).trim();if(!text)return null;if(!/^(?:\d+|[1-9]\d{0,2}(?:,\d{3})+)$/.test(text))return NaN;const won=Number(text.replace(/,/g,''))*10000;return validFunds(won)?won:NaN}

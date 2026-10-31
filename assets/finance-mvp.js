@@ -31,7 +31,7 @@
     const kind=purpose==='all'?null:purpose==='주택 마련'?'housing':'startup';
     const caps=(f.caps||[]).filter(c=>(c.kind==='all'||!kind||c.kind===kind)&&Number.isSafeInteger(c.won)&&c.won>0);
     if(!caps.length)return {state:'check',rows:[],notice:'해당 용도의 한도 추가 확인 필요',note};
-    const money=n=>(n/10000).toLocaleString('ko-KR')+'만원';
+    const money=n=>root.MunongsaSelection.money(n);
     const rows=caps.map(c=>({state:need>c.won?'over':'within',text:(c.kind==='housing'?'주택자금':c.kind==='startup'?'농업창업자금':'육성자금')+' · '+money(need)+' / 제도상 최대 '+money(c.won)+' · '+(need>c.won?'최대 한도 초과':'최대 한도 이내')}));
     return {state:rows.length>1?'check':rows[0].state,rows,notice:rows.length>1?'자금 용도별 한도 참고 · 두 한도를 합산하지 않아요.':'필요 자금 한도 참고',note,source:f.source,checkedAt:f.checkedAt};
   }
