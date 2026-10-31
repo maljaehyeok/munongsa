@@ -2,6 +2,7 @@ FROM nginx:stable-alpine
 
 COPY index.html /usr/share/nginx/html/index.html
 COPY robots.txt sitemap.xml /usr/share/nginx/html/
+COPY google47097a3f576b2117.html /usr/share/nginx/html/
 COPY assets/ /usr/share/nginx/html/assets/
 COPY data/smart-agriculture-catalog.json \
      data/crop-cultivation-records.json \
