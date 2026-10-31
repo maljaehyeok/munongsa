@@ -5,6 +5,22 @@
   const byId=id=>document.getElementById(id);
   let profileCategory=null;
   let browseState={homeView:true,activeCategory:'support'},browseQueued=false;
+  let summaryExpanded=false,summaryCategory=null;
+  function foldSummary(){
+    const summary=byId('selectionSummary'),profile=[...byId('profileSummary').children],browse=[...byId('browseFilterSummary').children];
+    if(summaryCategory!==browseState.activeCategory){summaryExpanded=false;summaryCategory=browseState.activeCategory}
+    const columns=innerWidth>=1100?3:innerWidth>=380?2:1;
+    const browseLimit=profile.length?Math.min(columns,browse.length):columns*2;
+    const profileLimit=(2-Math.ceil(Math.min(browse.length,browseLimit)/columns))*columns;
+    const more=Math.max(0,profile.length-profileLimit)+Math.max(0,browse.length-browseLimit);
+    if(!more)summaryExpanded=false;
+    profile.forEach((n,i)=>n.hidden=!summaryExpanded&&i>=profileLimit);
+    browse.forEach((n,i)=>n.hidden=!summaryExpanded&&i>=browseLimit);
+    let button=byId('selectionMore');
+    if(!button){button=document.createElement('button');button.type='button';button.id='selectionMore';button.className='selection-more';button.setAttribute('aria-controls','profileSummary browseFilterSummary');button.addEventListener('click',()=>{summaryExpanded=!summaryExpanded;foldSummary()});summary.append(button)}
+    button.hidden=!more;button.setAttribute('aria-expanded',String(summaryExpanded));button.textContent=summaryExpanded?'접기':`조건 ${more}개 더 보기`;
+  }
+  window.addEventListener('resize',()=>queueBrowseContext());
   function queueBrowseContext(){if(browseQueued)return;browseQueued=true;requestAnimationFrame(()=>{browseQueued=false;updateBrowseContext()})}
   function updateBrowseContext(){
     const summary=byId('selectionSummary'),order=byId('browseOrder');if(!summary||!order)return;
@@ -26,6 +42,7 @@
     }
     const list=byId('browseFilterSummary');list.replaceChildren(...filters.map(({label,value})=>{const chip=document.createElement('span'),name=document.createElement('span'),chosen=document.createElement('strong');chip.className='selection-chip';name.className='condition-label';chosen.className='condition-value';name.textContent=label;chosen.textContent=value;chip.append(name,chosen);return chip}));
     const hasProfile=byId('profileSummary').childElementCount>0;byId('profileSelectionRow').hidden=!hasProfile;byId('browseSelectionRow').hidden=!filters.length;byId('browseSelectionEmpty').hidden=hasProfile||filters.length>0;
+    foldSummary();
   }
   function closeMenu(){byId('mainNav').classList.remove('is-open');byId('menuToggle').setAttribute('aria-expanded','false')}
   function sync({homeView,serviceHomeView,activeCategory}){

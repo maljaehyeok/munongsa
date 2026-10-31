@@ -99,11 +99,11 @@
   <link rel="stylesheet" href="./assets/cultivation-mvp.css">
   <link rel="stylesheet" href="./assets/black-minimal.css?v=brand-motion-20261030">
   <script src="./assets/crop-directory.js"></script>
-  <link rel="stylesheet" href="./assets/input-ux.css?v=selection-layout-20261031">
+  <link rel="stylesheet" href="./assets/input-ux.css?v=compact-funds-20261101">
   <script src="./assets/selection-view.js?v=selection-layout-20261031"></script>
-  <script src="./assets/input-ux.js?v=selection-20261031"></script>
+  <script src="./assets/input-ux.js?v=compact-funds-20261101"></script>
   <script src="./assets/cultivation-mvp.js?v=search-preserve-20261030"></script>
-  <script src="./assets/ui-v2.js?v=selection-layout-20261031"></script>
+  <script src="./assets/ui-v2.js?v=compact-funds-20261101"></script>
   <script src="./assets/profile-matching.js"></script>
   <script src="./assets/support-public.js?v=recommendation-final-20261030"></script>
   <script src="./assets/finance-mvp.js?v=selection-20261031"></script>
@@ -317,6 +317,7 @@
       }
     }
     function navigateTo(category,crop='',detail=null){
+      MunongsaInputUX.flushFunds();
       const state={category:navigationCategories.includes(category)?category:null,serviceHome:false,crop,detail};
       if(!state.category){state.crop='';state.detail=null}
       const url=navigationUrl(state);
