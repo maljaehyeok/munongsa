@@ -1,0 +1,56 @@
+/* Isolated preview: no changes to existing service layout or rules. */
+.chat-entry{display:flex;align-items:flex-start;flex-direction:column;gap:9px;margin:4px 0 12px}
+.chat-entry-button{display:inline-flex;align-items:center;gap:30px;background:#f3f3f0;color:#151515;border:1px solid #f3f3f0;border-radius:6px;padding:14px 20px;min-height:48px;font-weight:750;font-size:16px;transition:transform .18s}
+.chat-entry>span{color:#b8b8b8;font-size:12px;line-height:1.6}
+html.chat-ui-open{overflow:hidden}
+.chat-ui{color-scheme:dark;box-sizing:border-box;width:min(1100px,calc(100% - 48px));height:min(850px,calc(100dvh - 48px));max-width:none;max-height:none;margin:auto;padding:0;border:1px solid #555;border-radius:16px;background:#141414;color:#f1f1ed;overflow:hidden;font:inherit}
+.chat-ui[open]{display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.chat-ui::backdrop{background:#000b}
+.chat-ui *{box-sizing:border-box;min-width:0}
+.chat-ui button,.chat-ui textarea{font:inherit}
+.chat-ui button{cursor:pointer;min-height:44px;border-radius:6px;transition:background .18s,transform .18s}
+.chat-ui :is(button,textarea):focus-visible,.chat-entry-button:focus-visible{outline:3px solid #e5e5d7;outline-offset:3px}
+.chat-ui button:disabled{cursor:default;opacity:.5}
+.chat-ui-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:24px 28px;border-bottom:1px solid #3d3d3d}
+.chat-ui-header p{margin:0 0 8px;color:#bcbcbc;font-size:12px;letter-spacing:.04em}
+.chat-ui h2{font-size:clamp(20px,2.5vw,27px);line-height:1.4;margin:0;letter-spacing:-.04em;overflow-wrap:anywhere}
+.chat-ui h3{font-size:15px;margin:0 0 12px;line-height:1.5}
+.chat-ui-secondary{background:transparent;color:#dfdfda;border:1px solid #616161;padding:7px 12px;font-size:13px!important;flex-shrink:0}
+.chat-ui-body{overflow:auto;overscroll-behavior:contain;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);align-items:start;gap:32px;padding:28px;scrollbar-gutter:stable}
+.chat-availability{background:#242424;border-left:2px solid #bbb;padding:14px 16px;color:#c7c7c7;font-size:14px;line-height:1.8;margin:0 0 20px}
+.chat-availability strong{color:#f4f4ee}
+.chat-examples{display:flex;flex-direction:column;gap:8px;margin-bottom:26px}
+.chat-examples button{background:#1b1b1b;color:#deded9;border:1px solid #484848;padding:11px 13px;text-align:left;font-size:14px;line-height:1.6;white-space:normal;overflow-wrap:anywhere}
+.chat-history-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.chat-history-heading h3{margin:0}
+.chat-empty{font-size:14px;line-height:1.7;color:#b8b8b8}
+.chat-history{display:flex;flex-direction:column;gap:12px}
+.chat-message{padding:15px 16px;border:1px solid #464646;border-radius:9px;font-size:14px;line-height:1.8;overflow-wrap:anywhere;white-space:pre-wrap;margin:0}
+.chat-message strong{display:block;margin-bottom:5px;font-size:12px;color:#bdbdb7}
+.chat-message-user{background:#303030;margin-left:20px}
+.chat-message-status{background:#1b1b1b;margin-right:20px;color:#c5c5bf}
+.chat-evidence{border:1px solid #414141;border-radius:10px;padding:20px;background:#1c1c1c}
+.chat-evidence section+section{border-top:1px solid #414141;padding-top:18px;margin-top:18px}
+.chat-evidence p{color:#bebeb9;font-size:14px;line-height:1.8;margin:0;overflow-wrap:anywhere}
+.chat-evidence a{display:inline-block;min-height:44px;line-height:1.7;padding:10px 0;text-decoration:underline;text-underline-offset:4px;overflow-wrap:anywhere;color:#f1f1ed}
+.chat-evidence a:focus-visible{outline:3px solid #e5e5d7;outline-offset:3px}
+.chat-evidence ul{margin:10px 0 0;padding-left:20px;color:#c9c9c3;font-size:14px;line-height:1.8;overflow-wrap:anywhere}
+.chat-program+ .chat-program{border-top:1px solid #414141;margin-top:16px;padding-top:16px}
+.chat-program>strong{display:block;font-size:14px;line-height:1.7;overflow-wrap:anywhere}
+.chat-program p+p{margin-top:8px}
+.chat-message-answer small{display:block;margin-top:14px;padding-top:12px;border-top:1px solid #494949;color:#c7c7c0;font-size:12px}
+.chat-message-error{border-color:#8c8070}
+@media(min-width:761px){.chat-ui-body{grid-template-rows:minmax(0,1fr);overflow:hidden;align-items:stretch}.chat-conversation,.chat-evidence{min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}}
+.chat-composer{border-top:1px solid #414141;padding:20px 28px;background:#191919}
+.chat-composer label{display:block;font-size:14px;font-weight:700;margin-bottom:10px}
+.chat-compose-row{display:flex;align-items:stretch;gap:12px}
+.chat-compose-row textarea{display:block;flex:1;width:100%;resize:vertical;min-height:70px;max-height:150px;border:1px solid #676767;border-radius:7px;background:#252525;color:#f5f5ef;padding:12px 14px;font-size:16px;line-height:1.6}
+.chat-compose-row textarea::placeholder{color:#b3b3b0}
+.chat-compose-row>button{flex-shrink:0;border:1px solid #ebebe5;background:#ebebe5;color:#161616;font-size:14px;font-weight:750;padding:12px 18px}
+.chat-composer-meta{display:flex;justify-content:space-between;gap:14px;font-size:12px;line-height:1.6;color:#bcbcb6;margin-top:8px}
+#chatCharacterCount{white-space:nowrap}
+#chatPrivacy{font-size:12px;line-height:1.7;color:#bcbcb6;margin:9px 0 0}
+@media(hover:hover){.chat-entry-button:hover{transform:translateY(-2px)}.chat-ui button:not(:disabled):hover{filter:brightness(1.15)}}
+.chat-ui button:not(:disabled):active,.chat-entry-button:active{transform:translateY(1px)}
+@media(max-width:760px){.chat-ui{width:100%;height:100dvh;border-radius:0;border:0}.chat-ui-header{padding:16px;gap:12px}.chat-ui-header p{margin-bottom:5px}.chat-ui-body{grid-template-columns:minmax(0,1fr);gap:24px;padding:20px 16px}.chat-ui-header h2{font-size:20px}.chat-composer{padding:14px 16px max(14px,env(safe-area-inset-bottom))}.chat-compose-row{flex-direction:column;gap:8px}.chat-compose-row>button{min-height:44px;padding:9px 14px}.chat-compose-row textarea{min-height:66px;max-height:100px}.chat-composer-meta{font-size:11px}.chat-evidence{padding:16px}.chat-entry{align-items:center}.chat-message{padding:12px}.chat-message-user{margin-left:10px}.chat-message-status{margin-right:10px}}
+@media(prefers-reduced-motion:reduce){.chat-ui button,.chat-entry-button{transition:none}}

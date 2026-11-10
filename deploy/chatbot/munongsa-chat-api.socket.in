@@ -1,0 +1,16 @@
+# Munongsa isolated trial munongsa-chat-api
+[Unit]
+Description=Munongsa trial loopback socket
+
+After=docker.service
+Wants=docker.service
+
+[Socket]
+ListenStream=@BRIDGE_GATEWAY@:8765
+BindToDevice=@BRIDGE_INTERFACE@
+Accept=no
+Backlog=8
+Service=munongsa-chat-api.service
+
+[Install]
+WantedBy=sockets.target

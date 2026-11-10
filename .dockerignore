@@ -3,6 +3,10 @@
 !Dockerfile
 !.dockerignore
 !index.html
+!robots.txt
+!sitemap.xml
+!google47097a3f576b2117.html
+!naver27efe6015ca42de5395a94c7796d92da.html
 !assets/
 !assets/**
 !data/
@@ -30,3 +34,11 @@ data/source
 data/source/**
 **/__pycache__
 **/*.py[cod]
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.sqlite3*
+**/*.log

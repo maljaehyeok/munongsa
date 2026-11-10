@@ -1,0 +1,50 @@
+# Munongsa isolated trial munongsa-chat-api
+[Unit]
+Description=Munongsa isolated loopback API trial
+StartLimitIntervalSec=60
+StartLimitBurst=2
+
+Requires=munongsa-chat-api.socket
+After=munongsa-chat-api.socket
+
+[Service]
+Sockets=munongsa-chat-api.socket
+Type=simple
+User=@SERVICE_USER@
+Group=@SERVICE_USER@
+WorkingDirectory=@RELEASE_DIR@/app
+MemoryHigh=96M
+MemoryMax=128M
+MemorySwapMax=0
+CPUQuota=50%
+TasksMax=32
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=10
+KillMode=control-group
+OOMPolicy=stop
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+UMask=0077
+PrivateNetwork=yes
+RestrictAddressFamilies=AF_INET
+SystemCallArchitectures=native
+SystemCallFilter=~connect
+SystemCallErrorNumber=EPERM
+InaccessiblePaths=-/etc/munongsa -/var/lib/munongsa -/var/lib/munongsa-public -/etc/letsencrypt -/var/lib/munongsa-tls -/run/docker.sock
+StandardOutput=journal
+StandardError=journal
+LogRateLimitIntervalSec=30s
+LogRateLimitBurst=30
+ExecStart=/usr/bin/env -i PATH=/usr/bin:/bin PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONIOENCODING=utf-8 PIP_CONFIG_FILE=/dev/null @VENV_DIR@/bin/python -B @RELEASE_DIR@/app/scripts/host_proxy_entry.py --bind-address @BRIDGE_GATEWAY@ --nginx-peer @NGINX_PEER@
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+# Preserve reviewed operating bytes used by source-manifest.json on every OS.
+index.html -text
+assets/chat-ui.js -text
+assets/chat-ui.css -text
+scripts/rag_search.py -text
+scripts/rag_answer.py -text
+scripts/rag_api.py -text
+deploy/chatbot/chat_wsgi.py -text
+deploy/chatbot/host_proxy_entry.py -text
+deploy/chatbot/host_socket_entry.py -text
+deploy/chatbot/munongsa-chat-api.service.in -text
+deploy/chatbot/munongsa-chat-api.socket.in -text

@@ -1,0 +1,34 @@
+{
+  "schema": "munongsa-host-chat-source-v1",
+  "mode": "local-only",
+  "documents": 11,
+  "passages": 70,
+  "web": {
+    "index.html": "4e2f751703fe71f7cc40c63f2b1fa96651dbd45c8a6914edf871b58276bc7ba7",
+    "assets/chat-ui.js": "af0ec16261edb6bed38fe99df6b546d1b4f099b5cd70095a44262a06e0f07df7",
+    "assets/chat-ui.css": "0d4294b19d2f483ef350e56d00a0aeb3775a59a0169ea2b65e000ed0f9be06fb"
+  },
+  "runtime": {
+    "scripts/rag_search.py": "0a74f5f610467cffb14d73cb32f28eaa27791c484e5b8d394acd8c42d747886c",
+    "scripts/rag_answer.py": "6b9a573cdc7fc2bdadabef09ab7524b76c39c5a6818f4574d6dc7962e7c37186",
+    "scripts/rag_api.py": "8c081d676a805b4e36cd37a2fd7974614531b2cdc488029c36b296acf383ac7e",
+    "scripts/chat_wsgi.py": "df56afd461577f28097c6858fc33be95d220ab16eafd733de22fbf5551b1a5d8",
+    "scripts/host_proxy_entry.py": "0af6b39819cabd9215924cd29b38e196046c1fc1bb0e64871b8f8c2c3710b97d",
+    "scripts/host_socket_entry.py": "076623b171e962812b279d0268408281d1893981374702ced3ed3b776cf00b45"
+  },
+  "private_corpus": {
+    "assets/support-details.json": "01a3d2eb61ab8ea6d70b1514eddafaf60b107e3a777c5df342991ac5c6e72c62",
+    "work/support-p0-2/371110-attachment.txt": "6e570954f77cfd008af9b9b80243215da7270e01025f932e8e9db16023fe7b4b",
+    "work/support-p0-2/836510-attachment.txt": "c8287b4ea1574437e942355504ff6831ae225d1861f7d38543171da4192a9fbe",
+    "work/support-p0-2/371110.hwpx": "a15cb57cce2d10c32f644b157c5ce504e195665374802975a6310ba43e48aa82",
+    "work/support-p0-2/NOTICE-2ad9a2d4eca77d3de20ec09e.txt": "f9ce8a40af9e2ae999945975ed27a73f2fbfc18d52030eaa8ad1fe3a8fd400c2",
+    "work/support-p0-2/836510.hwpx": "d7d1190ddae14c04bdde7da8937079b4b60eb2b96b8a8e3687697e96703d6af4",
+    "work/support-p0-2/NOTICE-2ad9a2d4eca77d3de20ec09e.html": "03316d5eef45ba4ca536f6893e7415adc303e7993308c83400867f2bac589573",
+    "work/support-p0-2/public.json": "6e1ce560dd3e2ce57cfab01b9ff487308f2d1ea97193a31fbebb326886b6f143",
+    "work/rag-search/current-public-snapshot.json": "a4384a8a352301d34b36ec0adc66b9361ca4ae58fb070878014813f517e66720"
+  },
+  "systemd_templates": {
+    ".service": "4832865cdf1fbe8091db2d3b773c0153633aaaa2870e733d7d3233ce7e472950",
+    ".socket": "2624af4e0a6757594785987a10193fed5d96783fcde00c1e5edb85e9368c3c59"
+  }
+}

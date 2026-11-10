@@ -6,6 +6,8 @@
   <title>무농사 | 농업 지원사업·농업금융·재배기술</title>
   <meta name="description" content="초보·청년·예비 농업인을 위한 공식 농업정보 안내. 지원사업, 농업금융, 재배기술을 내 상황에 맞게 찾아보세요.">
   <link rel="canonical" href="https://munongsa.duckdns.org/">
+  <link rel="stylesheet" href="./assets/chat-ui.css?v=chat-public11-20261110">
+  <script src="./assets/chat-ui.js?v=chat-public11-20261110" defer></script>
   <link rel="stylesheet" href="./assets/ui-v2.css?v=support-readable-20261029">
   <link rel="stylesheet" href="./assets/finance-mvp.css?v=finance-20261029">
 </head>
@@ -23,8 +25,7 @@
       <h1 id="brandHeading">농사의 시작을<br>더 쉽게</h1>
       <h2>내 상황에 필요한 농업정보</h2>
       <p class="brand-description">지원사업은 내 조건과 비교하고,<br>금융·재배기술은 공식 자료로 확인하세요.</p>
-
-
+      <div class="chat-entry"><button type="button" class="chat-entry-button" id="openChat" aria-haspopup="dialog" aria-controls="supportChat">AI에게 질문하기 <span aria-hidden="true">↗</span></button><span>공식 근거 기반 안내 · 시범 공고 3건</span></div>
     </div>
     <a class="service-scroll-cue" href="#brandServices" data-scroll-services>서비스 살펴보기 <span aria-hidden="true">↓</span></a>
   </section>
@@ -37,6 +38,32 @@
       </nav>
     <p class="brand-footnote">공식 출처 기반 안내 · 미확인 조건은 구분 · 원문에서 최종 확인</p>
   </section>
+  <dialog class="chat-ui" id="supportChat" aria-labelledby="chatHeading" aria-describedby="chatAvailability">
+    <header class="chat-ui-header"><div><p>무농사 AI · 지원사업</p><h2 id="chatHeading" tabindex="-1">농업 지원사업, 함께 알아봐요</h2></div><button type="button" id="closeChat" class="chat-ui-secondary" aria-label="챗봇 닫기">닫기 <span aria-hidden="true">×</span></button></header>
+    <div class="chat-ui-body" id="chatBody">
+      <section class="chat-conversation" aria-labelledby="chatConversationHeading">
+        <h3 id="chatConversationHeading">지원사업 질문하기</h3>
+        <p class="chat-availability" id="chatAvailability"><strong>공식 근거를 찾아 정리해 드려요</strong><br>공개 공고 11건의 저장 원문 발췌·승인 요약을 안내해요. 최신 원문 전체 검증이나 신청 자격 확정은 아니며 외부 AI를 사용하지 않아요.</p>
+        <div class="chat-examples" aria-label="질문 예시"><button type="button" data-chat-example>제가 신청할 수 있는 지원사업이 있나요?</button><button type="button" data-chat-example>이 사업의 신청조건은 무엇인가요?</button><button type="button" data-chat-example>신청할 때 어떤 서류가 필요한가요?</button></div>
+        <div class="chat-history-heading"><h3>대화 내역</h3><button type="button" id="clearChat" class="chat-ui-secondary" disabled>대화 지우기</button></div>
+        <p class="chat-empty" id="chatEmpty">궁금한 점을 아래에 적어보세요.</p>
+        <div id="chatHistory" class="chat-history" role="log" aria-label="질문과 연결 안내" aria-live="polite" aria-relevant="additions"></div>
+      </section>
+      <aside class="chat-evidence" aria-label="최근 답변의 근거">
+        <section><h3>최근 답변의 근거</h3><p id="chatAnswerMode">질문을 보내면 관련 공고와 확인된 근거를 표시해요.</p></section>
+        <section><h3>관련 공고·모집기간</h3><div id="chatPrograms"><p>질문 후 확인할 수 있어요.</p></div></section>
+        <section><h3>공식 출처·확인일</h3><div id="chatSources"><p>아직 표시할 출처가 없어요.</p></div></section>
+        <section><h3>필수조건·조건부 증빙</h3><div id="chatConditions"><p>질문 후 확인할 수 있어요.</p></div></section>
+        <section><h3>추가 확인 사항</h3><div id="chatChecks"><p>전체 신청 자격이나 실제 접수 가능 여부를 확정하지 않아요.</p></div></section>
+      </aside>
+    </div>
+    <form class="chat-composer" id="chatForm">
+      <label for="chatQuestion">어떤 지원사업이 궁금하세요?</label>
+      <div class="chat-compose-row"><textarea id="chatQuestion" rows="2" maxlength="1000" required placeholder="사업명과 궁금한 점을 함께 적어주세요." aria-describedby="chatPrivacy chatInputHint"></textarea><button type="submit" id="submitChat" disabled>질문 보내기</button></div>
+      <div class="chat-composer-meta"><span id="chatInputHint">최대 1,000자 · Enter는 줄바꿈, Ctrl+Enter는 전송</span><span id="chatCharacterCount">0 / 1,000</span></div>
+      <p id="chatPrivacy">질문만 무농사 질문 서버로 보내요. 외부 AI에는 보내지 않아요. 대화는 새로고침하면 지워져요. 개인정보는 입력하지 마세요.</p>
+    </form>
+  </dialog>
   <main class="page" id="mainContent">
     <section class="service-home" id="serviceHome" hidden aria-labelledby="serviceHeading">
       <div class="service-intro"><div><p class="section-kicker">MUNONGSA SERVICES</p><h1 id="serviceHeading">지금 내게 필요한<br>정보부터.</h1><p>지원사업 · 영농 자금 · 재배기술<br>필요한 분야를 선택하고 공식 자료를 확인하세요.</p></div><span class="region-caption">전북 중심 · 전국 공통정보 함께</span></div>
