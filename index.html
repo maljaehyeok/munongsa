@@ -6,8 +6,8 @@
   <title>무농사 | 농업 지원사업·농업금융·재배기술</title>
   <meta name="description" content="초보·청년·예비 농업인을 위한 공식 농업정보 안내. 지원사업, 농업금융, 재배기술을 내 상황에 맞게 찾아보세요.">
   <link rel="canonical" href="https://munongsa.duckdns.org/">
-  <link rel="stylesheet" href="./assets/chat-ui.css?v=result-cards-20261112">
-  <script src="./assets/chat-ui.js?v=result-cards-20261112" defer></script>
+<link rel="stylesheet" href="./assets/chat-ui.css?v=conditions-20261112">
+<script src="./assets/chat-ui.js?v=conditions-20261112" defer></script>
   <link rel="stylesheet" href="./assets/ui-v2.css?v=support-readable-20261029">
   <link rel="stylesheet" href="./assets/finance-mvp.css?v=finance-20261029">
 </head>
@@ -47,11 +47,12 @@
   <dialog class="chat-ui" id="supportChat" aria-labelledby="chatHeading" aria-describedby="chatAvailability">
     <header class="chat-ui-header">
       <div class="chat-brand"><span>MUNONGSA</span><h2 id="chatHeading" tabindex="-1">무농사 AI 상담</h2></div>
-      <div class="chat-header-actions"><button type="button" class="chat-header-condition" data-chat-conditions>조건으로 찾기 <span aria-hidden="true">↗</span></button><button type="button" id="closeChat" class="chat-close" aria-label="상담 닫고 돌아가기">닫기 <span aria-hidden="true">×</span></button></div>
+      <div class="chat-header-actions"><button type="button" class="chat-header-condition" data-chat-select>내 조건 선택·수정</button><button type="button" id="closeChat" class="chat-close" aria-label="상담 닫고 돌아가기">닫기 <span aria-hidden="true">×</span></button></div>
     </header>
     <div class="chat-ui-body" id="chatBody">
       <section class="chat-introduction" id="chatIntroduction" aria-label="질문 안내">
-        <p id="chatAvailability">지원사업에 관해 바로 질문해 보세요. 구체적인 상황을 알려주시면 관련 근거를 찾는 데 도움이 돼요.</p>
+        <p id="chatAvailability">자유롭게 질문하거나 조건을 한 번에 선택해 보세요. 알려주신 조건은 이번 대화에서 함께 사용해요.</p>
+        <button type="button" class="chat-select-start" data-chat-select>조건 선택으로 찾기 <span aria-hidden="true">→</span></button>
         <div class="chat-examples" aria-label="질문 예시"><button type="button" data-chat-example="청년농업인 지원사업의 신청 조건을 알려주세요.">청년농업인 지원사업 <span aria-hidden="true">↗</span></button><button type="button" data-chat-example="마늘 재배와 관련된 지원사업을 알려주세요.">마늘 재배 지원 <span aria-hidden="true">↗</span></button><button type="button" data-chat-example="부안 청년농업인 R&D 사업은 개인도 신청할 수 있나요?">신청 자격 확인 <span aria-hidden="true">↗</span></button></div>
       </section>
       <section class="chat-conversation" id="chatConversation" aria-label="상담 대화">

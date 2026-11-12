@@ -214,6 +214,10 @@ def respond(encoded,corpus,grounded):
             score=region_matches(area,document['public'],document) if area else 0
             topic=(crop and crop in corpus_text(document)) or ('청년' in question and '청년' in corpus_text(document))
             if score>=2 or topic:ranked.append((score,key))
+        if not ranked and not area and not crop and out.get('programs'):
+            # Age/applicant alone must not prevent an incomplete-profile search.
+            # Reuse the existing general discovery list and compare it below.
+            ranked=[(0,live_by_id[p['id']]) for p in out['programs']]
         if not ranked:
             context['notice_ids']=[]
             return response('알려주신 상황을 현재 대화에서 참고할게요. 현재 승인된 공개 공고 범위에서 관련 사업을 찾지 못했어요. 전체 지원사업이 없다는 뜻은 아닙니다.\n\n영농지역 또는 관심 작물을 한 가지 알려주시거나 사업명을 지정해 주세요. 나이와 영농 예정 여부만으로 신청 자격을 확정하지 않아요.',context,'catalogue',status='no_evidence',suggestions=('전북 지원사업','전국 지원사업'))

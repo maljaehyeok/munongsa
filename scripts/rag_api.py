@@ -144,7 +144,9 @@ def local_pipeline(question):
         raise VerificationError()
     import rag_dialogue,rag_nlu
     original,context=rag_dialogue.decode(question)
-    understood=rag_nlu.interpret(original,context)
+    # Explicit condition selection already carries the same validated profile.
+    # Do not spend a model call reinterpreting this fixed UI action.
+    understood=None if original=='선택한 조건으로 지원사업을 찾아주세요.' else rag_nlu.interpret(original,context)
     used_gpt=understood is not None
     # Conservative follow-up routing still works when GPT is unavailable.
     if understood is None and context.get('notice_ids') and re.search(r'그\s*사업|아까|그럼',original):
