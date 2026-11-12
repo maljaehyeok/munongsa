@@ -141,3 +141,30 @@ body[data-view="explore"] .support-discovery{display:none}
 @media(max-width:760px){.support-discovery{padding:48px 20px}.discovery-options{grid-template-columns:1fr;gap:14px}.support-discovery .discovery-card{padding:24px;gap:14px}.discovery-card strong{font-size:23px}.discovery-card>span{font-size:15px}.brand-home .discovery-cue{font-size:13px}.chat-introduction{margin:0 auto 22px}.chat-introduction>p{font-size:14px}}
 @media(max-width:350px){.support-discovery{padding:40px 16px}.support-discovery .discovery-card{padding:21px}.discovery-card strong{font-size:22px}}
 @media(prefers-reduced-motion:reduce){.discovery-cue>span,.discovery-card.discovery-arrived{animation:none!important}.support-discovery .discovery-card{transition:none;transform:none}}
+
+/* Approved support results reuse notice-card, status and fact components. */
+.chat-ui .chat-result-message{padding:0;background:transparent;border:0;color:#f5f5f5}
+.chat-result-heading h3{font-size:23px;line-height:1.4;font-weight:800;margin:0 0 8px;color:#f5f5f5}
+.chat-result-heading p{font-size:14px;line-height:1.7;color:#bdbdbd;margin:0 0 18px}
+.chat-ui .chat-notice{background:#f5f5f5;color:#111;border:1px solid #d6d6d6;border-radius:18px;padding:22px;margin:0 0 18px;overflow-wrap:anywhere}
+.chat-notice .notice-status{margin-bottom:12px;gap:8px}.chat-notice .deadline-badge{font-size:16px}
+.chat-ui .chat-notice-title{font-size:21px;font-weight:800;line-height:1.5;margin:0 0 8px;color:#111;letter-spacing:-.025em;word-break:keep-all;overflow-wrap:anywhere}
+.chat-notice .notice-institution{font-size:13px;color:#555;margin:0 0 16px}
+.chat-condition-block{background:#eaeaea;padding:14px 15px;border-radius:8px;margin:16px 0}
+.chat-ui .chat-condition-block h4{font-size:14px;font-weight:750;color:#333;margin:0 0 10px}
+.chat-condition-block .condition-result{display:inline-block;font-size:14px;font-weight:800;background:#ddd;color:#333}
+.chat-condition-block .condition-result.related{color:#166046;background:#dff1e8}.chat-condition-block .condition-result.mismatch{color:#943f31;background:#fff0eb}.chat-condition-block .condition-result.elapsed{color:#536474;background:#e0e3e6}
+.chat-condition-block p,.chat-condition-block li{font-size:14px;line-height:1.7;color:#333;margin:8px 0 0}.chat-condition-block ul{padding-left:19px;margin:8px 0 0}
+.chat-notice-facts{margin:0}.chat-notice-facts .notice-fact{display:grid;grid-template-columns:100px minmax(0,1fr);gap:12px;border-bottom:1px solid #ddd;padding:12px 0;margin:0}
+.chat-notice-facts dt{font-size:13px;font-weight:650;color:#555;line-height:1.75}.chat-notice-facts dd{margin:0;font-size:15px;font-weight:500;line-height:1.75;color:#111;white-space:pre-line;overflow-wrap:anywhere}
+.chat-notice-facts .notice-fact:has(dt:first-child)+.notice-fact{margin-top:0}
+.chat-ui .chat-notice-footer{align-items:center;color:#555;border-color:#d2d2d2;padding-top:14px;margin-top:14px!important;gap:12px}
+.chat-notice-meta{display:flex;flex-wrap:wrap;gap:5px 12px;width:100%;font-size:12px;color:#555}
+.chat-ui .chat-notice-footer a{font-size:14px;font-weight:750;color:#111}
+.chat-notice .chat-evidence{color:#222;border-color:#ccc;margin-top:14px}.chat-notice .chat-evidence-content{color:#333;font-size:14px;line-height:1.75}.chat-notice .chat-evidence summary{font-weight:750}
+.chat-ui .chat-result-message>.chat-answer-caution{color:#bdbdbd;font-size:13px;line-height:1.7;margin:14px 0}
+.chat-next-question{border-left:2px solid #888;padding-left:14px;color:#f5f5f5;margin:20px 0}.chat-ui .chat-next-question h4{font-size:15px;color:#f5f5f5;margin:0 0 8px}.chat-next-question p{font-size:14px;line-height:1.7;margin:5px 0;color:#ddd}
+.chat-full-explanation{font-size:13px;color:#bdbdbd;line-height:1.8}.chat-full-explanation summary{cursor:pointer;padding:8px 0}.chat-result-message .chat-full-explanation .chat-answer-text{color:#ddd;font-size:14px;line-height:1.8}
+.chat-result-message :is(a,summary):focus-visible{outline:2px solid #888;outline-offset:3px}
+@media(max-width:760px){.chat-ui .chat-notice{padding:17px;border-radius:16px;margin-bottom:14px}.chat-ui .chat-notice-title{font-size:19px}.chat-result-heading h3{font-size:21px}.chat-notice-facts .notice-fact{grid-template-columns:1fr;gap:4px;padding:11px 0}.chat-notice-facts dd{font-size:14px}.chat-condition-block{padding:12px}.chat-condition-block p,.chat-condition-block li{font-size:13px}.chat-notice .deadline-badge{font-size:15px}}
+@media(max-width:350px){.chat-ui .chat-notice{padding:14px;border-radius:14px}.chat-ui .chat-notice-title{font-size:18px}.chat-notice .notice-status{gap:6px}.chat-notice .deadline-badge{font-size:14px}}

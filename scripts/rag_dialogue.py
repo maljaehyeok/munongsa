@@ -3,6 +3,19 @@ import json
 import re
 import rag_profile
 
+
+def candidate_order(key, corpus, context, relevance=0):
+    """Rank discovery only. Reuse approved comparison and date judgments."""
+    import rag_search
+    from datetime import datetime, timezone
+    document=corpus['documents'][key]
+    comparison=rag_profile.compare(document,context,rag_search.valid_url,AREAS)
+    period=rag_search.recruitment_context(document,datetime.now(timezone.utc))
+    mismatch=comparison['label']=='조건 불일치'
+    elapsed=period['date_state']=='elapsed'
+    timing={'within_recorded_dates':0,'deadline_day_time_unknown':0,'upcoming':1,'unknown':2,'elapsed':3}[period['date_state']]
+    return (mismatch,elapsed,timing,-relevance,comparison['label']!='관련 가능성 있음',document['public']['title'])
+
 PREFIX='[무농사 대화 참고]\n'
 SEPARATOR='\n[질문]\n'
 AREAS={'전주':('전주','전북'),'부안':('부안','전북'),'고창':('고창','전북'),
@@ -99,6 +112,15 @@ def basic_response(encoded,corpus,grounded):
     named={k for k,names in aliases.items() if any(len(n)>=2 and n in question for n in names)
            and k in docs and (any(v in question for v in (docs[k]['public']['title'],'R&D','이차보전','비가림','면세유','재해보험','K-Fresh'))
            or (not re.search('청년|귀농',question) and any(v in question for v in ('신청','자격','조건','서류','계산','면적','한도','이자'))))}
+    generic={'농업기술센터','농업인','농업경영체','청년농업인','농산물','지원사업','신청','안내','공고','모집','사업','추가','알림','첨부파일','있음','신청자','대상자','교육생','참가업체','수시'}
+    specific={k for k,d in docs.items() if any(len(word)>=3 and word not in generic and not re.search(r'\d',word) and word in question
+        for word in re.findall(r'[가-힣]+',d['public']['title']))}
+    if specific:
+        if explicit_area:
+            scoped={k for k in specific if region_matches(explicit_area,docs[k]['public'],docs[k])>=1 or docs[k]['public'].get('region') in (None,'','unknown')}
+            if not scoped:return {**response('질문하신 사업과 '+explicit_area+' 지역 조건을 함께 확인할 수 있는 공개 공고를 찾지 못했어요. 다른 지역 공고를 해당 지역의 신청 대상이라고 안내하지 않아요. 지역이나 사업명을 다시 알려주세요.',context,'clarify',status='no_evidence'),'scope_not_found':True}
+            specific=scoped
+        named=specific
     followup=bool(re.search(r'(그럼|그\s*사업|이\s*사업|지원금|보조금|필요한\s*서류|신청\s*조건|신청\s*서류|신청\s*방법|지원\s*금액|마감일)',question))
     if named:
         keys=sorted(named)
@@ -136,11 +158,12 @@ def basic_response(encoded,corpus,grounded):
         if area and not topic:
             ranked=[v for v in ranked if v[0]>=2]
             if AREAS[area][1] and any(v[0]==3 for v in ranked):ranked=[v for v in ranked if v[0]==3]
-        keys=[k for _,k in sorted(ranked,key=lambda v:(-v[0],docs[v[1]]['public']['title']))]
+        keys=[k for score,k in sorted(ranked,key=lambda v:candidate_order(v[1],corpus,context,v[0]))]
         if not keys:
             label=' · '.join(v for v in (area,crop,'청년농업인' if re.search('청년|후계농',question) else None) if v) or '말씀하신 조건'
             context['notice_ids']=[]
             return response(label+' 관련 공고를 현재 승인된 공개 자료에서 찾지 못했어요. 전국의 모든 공고가 없다는 뜻은 아니에요.\n\n전북 또는 전국으로 검색 범위를 넓히거나, 지역·작물 조건을 하나씩 바꿔볼까요?',context,'catalogue',status='no_evidence',suggestions=('전북 지원사업','전국 지원사업'))
+    if len(keys)>1:keys.sort(key=lambda k:candidate_order(k,corpus,context,region_matches(area,docs[k]['public'],docs[k]) if area else 0))
     total=len(keys);keys=keys[:3];programs=[];sources=[]
     for key in keys:
         item=grounded('신청 대상 조건 지원 내용',key)
@@ -183,7 +206,7 @@ def respond(encoded,corpus,grounded):
         out=grounded(canonical,live_by_id[ids[0]])
         out.update(kind='answer',conversation=context,suggestions=[])
     else:out=basic_response(encoded,corpus,grounded)
-    if out['kind'] in ('greeting','thanks','help'):return out
+    if out['kind'] in ('greeting','thanks','help') or out.get('scope_not_found'):return out
     wants=bool(facts or re.search('추천|맞는|받을|신청.*가능|지원사업|공고',question))
     if personal and wants and not (followup and context.get('notice_ids')) and out['kind']!='answer':
         area=context.get('farm_region') or context.get('region');crop=context.get('crop');ranked=[]
@@ -194,7 +217,7 @@ def respond(encoded,corpus,grounded):
         if not ranked:
             context['notice_ids']=[]
             return response('알려주신 상황을 현재 대화에서 참고할게요. 현재 승인된 공개 공고 범위에서 관련 사업을 찾지 못했어요. 전체 지원사업이 없다는 뜻은 아닙니다.\n\n영농지역 또는 관심 작물을 한 가지 알려주시거나 사업명을 지정해 주세요. 나이와 영농 예정 여부만으로 신청 자격을 확정하지 않아요.',context,'catalogue',status='no_evidence',suggestions=('전북 지원사업','전국 지원사업'))
-        ranked.sort(key=lambda v:(-v[0],v[1]));programs=[];sources=[]
+        ranked.sort(key=lambda v:candidate_order(v[1],corpus,context,v[0]));programs=[];sources=[]
         for _,key in ranked[:3]:
             found=grounded('신청 대상 조건 지원 내용',key);programs.extend(found['programs']);sources.extend(found['sources'])
         if not programs:return response('관련 공고는 있지만 검증된 근거가 부족해 비교를 보류합니다.',context,'clarify',status='no_evidence')

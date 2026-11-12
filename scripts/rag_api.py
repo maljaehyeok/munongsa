@@ -145,6 +145,7 @@ def local_pipeline(question):
     import rag_dialogue
     response = rag_dialogue.respond(question, corpus,
         lambda query, notice: grounded_response(query, corpus, notice))
+    decorate_cards(response,corpus)
     directory = os.environ.get('MUNONGSA_RAG_SYNC_DIR')
     if directory and response['programs']:
         import rag_sync
@@ -158,6 +159,44 @@ def local_pipeline(question):
                     or rag_sync.material(before[identity]['public']) != rag_sync.material(after[identity]['public'])):
                 raise VerificationError()
     return response
+
+
+def decorate_cards(response,corpus):
+    """Public, hash-verified facts only. Never parse new eligibility rules here."""
+    if not response['programs']:return
+    import rag_profile,rag_dialogue
+    by_id={d['public']['id']:d for d in corpus['documents'].values()}
+    context=response.get('conversation',{})
+    def clean(value):
+        if not isinstance(value,str) or not value.strip() or value in ('unknown','unconfirmed'):return '확인 필요'
+        if re.search(r'(?i)(?:[a-z]:[\\/]|file://|(?:work|scripts|assets)[\\/])',value):raise VerificationError()
+        return value.strip()[:1600]
+    def field(document,name):
+        row=document['record']['fields'].get(name,{})
+        evidence=row.get('evidence',{})
+        if not (rag_search.valid_url(evidence.get('url','')) and evidence.get('location') and evidence.get('checked_at')):return []
+        raw=row.get('value',[]);raw=raw if isinstance(raw,list) else [raw]
+        return list(dict.fromkeys(clean(v) for v in raw if isinstance(v,str) and v.strip()))[:12]
+    for program in response['programs']:
+        document=by_id[program['id']];public=document['public']
+        comparison=program.get('comparison') or rag_profile.compare(document,context,rag_search.valid_url,rag_dialogue.AREAS)
+        area=context.get('farm_region') or context.get('region')
+        if area and public.get('region') not in (None,'','unknown') and not rag_dialogue.region_matches(area,public,document) and comparison['label']!='조건 불일치':
+            comparison={**comparison,'label':'추가 확인 필요','checks':['알려주신 '+area+' 지역과 공고의 지원 지역을 함께 확인해야 합니다. 거주지·영농지 요건은 서로 다를 수 있습니다.']+comparison['checks']}
+        program['comparison']=comparison
+        period=rag_search.recruitment_context(document,datetime.now(rag_answer.KST))
+        mismatch=comparison['label']=='조건 불일치'
+        group='elapsed' if period['date_state']=='elapsed' else 'mismatch' if mismatch else 'related' if comparison['label']=='관련 가능성 있음' else 'check'
+        program['card']={'group':group,'label':{'elapsed':'모집기간 경과','mismatch':'확인된 조건 불일치','related':'관련 가능성 있음','check':'추가 확인 필요'}[group],
+            'period_state':period['date_state'],'institution':clean(public.get('institution')),
+            'facts':{'region':clean(public.get('region')),'target':clean(public.get('target')),'support':clean(public.get('support')),
+                     'funding':field(document,'funding'),'method':field(document,'method'),
+                     'documents':field(document,'documents_required')},
+            'questions':comparison['questions'][:2]}
+    priorities={'related':0,'check':1,'elapsed':2,'mismatch':3}
+    response['programs'].sort(key=lambda p:(p['comparison']['label']=='조건 불일치',p['card']['period_state']=='elapsed',
+        {'within_recorded_dates':0,'deadline_day_time_unknown':0,'upcoming':1,'unknown':2,'elapsed':3}[p['card']['period_state']],priorities[p['card']['group']]))
+    response['followup_questions']=list(dict.fromkeys(q for p in response['programs'] for q in p['card']['questions']))[:2]
 
 
 def run_pipeline(question, timeout=PIPELINE_TIMEOUT):

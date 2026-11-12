@@ -44,12 +44,15 @@
       &&['planned','cultivating','group_min'].every(k=>context[k]===undefined||typeof context[k]==='boolean')
       &&['region','crop','farm_registered','farm_region','age_basis','applicant'].every(k=>context[k]===undefined||(str(context[k])&&context[k].length<=24))
       &&(context.notice_ids===undefined||(strings(context.notice_ids)&&context.notice_ids.length<=3)));
-    return data&&validContext&&(data.suggestions===undefined||(strings(data.suggestions)&&data.suggestions.length<=3))&&data.mode==='local'&&['answered','needs_verification','no_evidence'].includes(data.status)
+    return data&&validContext&&(data.followup_questions===undefined||(strings(data.followup_questions)&&data.followup_questions.length<=2))&&(data.suggestions===undefined||(strings(data.suggestions)&&data.suggestions.length<=3))&&data.mode==='local'&&['answered','needs_verification','no_evidence'].includes(data.status)
       &&str(data.answer)&&data.answer.length<=100000&&Array.isArray(data.programs)&&data.programs.length<=3
       &&Array.isArray(data.sources)&&data.sources.length<=100
       &&data.sources.every(s=>s&&str(s.url)&&str(s.location)&&str(s.checked_at))
-      &&data.programs.every(p=>p&&str(p.name)&&str(p.source_url)&&str(p.checked_at)
+      &&data.programs.every(p=>p&&str(p.id)&&/^NOTICE-[A-Za-z0-9_-]+$/.test(p.id)&&str(p.name)&&str(p.source_url)&&str(p.checked_at)
         &&strings(p.required_conditions)&&strings(p.additional_checks)&&str(p.evidence_level)&&str(p.evidence_note)
+        &&(p.comparison===undefined||(p.comparison&&strings(p.comparison.reasons)&&strings(p.comparison.checks)))
+        &&(p.card===undefined||(p.card&&['related','check','mismatch','elapsed'].includes(p.card.group)&&str(p.card.label)&&p.card.facts
+          &&['region','target','support'].every(k=>str(p.card.facts[k]))&&['funding','method','documents'].every(k=>strings(p.card.facts[k]))))
         &&p.application_period&&str(p.application_period.description));
   }
   function showConversation(show){byId('chatIntroduction').hidden=show;byId('chatConversation').hidden=false;dialog.classList.toggle('chat-has-conversation',show);}
@@ -79,6 +82,7 @@
     return value.trim();
   }
   function renderAnswer(node,data){
+    if(data.programs.length&&data.programs.every(p=>p.card)){renderResults(node,data);return;}
     node.replaceChildren(text('p',data.programs.length?'무농사 · 공식 근거 안내':'무농사 · 상담 안내','chat-answer-label'));
     const answer=text('div','','chat-answer-text');
     readableAnswer(data).split(/\n{2,}/).filter(Boolean).forEach(paragraph=>answer.append(text('p',paragraph)));
@@ -101,6 +105,61 @@
     });
     if(data.sources.length){const sources=text('section','','chat-program');sources.append(text('h4','근거 위치'));data.sources.forEach(source=>{const row=text('div','','chat-source-location');row.append(officialLink(source.url,'공식 자료'),text('p',source.location),text('p',checked(source.checked_at)));sources.append(row);});content.append(sources);}
     details.append(content);node.append(details);
+  }
+
+  function renderResults(node,data){
+    const personal=Object.keys(data.conversation||{}).some(k=>!['notice_ids','region','crop'].includes(k));
+    const heading=text('header','','chat-result-heading');
+    heading.append(text('h3',personal?'맞춤 추천 결과':'지원사업 검색 결과'),text('p',data.programs.length+'건을 안내합니다. 모집기간과 내 조건 비교를 함께 확인하세요.'));
+    node.replaceChildren(heading);node.className='chat-message chat-message-answer chat-result-message';
+    for(const program of data.programs){
+      const card=text('section','','card notice-card chat-notice');card.dataset.noticeId=program.id;
+      const d=MunongsaSupportReview.presentation({reference_application_dates:program.application_period});
+      const status=text('div','','notice-status');
+      const periodLabel={window:'기재 모집기간 내',upcoming:'모집 예정',elapsed:'모집기간 경과',unknown:'기간 확인 필요'}[d.state];
+      status.append(text('span',periodLabel,'notice-chip '+d.tone),text('strong',d.headline,'deadline-badge '+d.tone));
+      card.append(status,text('h3',program.name,'chat-notice-title'));
+      if(program.card.institution!=='확인 필요')card.append(text('p',program.card.institution,'notice-institution'));
+      const comparison=text('section','','chat-condition-block');
+      const mismatch=program.comparison?.label==='조건 불일치';
+      const comparisonLabel=mismatch?'확인된 조건 불일치':program.card.group==='elapsed'&&program.comparison?.label==='관련 가능성 있음'?'일부 조건 일치 · 모집기간 경과':program.comparison?.label||'추가 확인 필요';
+      comparison.append(text('h4','내 조건과 비교'),text('strong',comparisonLabel,'condition-result '+(mismatch?'mismatch':program.card.group)));
+      const reasons=program.comparison?.reasons||[],checks=program.comparison?.checks||[];
+      const points=[...new Set([...reasons,...checks])].slice(0,2);
+      if(points.length){const ul=document.createElement('ul');points.forEach(v=>ul.append(text('li',v)));comparison.append(ul);}
+      else comparison.append(text('p','지역 관련성만으로 전체 신청 자격을 판단하지 않습니다.'));
+      if(program.card.group==='elapsed')comparison.append(text('p','기재된 모집기간이 지났습니다. 연장·재공고 여부는 별도 확인이 필요합니다.'));
+      card.append(comparison);
+      const facts=document.createElement('dl');facts.className='chat-notice-facts';
+      function fact(label,value){const row=text('div','','notice-fact');row.append(text('dt',label,'notice-fact-label'),text('dd',Array.isArray(value)?value.join('\n'):value,'notice-fact-value'));facts.append(row);}
+      const f=program.card.facts;
+      fact('대상 지역',f.region);fact('신청 대상',f.target);fact('모집기간',d.periodText);fact('지원 내용',f.support);
+      if(f.funding.length)fact('지원 규모·금액',f.funding);
+      if(f.method.length)fact('신청 방법',f.method);
+      if(f.documents.length)fact('필요 서류',f.documents);
+      const required=program.required_conditions.map(v=>v.replace(/^(신청 대상|지원 지역):\s*/,''))
+        .filter(v=>v!==f.target&&v!==f.region);
+      if(required.length)fact('필요 조건',required);
+      card.append(facts);
+      const footer=text('footer','','notice-footer chat-notice-footer');
+      const meta=text('div','','chat-notice-meta');meta.append(text('span',checked(program.checked_at)),text('span',program.evidence_level));
+      footer.append(meta,officialLink(program.source_url,'공식 원문'));
+      const detail=text('a','사이트 상세보기 ↗');detail.href='#categories?'+new URLSearchParams({category:'support',kind:'supportPublic',key:program.id});
+      detail.addEventListener('click',event=>{if(typeof navigateTo!=='function'||typeof publicSupport==='undefined'||!publicSupport?.notices?.some(p=>p.id===program.id))return;
+        event.preventDefault();dialog.close();navigateTo('support','',{kind:'supportPublic',key:program.id});});footer.append(detail);card.append(footer);
+      const details=document.createElement('details');details.className='chat-evidence';details.append(text('summary','공식 근거 보기'));
+      const content=text('div','','chat-evidence-content');content.append(text('p',program.evidence_note));
+      list(content,'필수조건·조건별 근거',program.required_conditions);list(content,'추가 확인 사항',[...new Set([...program.additional_checks,...checks])]);
+      for(const source of data.sources.filter(s=>s.url===program.source_url)){content.append(text('p',source.location+' · '+checked(source.checked_at)));}
+      details.append(content);card.append(details);node.append(card);
+    }
+    const questions=data.followup_questions||[];
+    if(questions.length){const ask=text('section','','chat-next-question');ask.append(text('h4','더 정확히 찾아보려면'));questions.slice(0,2).forEach(q=>ask.append(text('p',q)));node.append(ask);}
+    node.append(text('p','날짜 기준 모집기간 안내입니다. 실제 접수 가능 여부와 전체 신청 자격·지원금 승인은 공식 기관에서 확인하세요.','chat-answer-caution'));
+    // Keep the complete grounded explanation available for calculations and
+    // follow-up questions, without repeating it above every business card.
+    const explanation=document.createElement('details');explanation.className='chat-full-explanation';explanation.append(text('summary','질문에 대한 상세 안내'));
+    const paragraphs=text('div','','chat-answer-text');readableAnswer(data).split(/\n{2,}/).filter(Boolean).forEach(p=>paragraphs.append(text('p',p)));explanation.append(paragraphs);node.append(explanation);
   }
   function message(label,value,kind){const node=text('article','','chat-message chat-message-'+kind);node.append(text('p',label,'chat-message-label'),text('p',value));history.append(node);return node;}
   byId('openChat').addEventListener('click',event=>{opener=event.currentTarget;dialog.showModal();document.documentElement.classList.add('chat-ui-open');input.focus({preventScroll:true});resizeInput();});
