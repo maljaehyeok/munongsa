@@ -1,0 +1,50 @@
+[Unit]
+Description=Munongsa bounded question interpretation
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/munongsa/nlu.env
+StartLimitIntervalSec=60
+StartLimitBurst=2
+
+[Service]
+Type=simple
+User=munongsa-nlu
+Group=munongsa-nlu-ipc
+EnvironmentFile=/etc/munongsa/nlu.env
+Environment=PYTHONIOENCODING=utf-8 PYTHONDONTWRITEBYTECODE=1
+WorkingDirectory=/opt/munongsa-nlu
+ExecStart=/usr/bin/python3 -B /opt/munongsa-nlu/rag_nlu.py --queue /run/munongsa-nlu --budget /var/lib/munongsa-nlu/budget.json --client-uid @CLIENT_UID@
+RuntimeDirectory=munongsa-nlu
+RuntimeDirectoryMode=02770
+RuntimeDirectoryPreserve=yes
+StateDirectory=munongsa-nlu
+StateDirectoryMode=0700
+UMask=0077
+MemoryMax=64M
+MemorySwapMax=0
+CPUQuota=20%
+TasksMax=8
+LimitCORE=0
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ProtectProc=invisible
+ProcSubset=pid
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallArchitectures=native
+InaccessiblePaths=-/var/lib/munongsa -/var/lib/munongsa-public -/var/lib/munongsa-rag-refresh -/opt/munongsa-chat-host -/var/lib/munongsa-tls -/etc/letsencrypt -/etc/munongsa -/run/docker.sock
+StandardOutput=journal
+StandardError=journal
+LogRateLimitIntervalSec=30s
+LogRateLimitBurst=10
+
+[Install]
+WantedBy=multi-user.target

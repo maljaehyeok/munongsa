@@ -4,21 +4,22 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "c05c1a8d871253214cc7c3d7bd6ac3b021e275333b50b9e6930c516ce148d451",
+    "index.html": "59a70d9f333b5b39272bc6ef86e8604268b259622013c3b65a64165894f32f89",
     "assets/chat-ui.js": "d26748d14ff431ba8442114f3133874605ccc369aba1aa2787ee17e4bed2a99b",
     "assets/chat-ui.css": "88e867c523ee841c50c9c7977abd6b4f156d67fa5672abfd63ec59f69a08d81f"
   },
   "runtime": {
     "scripts/rag_search.py": "5af3afda3f53f9d36a6190dc46ac85b778d63c414f9434fed0e60d5f303ea9fc",
     "scripts/rag_answer.py": "6b9a573cdc7fc2bdadabef09ab7524b76c39c5a6818f4574d6dc7962e7c37186",
-    "scripts/rag_api.py": "9a9b777edf67f4c38c81d82fde978d6ff5b787a37581309fccb256101b40f24c",
+    "scripts/rag_api.py": "b1fcc8033ec702846e562c2ff2baf192401f13f5e29d26ae0d2d8bb87c34ae15",
     "scripts/chat_wsgi.py": "3360cc48becc6a2279c4bd8a9a3f5827bdbc999a22401e8f0c0f27710047e292",
     "scripts/host_proxy_entry.py": "0af6b39819cabd9215924cd29b38e196046c1fc1bb0e64871b8f8c2c3710b97d",
     "scripts/host_socket_entry.py": "076623b171e962812b279d0268408281d1893981374702ced3ed3b776cf00b45",
     "scripts/rag_sync.py": "3e740fb63ea031b28076c0fac071e872752751f5c7117ffd4e44a8c531faa3e2",
     "scripts/rag_refresh_cycle.py": "1534735163a23b4167fcb365f904f7def84da2c5cd533ec88da7a4edec13ff04",
     "scripts/rag_dialogue.py": "f844429bf794568819246950015e0b6e89156f8982e21ce58551a5f1daa56284",
-    "scripts/rag_profile.py": "a229a61018a8cc85dca7070f3485eac2eb5e4387dc8c73d6ca783890ee1362c2"
+    "scripts/rag_profile.py": "a229a61018a8cc85dca7070f3485eac2eb5e4387dc8c73d6ca783890ee1362c2",
+    "scripts/rag_nlu.py": "969e7e1f3c5963312b1cf25f87bf87513b45a41487e79340d00dbe25df22d923"
   },
   "private_corpus": {
     "assets/support-details.json": "01a3d2eb61ab8ea6d70b1514eddafaf60b107e3a777c5df342991ac5c6e72c62",

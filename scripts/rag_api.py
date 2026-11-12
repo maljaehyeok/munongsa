@@ -142,10 +142,29 @@ def local_pipeline(question):
     corpus = load_api_corpus()
     if not corpus_ready(corpus):
         raise VerificationError()
-    import rag_dialogue
-    response = rag_dialogue.respond(question, corpus,
-        lambda query, notice: grounded_response(query, corpus, notice))
+    import rag_dialogue,rag_nlu
+    original,context=rag_dialogue.decode(question)
+    understood=rag_nlu.interpret(original,context)
+    used_gpt=understood is not None
+    # Conservative follow-up routing still works when GPT is unavailable.
+    if understood is None and context.get('notice_ids') and re.search(r'그\s*사업|아까|그럼',original):
+        intent='deadline' if re.search(r'언제까지|마감|언제.*신청',original) else 'eligibility'
+        understood={'intent':intent,'facts':{},'hypothetical':bool(re.search(r'등록\s*(?:하면|한다면|할\s*경우)',original)),'reference_previous':True,'uncertain':[]}
+    routed,actual,evaluation=rag_nlu.route(question,understood) if understood else (question,None,None)
+    if (understood and understood['intent']=='independent_management') or re.search(r'부모.*돕.*독립경영',original):
+        response=rag_dialogue.response('부모님 농사를 돕는다는 사실만으로 독립경영 인정 여부를 확정할 수 없습니다. 사업마다 공식 정의·인정 서류·기준일이 다를 수 있어요. 확인하려는 지원사업명과 본인 농업경영체 등록 여부를 알려주세요.',actual or context,'clarify',status='needs_verification')
+    else:
+        response = rag_dialogue.respond(routed, corpus,
+            lambda query, notice: grounded_response(query, corpus, notice))
     decorate_cards(response,corpus)
+    if understood and understood['hypothetical'] and actual is not None:
+        notice_ids=response.get('conversation',{}).get('notice_ids',context.get('notice_ids',[]))
+        response['conversation']={**actual,'notice_ids':notice_ids}
+        note='가정한 조건으로 비교했습니다. 실제 입력 상태는 변경하지 않았으며 전체 신청 자격을 확정하지 않습니다.'
+        for program in response['programs']:program['comparison']['checks'].insert(0,note)
+        response['answer']=note+'\n\n'+response['answer']
+    response['understanding']='gpt' if used_gpt else 'rules'
+    if used_gpt:response['answer']=response['answer'].replace('외부 AI에 자료를 보내지 않고 저장된 검증 근거를 정리했습니다.','질문 이해에는 GPT를, 지원사업 안내에는 저장된 공식 근거를 사용했습니다.')
     directory = os.environ.get('MUNONGSA_RAG_SYNC_DIR')
     if directory and response['programs']:
         import rag_sync

@@ -25,7 +25,7 @@ def stage(private_corpus, output):
     manifest = json.loads((HERE/'source-manifest.json').read_text(encoding='utf-8'))
     sources = {}
     for name, expected in manifest['runtime'].items():
-        path = ROOT/name if Path(name).name in ('rag_search.py','rag_answer.py','rag_api.py') else HERE/Path(name).name
+        path = ROOT/name if Path(name).name.startswith('rag_') else HERE/Path(name).name
         if path.is_symlink() or digest(path) != expected: raise ValueError('runtime differs from reviewed source: '+name)
         sources[name] = path
     for name, expected in manifest['private_corpus'].items():
