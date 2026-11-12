@@ -4,9 +4,9 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "a373c17eb722832009773eb460af3648789be1f98277417c707347699c2dadea",
-    "assets/chat-ui.js": "6c4f67ca832976373539b72bc0855a477885ade3f37e572af382b9ebad20c385",
-    "assets/chat-ui.css": "9ed09966683ba304b2ba658662147554692bc27e40aca4a98eef89eb86c0851f"
+    "index.html": "ecd6225cea5f47f3386ad548a859b96429610ae43794e3eb47d1173147259d0e",
+    "assets/chat-ui.js": "b1baea01f2b9f12dea50c95f9e65059d25b86c6d146516fa3b978b99399296e0",
+    "assets/chat-ui.css": "d64d201186ab589f61f27702a5c15f9ad3bffbc0e6101ba67b6dde819dd70527"
   },
   "runtime": {
     "scripts/rag_search.py": "5af3afda3f53f9d36a6190dc46ac85b778d63c414f9434fed0e60d5f303ea9fc",

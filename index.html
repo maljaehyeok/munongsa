@@ -6,8 +6,8 @@
   <title>무농사 | 농업 지원사업·농업금융·재배기술</title>
   <meta name="description" content="초보·청년·예비 농업인을 위한 공식 농업정보 안내. 지원사업, 농업금융, 재배기술을 내 상황에 맞게 찾아보세요.">
   <link rel="canonical" href="https://munongsa.duckdns.org/">
-  <link rel="stylesheet" href="./assets/chat-ui.css?v=dialogue-20261112">
-  <script src="./assets/chat-ui.js?v=dialogue-20261112" defer></script>
+  <link rel="stylesheet" href="./assets/chat-ui.css?v=explore-20261112">
+  <script src="./assets/chat-ui.js?v=explore-20261112" defer></script>
   <link rel="stylesheet" href="./assets/ui-v2.css?v=support-readable-20261029">
   <link rel="stylesheet" href="./assets/finance-mvp.css?v=finance-20261029">
 </head>
@@ -25,9 +25,15 @@
       <h1 id="brandHeading">농사의 시작을<br>더 쉽게</h1>
       <h2>내 상황에 필요한 농업정보</h2>
       <p class="brand-description">지원사업은 내 조건과 비교하고,<br>금융·재배기술은 공식 자료로 확인하세요.</p>
-      <div class="chat-entry"><button type="button" class="chat-entry-button" id="openChat" aria-haspopup="dialog" aria-controls="supportChat">무농사 AI 상담 <span aria-hidden="true">↗</span></button><span>질문으로 알아보고, 조건으로 찾아보세요.</span></div>
     </div>
-    <a class="service-scroll-cue" href="#brandServices" data-scroll-services>서비스 살펴보기 <span aria-hidden="true">↓</span></a>
+    <a class="service-scroll-cue discovery-cue" href="#supportDiscovery" data-scroll-services>나에게 맞는 지원사업 찾기 <span aria-hidden="true">↓</span></a>
+  </section>
+  <section class="support-discovery" id="supportDiscovery" aria-labelledby="discoveryHeading">
+    <header><p class="section-kicker">FIND YOUR SUPPORT</p><h2 id="discoveryHeading" tabindex="-1">어떤 방식으로 찾아볼까요?</h2><p>편한 방법을 선택해 농업 지원사업을 알아보세요.</p></header>
+    <div class="discovery-options">
+      <button type="button" class="discovery-card" id="openChat" aria-haspopup="dialog" aria-controls="supportChat"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 4V6a2 2 0 0 1 2-2Z"/><path d="M7 9h10M7 13h7"/></svg><strong>AI에게 질문하기</strong><span>궁금한 내용을 자유롭게 질문하고 공식 근거를 확인해요.</span><span class="discovery-action">질문하러 가기 <span aria-hidden="true">↗</span></span></button>
+      <button type="button" class="discovery-card" data-chat-conditions><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/><path d="M8 3v6M16 9v6M10 15v6"/></svg><strong>조건으로 찾기</strong><span>지역·영농 상황을 선택해 관련 지원사업을 찾아요.</span><span class="discovery-action">조건 선택하기 <span aria-hidden="true">↗</span></span></button>
+    </div>
   </section>
   <section class="brand-services" id="brandServices" aria-labelledby="brandServicesHeading">
     <header><p class="section-kicker">MUNONGSA SERVICES</p><h2 id="brandServicesHeading" tabindex="-1">필요한 정보부터 살펴보세요.</h2></header>
@@ -44,18 +50,11 @@
       <div class="chat-header-actions"><button type="button" class="chat-header-condition" data-chat-conditions>조건으로 찾기 <span aria-hidden="true">↗</span></button><button type="button" id="closeChat" class="chat-close" aria-label="상담 닫고 돌아가기">닫기 <span aria-hidden="true">×</span></button></div>
     </header>
     <div class="chat-ui-body" id="chatBody">
-      <section class="chat-landing" id="chatLanding" aria-labelledby="chatWelcome">
-        <p class="chat-eyebrow">농업 지원사업, 함께 알아봐요</p>
-        <h3 id="chatWelcome">어떤 점이 궁금하세요?</h3>
-        <p class="chat-intro">지원사업에 관해 질문하거나<br class="chat-mobile-break"> 내 조건에 맞는 사업을 찾아보세요.</p>
-        <div class="chat-methods" aria-label="상담 이용 방법">
-          <button type="button" id="chatAskMode" class="chat-method chat-method-active" aria-controls="chatQuestion"><span class="chat-method-top"><strong>AI에게 질문하기</strong><span aria-hidden="true">↗</span></span><span>자유롭게 질문하고<br>공식 근거로 설명을 확인해요.</span></button>
-          <button type="button" class="chat-method" data-chat-conditions><span class="chat-method-top"><strong>조건으로 찾기</strong><span aria-hidden="true">↗</span></span><span>지역과 영농 상황을 선택해<br>관련 사업을 체계적으로 찾아요.</span></button>
-        </div>
-        <p class="chat-method-hint" id="chatAvailability">구체적인 상황을 알려주시면 더 관련성 높은 근거를 찾을 수 있어요.</p>
+      <section class="chat-introduction" id="chatIntroduction" aria-label="질문 안내">
+        <p id="chatAvailability">지원사업에 관해 바로 질문해 보세요. 구체적인 상황을 알려주시면 관련 근거를 찾는 데 도움이 돼요.</p>
         <div class="chat-examples" aria-label="질문 예시"><button type="button" data-chat-example="청년농업인 지원사업의 신청 조건을 알려주세요.">청년농업인 지원사업 <span aria-hidden="true">↗</span></button><button type="button" data-chat-example="마늘 재배와 관련된 지원사업을 알려주세요.">마늘 재배 지원 <span aria-hidden="true">↗</span></button><button type="button" data-chat-example="부안 청년농업인 R&D 사업은 개인도 신청할 수 있나요?">신청 자격 확인 <span aria-hidden="true">↗</span></button></div>
       </section>
-      <section class="chat-conversation" id="chatConversation" aria-label="상담 대화" hidden>
+      <section class="chat-conversation" id="chatConversation" aria-label="상담 대화">
         <div class="chat-history-heading"><p>공식 근거로 살펴보는 상담</p><button type="button" id="clearChat" class="chat-ui-secondary" disabled>새 대화</button></div>
         <div id="chatHistory" class="chat-history" role="log" aria-label="내 질문과 공식 근거 안내" aria-live="polite" aria-relevant="additions" aria-busy="false"></div>
       </section>

@@ -2,7 +2,7 @@
 (function(){
   'use strict';
   const byId=id=>document.getElementById(id),dialog=byId('supportChat');
-  if(!dialog||!byId('chatLanding'))return;
+  if(!dialog||!byId('chatConversation'))return;
   const input=byId('chatQuestion'),form=byId('chatForm'),history=byId('chatHistory'),body=byId('chatBody');
   const productionPage=location.protocol==='https:'&&location.hostname==='munongsa.duckdns.org';
   const localPage=productionPage||(location.protocol==='http:'&&['localhost','127.0.0.1'].includes(location.hostname));
@@ -50,7 +50,7 @@
         &&strings(p.required_conditions)&&strings(p.additional_checks)&&str(p.evidence_level)&&str(p.evidence_note)
         &&p.application_period&&str(p.application_period.description));
   }
-  function showConversation(show){byId('chatLanding').hidden=show;byId('chatConversation').hidden=!show;dialog.classList.toggle('chat-has-conversation',show);}
+  function showConversation(show){byId('chatIntroduction').hidden=show;byId('chatConversation').hidden=false;dialog.classList.toggle('chat-has-conversation',show);}
   function resizeInput(){input.style.height='auto';input.style.height=Math.min(input.scrollHeight,144)+'px';}
   function sync(){
     input.setCustomValidity('');input.readOnly=pending;
@@ -101,13 +101,12 @@
     details.append(content);node.append(details);
   }
   function message(label,value,kind){const node=text('article','','chat-message chat-message-'+kind);node.append(text('p',label,'chat-message-label'),text('p',value));history.append(node);return node;}
-  byId('openChat').addEventListener('click',event=>{opener=event.currentTarget;dialog.showModal();document.documentElement.classList.add('chat-ui-open');(history.childElementCount?input:byId('chatHeading')).focus({preventScroll:true});resizeInput();});
+  byId('openChat').addEventListener('click',event=>{opener=event.currentTarget;dialog.showModal();document.documentElement.classList.add('chat-ui-open');input.focus({preventScroll:true});resizeInput();});
   byId('closeChat').addEventListener('click',()=>dialog.close());
   dialog.addEventListener('close',()=>{document.documentElement.classList.remove('chat-ui-open');if(opener?.isConnected)opener.focus({preventScroll:true});});
-  byId('chatAskMode').addEventListener('click',()=>input.focus());
   document.querySelectorAll('[data-chat-conditions]').forEach(button=>button.addEventListener('click',()=>{
     if(typeof navigationReady==='undefined'||!navigationReady||typeof navigateTo!=='function'){byId('chatFormStatus').textContent='지원사업 자료를 불러오고 있어요. 잠시 후 다시 눌러주세요.';return;}
-    dialog.close();navigateTo('support');
+    if(dialog.open)dialog.close();navigateTo('support');
     const toggle=byId('profileToggle');if(toggle?.getAttribute('aria-expanded')==='false')toggle.click();
     const field=byId('regionEntry')||byId('region');field?.focus({preventScroll:true});field?.scrollIntoView({block:'center',behavior:'auto'});
   }));
@@ -137,5 +136,14 @@
   });
   byId('clearChat').addEventListener('click',()=>{if(pending)return;history.replaceChildren();updateContext({});showConversation(false);input.value='';byId('chatFormStatus').textContent='';sync();body.scrollTop=0;input.focus({preventScroll:true});});
   if(!localPage){byId('chatAvailability').replaceChildren(text('span','질문 상담은 '),Object.assign(text('a','무농사 대표 주소 ↗'),{href:'https://munongsa.duckdns.org/'}),text('span','에서 이용할 수 있어요. 조건 검색은 이 화면에서도 이용할 수 있어요.'));byId('chatPrivacy').textContent='현재 주소에서는 질문을 전송하지 않아요. 대표 주소에서 상담을 이용해 주세요.';}
+  const discovery=byId('supportDiscovery');
+  document.querySelector('[data-scroll-services]').addEventListener('click',event=>{
+    event.preventDefault();event.stopPropagation();byId('discoveryHeading').focus({preventScroll:true});
+    discovery.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'});
+  });
+  if('IntersectionObserver' in window&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
+    const observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){entry.target.classList.add('discovery-arrived');observer.unobserve(entry.target)}},{threshold:0.12});
+    document.querySelectorAll('.discovery-card').forEach(card=>observer.observe(card));
+  }
   sync();
 })();
