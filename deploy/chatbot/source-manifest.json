@@ -4,20 +4,21 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "ecd6225cea5f47f3386ad548a859b96429610ae43794e3eb47d1173147259d0e",
-    "assets/chat-ui.js": "b1baea01f2b9f12dea50c95f9e65059d25b86c6d146516fa3b978b99399296e0",
+    "index.html": "2642ebefcada02e6f5d644e8bf721a8dc95961359eb39953f78543d1a68164d9",
+    "assets/chat-ui.js": "23ad9286a08074a9f7d1e6a2234ff65a5735b7793ea7d6a564e6e67e356009aa",
     "assets/chat-ui.css": "d64d201186ab589f61f27702a5c15f9ad3bffbc0e6101ba67b6dde819dd70527"
   },
   "runtime": {
     "scripts/rag_search.py": "5af3afda3f53f9d36a6190dc46ac85b778d63c414f9434fed0e60d5f303ea9fc",
     "scripts/rag_answer.py": "6b9a573cdc7fc2bdadabef09ab7524b76c39c5a6818f4574d6dc7962e7c37186",
-    "scripts/rag_api.py": "70888e606322abb946fb2173b12df253470342487a7093b1d84bbc74da326a16",
+    "scripts/rag_api.py": "ee8e3adc8ada8fb0976acbc8ec048912d08814d10a2e745fb6d83032ba6cddf5",
     "scripts/chat_wsgi.py": "3360cc48becc6a2279c4bd8a9a3f5827bdbc999a22401e8f0c0f27710047e292",
     "scripts/host_proxy_entry.py": "0af6b39819cabd9215924cd29b38e196046c1fc1bb0e64871b8f8c2c3710b97d",
     "scripts/host_socket_entry.py": "076623b171e962812b279d0268408281d1893981374702ced3ed3b776cf00b45",
     "scripts/rag_sync.py": "3e740fb63ea031b28076c0fac071e872752751f5c7117ffd4e44a8c531faa3e2",
     "scripts/rag_refresh_cycle.py": "1534735163a23b4167fcb365f904f7def84da2c5cd533ec88da7a4edec13ff04",
-    "scripts/rag_dialogue.py": "fa634822ed986ec838815079a9437a7699630a056f2c2d195841ba905a2f444b"
+    "scripts/rag_dialogue.py": "a23a70e25bd5a5e7e4eaf581981148ad93319ef321d1a488ab184bf4f38e67af",
+    "scripts/rag_profile.py": "a229a61018a8cc85dca7070f3485eac2eb5e4387dc8c73d6ca783890ee1362c2"
   },
   "private_corpus": {
     "assets/support-details.json": "01a3d2eb61ab8ea6d70b1514eddafaf60b107e3a777c5df342991ac5c6e72c62",

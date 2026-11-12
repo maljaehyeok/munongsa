@@ -12,7 +12,7 @@
   const contextLine=text('p','','chat-context');contextLine.hidden=true;byId('chatQuestion').closest('.chat-composer-inner').prepend(contextLine);
   function updateContext(value){
     conversation=value||{};
-    const labels=[conversation.region&&conversation.region+' 거주',conversation.crop&&'관심 작물 '+conversation.crop,
+    const labels=[conversation.region&&conversation.region+' 거주',conversation.farm_region&&'영농지역 '+conversation.farm_region,conversation.age!==undefined&&conversation.age+'세',conversation.planned===true&&'영농 시작 예정',conversation.farming_years!==undefined&&'영농 '+conversation.farming_years+'년',conversation.facility_sqm!==undefined&&'시설 '+conversation.facility_sqm+'㎡',conversation.crop&&'관심 작물 '+conversation.crop,
       conversation.farm_registered==='no'?'경영체 미등록':conversation.farm_registered==='yes'?'경영체 등록':null].filter(Boolean);
     contextLine.textContent=labels.length?'이번 대화 참고 · '+labels.join(' · '):'';contextLine.hidden=!labels.length;
   }
@@ -39,8 +39,10 @@
     const str=v=>typeof v==='string',strings=v=>Array.isArray(v)&&v.length<=100&&v.every(str);
     const context=data?.conversation;
     const validContext=context===undefined||(context&&typeof context==='object'&&!Array.isArray(context)
-      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids'].includes(k))
-      &&['region','crop','farm_registered'].every(k=>context[k]===undefined||(str(context[k])&&context[k].length<=24))
+      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm'].includes(k))
+      &&['age','group_size','farming_years','facility_sqm'].every(k=>context[k]===undefined||(typeof context[k]==='number'&&Number.isFinite(context[k])&&context[k]>=0&&context[k]<=100000000))
+      &&['planned','cultivating','group_min'].every(k=>context[k]===undefined||typeof context[k]==='boolean')
+      &&['region','crop','farm_registered','farm_region','age_basis','applicant'].every(k=>context[k]===undefined||(str(context[k])&&context[k].length<=24))
       &&(context.notice_ids===undefined||(strings(context.notice_ids)&&context.notice_ids.length<=3)));
     return data&&validContext&&(data.suggestions===undefined||(strings(data.suggestions)&&data.suggestions.length<=3))&&data.mode==='local'&&['answered','needs_verification','no_evidence'].includes(data.status)
       &&str(data.answer)&&data.answer.length<=100000&&Array.isArray(data.programs)&&data.programs.length<=3

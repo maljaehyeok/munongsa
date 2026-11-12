@@ -1,6 +1,7 @@
 """Small, stateless conversation rules over the already verified RAG corpus."""
 import json
 import re
+import rag_profile
 
 PREFIX='[무농사 대화 참고]\n'
 SEPARATOR='\n[질문]\n'
@@ -21,12 +22,13 @@ def decode(value):
     context={};question=value
     if value.startswith(PREFIX):
         raw,question=value[len(PREFIX):].split(SEPARATOR,1)
-        if len(raw)>550:raise ValueError('context_too_long')
+        if len(raw)>900:raise ValueError('context_too_long')
         context=json.loads(raw)
-        if not isinstance(context,dict) or set(context)-{'region','crop','farm_registered','notice_ids'}:raise ValueError('context_fields')
+        if not isinstance(context,dict) or set(context)-({'region','crop','farm_registered','notice_ids'}|rag_profile.KEYS):raise ValueError('context_fields')
         if 'region' in context and context['region'] not in AREAS:raise ValueError('context_region')
         if 'crop' in context and context['crop'] not in CROPS:raise ValueError('context_crop')
         if 'farm_registered' in context and context['farm_registered'] not in ('yes','no'):raise ValueError('context_registration')
+        if not rag_profile.valid_context(context,AREAS):raise ValueError('context_values')
         ids=context.get('notice_ids',[])
         if not isinstance(ids,list) or len(ids)>3 or any(not isinstance(v,str) or not re.fullmatch('NOTICE-[A-Za-z0-9_-]{1,70}',v) for v in ids):raise ValueError('context_notices')
     if not isinstance(question,str) or not 1<=len(question.strip())<=1000:raise ValueError('question_length')
@@ -61,7 +63,7 @@ def corpus_text(document):
     return ' '.join(str(v) for v in (item.get('title',''),item.get('target',''),
         item.get('support',''),fields.get('conditions',{}).get('value','')))
 
-def respond(encoded,corpus,grounded):
+def basic_response(encoded,corpus,grounded):
     question,context=decode(encoded);context=dict(context)
     compact=re.sub(r'[\s!?.~。]+','',question)
     docs=corpus['documents'];by_id={v['public']['id']:k for k,v in docs.items()}
@@ -97,7 +99,7 @@ def respond(encoded,corpus,grounded):
     named={k for k,names in aliases.items() if any(len(n)>=2 and n in question for n in names)
            and k in docs and (any(v in question for v in (docs[k]['public']['title'],'R&D','이차보전','비가림','면세유','재해보험','K-Fresh'))
            or (not re.search('청년|귀농',question) and any(v in question for v in ('신청','자격','조건','서류','계산','면적','한도','이자'))))}
-    followup=bool(re.search(r'(그럼|그\s*사업|이\s*사업|필요한\s*서류|신청\s*조건|신청\s*서류|신청\s*방법|지원\s*금액|마감일)',question))
+    followup=bool(re.search(r'(그럼|그\s*사업|이\s*사업|지원금|보조금|필요한\s*서류|신청\s*조건|신청\s*서류|신청\s*방법|지원\s*금액|마감일)',question))
     if named:
         keys=sorted(named)
     elif followup and previous:
@@ -156,3 +158,69 @@ def respond(encoded,corpus,grounded):
     if context.get('farm_registered')=='no':parts.append('농업경영체 미등록으로 알려주신 상황을 참고했어요. 등록 요건을 충족했다고 판단하지 않으며 각 공고에서 확인해야 해요.')
     unique={(s['url'],s['location'],s['checked_at']):s for s in sources}
     return response('\n\n'.join(parts),context,'catalogue',programs=programs,sources=list(unique.values()),suggestions=('그럼 신청 조건은?','필요한 서류는?'))
+
+
+def respond(encoded,corpus,grounded):
+    question,context=decode(encoded)
+    facts,error=rag_profile.extract(question,AREAS,CROPS,normalized)
+    if error:return response(error,context,'clarify',status='needs_verification')
+    context={**context,**facts}
+    encoded=PREFIX+json.dumps(context,ensure_ascii=False)+SEPARATOR+question
+    personal=any(k in context for k in ('age','applicant','group_size','farm_registered','farming_years','planned','facility_sqm','cultivating','farm_region'))
+    followup=bool(re.search(r'그\s*사업|그럼|신청\s*(?:서류|조건)|필요한\s*서류|지원금|보조금',question))
+    # Reuse the existing scoped evidence retriever for named notices and follow-ups.
+    compact=re.sub(r'[\s?？.!]','',question)
+    canonical=None
+    if re.fullmatch(r'그사업(?:은|는|이뭐야|알려줘)?',compact):canonical='신청 대상 자격 조건 지원 내용'
+    elif re.fullmatch(r'(?:그럼)?(?:신청조건|신청자격)(?:은|는)?',compact):canonical='신청 대상 자격 조건'
+    elif re.fullmatch(r'(?:그럼)?(?:신청서류|필요한서류|제출서류)(?:은|는)?',compact):canonical='필수 제출서류 신청서'
+    elif re.fullmatch(r'(?:그럼)?(?:지원금|보조금)(?:은|는|얼마야)?',compact):canonical='지원 금액 비율'
+    live_by_id={d['public']['id']:k for k,d in corpus['documents'].items()}
+    ids=context.get('notice_ids',[])
+    if canonical and len(ids)==1 and ids[0] in live_by_id:
+        # Map a short follow-up to existing search terms only after resolving one
+        # current verified notice. Never drop a calculation amount or a 1% caveat.
+        out=grounded(canonical,live_by_id[ids[0]])
+        out.update(kind='answer',conversation=context,suggestions=[])
+    else:out=basic_response(encoded,corpus,grounded)
+    if out['kind'] in ('greeting','thanks','help'):return out
+    wants=bool(facts or re.search('추천|맞는|받을|신청.*가능|지원사업|공고',question))
+    if personal and wants and not (followup and context.get('notice_ids')) and out['kind']!='answer':
+        area=context.get('farm_region') or context.get('region');crop=context.get('crop');ranked=[]
+        for key,document in corpus['documents'].items():
+            score=region_matches(area,document['public'],document) if area else 0
+            topic=(crop and crop in corpus_text(document)) or ('청년' in question and '청년' in corpus_text(document))
+            if score>=2 or topic:ranked.append((score,key))
+        if not ranked:
+            context['notice_ids']=[]
+            return response('알려주신 상황을 현재 대화에서 참고할게요. 현재 승인된 공개 공고 범위에서 관련 사업을 찾지 못했어요. 전체 지원사업이 없다는 뜻은 아닙니다.\n\n영농지역 또는 관심 작물을 한 가지 알려주시거나 사업명을 지정해 주세요. 나이와 영농 예정 여부만으로 신청 자격을 확정하지 않아요.',context,'catalogue',status='no_evidence',suggestions=('전북 지원사업','전국 지원사업'))
+        ranked.sort(key=lambda v:(-v[0],v[1]));programs=[];sources=[]
+        for _,key in ranked[:3]:
+            found=grounded('신청 대상 조건 지원 내용',key);programs.extend(found['programs']);sources.extend(found['sources'])
+        if not programs:return response('관련 공고는 있지만 검증된 근거가 부족해 비교를 보류합니다.',context,'clarify',status='no_evidence')
+        out=response('알려주신 상황과 현재 승인된 공고의 확인 가능한 조건을 비교했어요. 전체 신청 자격이나 현재 접수 가능 여부를 확정하는 결과는 아닙니다.',context,'recommendation',status='needs_verification',programs=programs,sources=sources)
+    # Even a generic named-notice question gets a comparison only when the user
+    # supplied a profile. No fabricated age, residence, registration or farming facts.
+    if personal and out['programs']:
+        by_id={d['public']['id']:d for d in corpus['documents'].values()};questions=[];parts=[]
+        import rag_search
+        for program in out['programs']:
+            comparison=rag_profile.compare(by_id[program['id']],context,rag_search.valid_url,AREAS)
+            program['comparison']=comparison
+            parts.append(program['name']+' — '+comparison['label']+'\n'+program['application_period']['description'])
+            if comparison['reasons']:parts.append('비교 이유: '+' / '.join(comparison['reasons']))
+            if comparison['checks']:parts.append('확인할 조건: '+' / '.join(comparison['checks']))
+            questions.extend(comparison['questions'])
+        summary=['조건 비교']+parts
+        if questions:summary.append('더 정확히 비교하려면:\n'+'\n'.join(list(dict.fromkeys(questions))[:2]))
+        summary.append('일치하는 일부 조건이 있어도 신청 자격 충족·지원금 지급을 의미하지 않습니다. 모집기간 경과와 자격 비교는 별개입니다.')
+        comparison_text='\n\n'.join(summary)
+        if re.search('서류|지원금|보조금|계산|얼마',question):out['answer']+='\n\n'+comparison_text
+        else:out['answer']=comparison_text+'\n\n'+out['answer']
+        out['status']='needs_verification'
+        context['notice_ids']=[p['id'] for p in out['programs']]
+    # Preserve facts extracted from separate residence/farming clauses. Do not let
+    # a business name overwrite the user's actual residence.
+    out['conversation']={**out.get('conversation',context),**facts}
+    if out['programs']:out['conversation']['notice_ids']=[p['id'] for p in out['programs']]
+    return out

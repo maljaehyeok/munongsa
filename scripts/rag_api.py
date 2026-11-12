@@ -18,7 +18,7 @@ import rag_answer
 import rag_search
 
 API_PATH = '/api/chat'
-MAX_QUESTION = 1600  # Includes bounded transient context; the user question stays <=1,000.
+MAX_QUESTION = 2000  # Includes bounded transient context; the user question stays <=1,000.
 MAX_BODY = 8192
 PIPELINE_TIMEOUT = 8
 REQUEST_TIMEOUT = 15

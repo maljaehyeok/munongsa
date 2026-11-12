@@ -6,6 +6,7 @@ scripts/rag_search.py -text
 scripts/rag_answer.py -text
 scripts/rag_api.py -text
 scripts/rag_dialogue.py -text
+scripts/rag_profile.py -text
 scripts/rag_sync.py -text
 scripts/rag_refresh_cycle.py -text
 deploy/chatbot/chat_wsgi.py -text
