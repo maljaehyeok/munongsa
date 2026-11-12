@@ -352,6 +352,54 @@
       "policy_url": "https://www.koat.or.kr/robots.txt",
       "reuse_policy": "unknown",
       "notes": "Private factual review only; no automatic publication. Individual farmer access not assumed."
+    },
+    {
+      "institution": "전북특별자치도",
+      "city": "전북 공통",
+      "method": "html",
+      "adapter": "jeonbuk-official-v1",
+      "enabled": true,
+      "official_hosts": [
+        "www.jeonbuk.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 30,
+      "detail_limit": 4,
+      "reuse_policy": "unknown",
+      "policy_checked_at": "2026-11-12",
+      "policy_url": "https://www.jeonbuk.go.kr/robots.txt",
+      "rights_url": "https://www.jeonbuk.go.kr/index.jeonbuk?menuCd=DOM_000000107006000000",
+      "notes": "공식 본문 사실·자격 후보만 비공개 검토 대기. 자동 승인·공개·원문 재배포 금지. 시행지침은 실제 모집공고와 구분.",
+      "source_id": "jeonbuk-province-notices",
+      "kind": "jeonbuk_province",
+      "search_terms": [
+        "농업",
+        "귀농",
+        "스마트"
+      ],
+      "board_url": "https://www.jeonbuk.go.kr/board/list.jeonbuk?boardId=BBS_0000005&menuCd=DOM_000000102001001000&orderBy=REGISTER_DATE:DESC&paging=ok&startPage=1"
+    },
+    {
+      "institution": "전북특별자치도",
+      "city": "전북 공통",
+      "method": "html",
+      "adapter": "jeonbuk-official-v1",
+      "enabled": true,
+      "official_hosts": [
+        "www.jeonbuk.go.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 30,
+      "detail_limit": 4,
+      "reuse_policy": "unknown",
+      "policy_checked_at": "2026-11-12",
+      "policy_url": "https://www.jeonbuk.go.kr/robots.txt",
+      "rights_url": "https://www.jeonbuk.go.kr/index.jeonbuk?menuCd=DOM_000000107006000000",
+      "notes": "공식 본문 사실·자격 후보만 비공개 검토 대기. 자동 승인·공개·원문 재배포 금지. 시행지침은 실제 모집공고와 구분.",
+      "source_id": "jeonbuk-agriculture-guidelines",
+      "kind": "jeonbuk_guidelines",
+      "search_terms": [],
+      "board_url": "https://www.jeonbuk.go.kr/board/list.jeonbuk?menuCd=DOM_000000104008006000&boardId=BBS_0000046"
     }
   ]
 }

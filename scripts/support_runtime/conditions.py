@@ -48,6 +48,11 @@ def clean_proof(fact):
 
 def payload_for(facts,base):
     """Add only narrow, evidenced clauses; preserve existing AND/OR/NOT graph."""
+    explicit=facts.get('official_condition_candidates',{}).get('value')
+    if isinstance(explicit,dict) and set(explicit)=={'conditions','logic'}:
+        # New adapter supplies candidate-only, UNKNOWN logic. Existing approval
+        # validator still checks every predicate, quote and source version.
+        return copy.deepcopy(explicit)
     base=copy.deepcopy(base)
     conditions=base.get('conditions',[])
     if not conditions:

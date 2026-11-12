@@ -84,6 +84,9 @@ def analyse(entry,t,now):
 
 
 def search_source(source,now,known=None,refresh_details=False,detail_policy=None,fact_enricher=None):
+    if source.get('adapter')=='jeonbuk-official-v1':
+        from .official_expansion import collect
+        return collect(source,now,known,detail_policy)
     if source['kind']=='koat':
         from .koat import collect
         return collect(source,now,known,detail_policy)
