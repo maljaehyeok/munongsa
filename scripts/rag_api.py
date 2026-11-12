@@ -18,7 +18,7 @@ import rag_answer
 import rag_search
 
 API_PATH = '/api/chat'
-MAX_QUESTION = 1000
+MAX_QUESTION = 1600  # Includes bounded transient context; the user question stays <=1,000.
 MAX_BODY = 8192
 PIPELINE_TIMEOUT = 8
 REQUEST_TIMEOUT = 15
@@ -27,7 +27,17 @@ EXPECTED_DOCUMENTS = 11
 
 def load_api_corpus():
     # Explicit server selection; request parameters cannot change the corpus or mode.
+    directory = os.environ.get('MUNONGSA_RAG_SYNC_DIR')
+    if directory:
+        import rag_sync
+        return rag_sync.load(directory)
     return rag_search.load_corpus(expanded=True)
+
+
+def corpus_ready(corpus):
+    if corpus.get('sync_generation'):
+        return corpus.get('sync_verified') is True
+    return not corpus['excluded'] and len(corpus['documents']) == EXPECTED_DOCUMENTS
 
 
 class VerificationError(Exception):
@@ -42,6 +52,8 @@ def validate_input(data):
             or len(question) > MAX_QUESTION
             or any((ord(c) < 32 and c not in '\n\t\r') or 0xD800 <= ord(c) <= 0xDFFF for c in question)):
         raise ValueError('invalid_question')
+    import rag_dialogue
+    rag_dialogue.decode(question)
     return question.strip()
 
 
@@ -68,7 +80,7 @@ def public_response(result):
         raise VerificationError()
     if result.get('status') == 'not_found':
         return {'mode': 'local', 'status': 'no_evidence',
-                'answer': '공개 공고 11건의 저장된 근거에서 질문에 답할 내용을 찾지 못했습니다. 사업명이나 질문을 바꿔 주세요.',
+                'answer': '공개 승인된 공고의 저장 근거에서 질문에 답할 내용을 찾지 못했습니다. 사업명이나 질문을 바꿔 주세요.',
                 'programs': [], 'sources': []}
     groups = result.get('businesses', [])
     if not groups or any(g.get('evidence_status') == 'data_unavailable' for g in groups):
@@ -106,17 +118,54 @@ def public_response(result):
     return response
 
 
-def local_pipeline(question):
-    # The existing loader rechecks approval and every pinned hash on each request.
-    retrieved = rag_search.search(question, load_api_corpus(), limit=3)
+def grounded_response(question, corpus, notice=None):
+    retrieved = rag_search.search(question, corpus, notice=notice, limit=3)
     result = rag_answer.generate(retrieved, local_only=True, manifest={}, environ={})
+    directory = os.environ.get('MUNONGSA_RAG_SYNC_DIR')
+    if directory:
+        import rag_sync
+        current = rag_sync.load(directory)
+        for business in result.get('businesses', []):
+            key = business['notice_key']
+            if key not in current['documents'] or key not in corpus['documents']:
+                raise VerificationError()
+            before, after = corpus['documents'][key], current['documents'][key]
+            if (rag_search.record_sha(before['record']) != rag_search.record_sha(after['record'])
+                    or rag_sync.material(before['public']) != rag_sync.material(after['public'])):
+                raise VerificationError()
     return public_response(result)
+
+
+def local_pipeline(question):
+    # No server session or DB writes. Every factual response uses the existing
+    # approval/hash loader, including contextual follow-ups and discovery lists.
+    corpus = load_api_corpus()
+    if not corpus_ready(corpus):
+        raise VerificationError()
+    import rag_dialogue
+    response = rag_dialogue.respond(question, corpus,
+        lambda query, notice: grounded_response(query, corpus, notice))
+    directory = os.environ.get('MUNONGSA_RAG_SYNC_DIR')
+    if directory and response['programs']:
+        import rag_sync
+        current = rag_sync.load(directory)
+        before = {d['public']['id']: d for d in corpus['documents'].values()}
+        after = {d['public']['id']: d for d in current['documents'].values()}
+        for program in response['programs']:
+            identity = program['id']
+            if (identity not in after or identity not in before
+                    or rag_search.record_sha(before[identity]['record']) != rag_search.record_sha(after[identity]['record'])
+                    or rag_sync.material(before[identity]['public']) != rag_sync.material(after[identity]['public'])):
+                raise VerificationError()
+    return response
 
 
 def run_pipeline(question, timeout=PIPELINE_TIMEOUT):
     # No inherited API keys. A child process can be killed when the deadline expires.
     env = {k: v for k, v in os.environ.items() if k.upper() in ('SYSTEMROOT', 'WINDIR', 'TEMP', 'TMP')}
     env.update(PYTHONIOENCODING='utf-8', PYTHONUTF8='1')
+    if os.environ.get('MUNONGSA_RAG_SYNC_DIR'):
+        env['MUNONGSA_RAG_SYNC_DIR'] = os.environ['MUNONGSA_RAG_SYNC_DIR']
     completed = subprocess.run([sys.executable, '-B', str(Path(__file__).resolve()), '--worker'],
                                input=json.dumps({'question': question}, ensure_ascii=False),
                                encoding='utf-8', stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,

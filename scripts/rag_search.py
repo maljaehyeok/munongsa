@@ -219,9 +219,10 @@ def valid_url(url):
     return u.scheme == 'https' and u.hostname in {'www.buan.go.kr', 'www.gochang.go.kr', 'www.rda.go.kr', 'www.jeonbuk.go.kr', 'www.oads.or.kr', 'global.at.or.kr', 'www.jeonju.go.kr'} and not u.username and not u.password and not u.port
 
 
-def load_corpus(root=ROOT, snapshot=SNAPSHOT, *, expanded=False):
+def load_corpus(root=ROOT, snapshot=SNAPSHOT, *, expanded=False, specs_override=None, aliases_override=None):
     """Read only. Missing/changed/unapproved documents fail closed individually."""
-    specs = {**SPECS, **EXPANDED_SPECS} if expanded else SPECS
+    # Overrides are supplied only by the private, verified refresh loader, never by requests.
+    specs = specs_override if specs_override is not None else ({**SPECS, **EXPANDED_SPECS} if expanded else SPECS)
     if expanded and snapshot == SNAPSHOT:
         snapshot = CURRENT_SNAPSHOT
     details = read_json(root / DETAILS)
@@ -230,11 +231,13 @@ def load_corpus(root=ROOT, snapshot=SNAPSHOT, *, expanded=False):
         raise ValueError('승인된 설명 자료 형식이 아니어서 검색을 중단했습니다.')
     if public.get('schema_version') != 'munongsa-support-public-v1':
         raise ValueError('공개 승인 스냅샷 형식이 올바르지 않습니다.')
+    if not isinstance(details.get('records'), list) or not isinstance(public.get('notices'), list):
+        raise ValueError('승인 자료 목록 형식이 올바르지 않습니다.')
     chunks, excluded, documents = [], [], {}
     for key, spec in specs.items():
         try:
-            records = [r for r in details['records'] if r.get('basis', {}).get('id') == spec['id']]
-            notices = [n for n in public['notices'] if n.get('id') == spec['id']]
+            records = [r for r in details['records'] if isinstance(r, dict) and isinstance(r.get('basis'), dict) and r['basis'].get('id') == spec['id']]
+            notices = [n for n in public['notices'] if isinstance(n, dict) and n.get('id') == spec['id']]
             if len(records) != 1 or len(notices) != 1:
                 raise ValueError('승인 자료가 없거나 같은 ID가 중복됐습니다.')
             record, item = records[0], notices[0]
@@ -291,12 +294,12 @@ def load_corpus(root=ROOT, snapshot=SNAPSHOT, *, expanded=False):
                 })
             chunks.extend(local_chunks)
             documents[key] = {'record': record, 'public': item}
-        except (KeyError, TypeError, ValueError, OSError) as error:
+        except (KeyError, TypeError, ValueError, OSError, AttributeError) as error:
             # No partial document is retained after any validation failure.
             excluded.append({'notice_key': key, 'notice_id': spec['id'], 'reason': str(error)})
     return {'chunks': chunks, 'excluded': excluded, 'documents': documents,
             'snapshot_as_of': public.get('generated_at'), 'specs': specs,
-            'aliases': {**ALIASES, **EXTRA_ALIASES} if expanded else ALIASES, 'expanded': expanded}
+            'aliases': aliases_override if aliases_override is not None else ({**ALIASES, **EXTRA_ALIASES} if expanded else ALIASES), 'expanded': expanded}
 
 
 def normalize(text):
@@ -327,6 +330,16 @@ def query_terms(query, aliases=None):
 def recruitment_context(document, as_of):
     """Date metadata is independent of eligibility and actual reception status."""
     dates = document['record']['basis']['dates']
+    if not dates.get('start') and not dates.get('end') and document['record']['basis'].get('period'):
+        # Only exported, verified time windows; never infer a year or deadline time.
+        dates = {}
+        for key, value in document['record']['basis']['period'].items():
+            if key in ('start', 'end'):
+                parsed = datetime.fromisoformat(value)
+                if parsed.tzinfo is None:
+                    raise ValueError('Timezone-aware approved period required')
+                local = parsed.astimezone(timezone(timedelta(hours=9)))
+                dates[key] = {'date': local.date().isoformat(), 'time': local.time().isoformat(), 'timezone': 'Asia/Seoul'}
     start, end = dates.get('start'), dates.get('end')
     kst = as_of.astimezone(timezone(timedelta(hours=9)))
     state, conflicts = 'unknown', []
@@ -422,7 +435,7 @@ def group_evidence(query, corpus, results, scope, unresolved, as_of):
                        'must_review_together': True,
                        'source_material_kind': 'approved_summary' if spec.get('summary_only') else 'original_excerpt',
                        'document_version_kind': 'approved_summary_record_not_original_file' if spec.get('summary_only') else 'original_file',
-                       'follow_up_questions': FOLLOW_UP.get(key, []) if any(w in normalize(query) for w in ('신청', '자격', '가능', '대상')) else []})
+                       'follow_up_questions': FOLLOW_UP.get(key, ['신청자 유형과 거주지·영농지역을 알려주세요. 확인하지 않은 세부 요건은 공식 공고에서 별도로 확인해야 합니다.']) if any(w in normalize(query) for w in ('신청', '자격', '가능', '대상')) else []})
     return groups
 
 
@@ -438,10 +451,16 @@ def search(query, corpus, notice=None, limit=3, as_of=None):
     if as_of.tzinfo is None:
         raise ValueError('기간 비교 시각에는 시간대가 필요합니다.')
     q = normalize(query)
-    scope = {notice} if notice else {k for k, names in corpus.get('aliases', ALIASES).items() if any(normalize(n) in q for n in names)}
+    exact_titles = {k for k, spec in specs.items() if (
+        title := spec.get('title') or corpus.get('documents', {}).get(k, {}).get('public', {}).get('title'))
+        and normalize(title) in q}
+    scope = {notice} if notice else exact_titles or {k for k, names in corpus.get('aliases', ALIASES).items() if any(normalize(n) in q for n in names)}
     terms = query_terms(query, corpus.get('aliases', ALIASES))
     results = []
     excluded = [r for r in corpus['excluded'] if not scope or r['notice_key'] in scope]
+    if corpus.get('sync_verified') and not scope and corpus['documents']:
+        # An unrelated unavailable document must not suppress grounded results.
+        excluded = []
     # The unresolved 1% rule is not a calculable entitlement. Do not retrieve its
     # ambiguous raw sentence as a verified rule just because it contains keywords.
     unresolved = ('gochang' in scope and any(w in q for w in ('1%', '1퍼센트')))

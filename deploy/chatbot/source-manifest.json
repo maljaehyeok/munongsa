@@ -4,17 +4,20 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "116cd33a41dc4c7815f1f9d87651e6012c899ebaa9d4a60cdfaf42af3c106967",
-    "assets/chat-ui.js": "a976c2ff6b50d8d39a2894aa4b2a0a8147f1f0f33423e0988486b80544e87dc3",
-    "assets/chat-ui.css": "0795eeb16161131d77620117158381b56babc04e756f9b0022c0e23a99cc8529"
+    "index.html": "a373c17eb722832009773eb460af3648789be1f98277417c707347699c2dadea",
+    "assets/chat-ui.js": "6c4f67ca832976373539b72bc0855a477885ade3f37e572af382b9ebad20c385",
+    "assets/chat-ui.css": "9ed09966683ba304b2ba658662147554692bc27e40aca4a98eef89eb86c0851f"
   },
   "runtime": {
-    "scripts/rag_search.py": "0a74f5f610467cffb14d73cb32f28eaa27791c484e5b8d394acd8c42d747886c",
+    "scripts/rag_search.py": "5af3afda3f53f9d36a6190dc46ac85b778d63c414f9434fed0e60d5f303ea9fc",
     "scripts/rag_answer.py": "6b9a573cdc7fc2bdadabef09ab7524b76c39c5a6818f4574d6dc7962e7c37186",
-    "scripts/rag_api.py": "8c081d676a805b4e36cd37a2fd7974614531b2cdc488029c36b296acf383ac7e",
-    "scripts/chat_wsgi.py": "df56afd461577f28097c6858fc33be95d220ab16eafd733de22fbf5551b1a5d8",
+    "scripts/rag_api.py": "70888e606322abb946fb2173b12df253470342487a7093b1d84bbc74da326a16",
+    "scripts/chat_wsgi.py": "3360cc48becc6a2279c4bd8a9a3f5827bdbc999a22401e8f0c0f27710047e292",
     "scripts/host_proxy_entry.py": "0af6b39819cabd9215924cd29b38e196046c1fc1bb0e64871b8f8c2c3710b97d",
-    "scripts/host_socket_entry.py": "076623b171e962812b279d0268408281d1893981374702ced3ed3b776cf00b45"
+    "scripts/host_socket_entry.py": "076623b171e962812b279d0268408281d1893981374702ced3ed3b776cf00b45",
+    "scripts/rag_sync.py": "3e740fb63ea031b28076c0fac071e872752751f5c7117ffd4e44a8c531faa3e2",
+    "scripts/rag_refresh_cycle.py": "1534735163a23b4167fcb365f904f7def84da2c5cd533ec88da7a4edec13ff04",
+    "scripts/rag_dialogue.py": "fa634822ed986ec838815079a9437a7699630a056f2c2d195841ba905a2f444b"
   },
   "private_corpus": {
     "assets/support-details.json": "01a3d2eb61ab8ea6d70b1514eddafaf60b107e3a777c5df342991ac5c6e72c62",

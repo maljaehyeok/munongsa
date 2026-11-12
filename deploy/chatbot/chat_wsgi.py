@@ -98,7 +98,7 @@ def main(inherited_socket=None, application_wrapper=None):
     # Fail before listening if any snapshot/document/approval check fails.
     try:
         corpus = rag_api.load_api_corpus()
-        if corpus['excluded'] or len(corpus['documents']) != rag_api.EXPECTED_DOCUMENTS:
+        if not rag_api.corpus_ready(corpus):
             raise ValueError()
     except Exception:
         print('Verified corpus unavailable; server not started.', file=sys.stderr)
