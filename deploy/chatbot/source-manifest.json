@@ -4,11 +4,14 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "b1e3797185cef6c446ac8e80dd68740e61fb0280e3b5cbbb1084c32674d3a9a1",
-    "assets/chat-ui.js": "aa4bcdac8f0232375e2eb8a99329ca887dc8ae8303e4037aa43c9da4b30fbf8c",
+    "index.html": "dddfe483c1d799c9402f6004a548cc0fe279f5d9a05ea57c5a001a1e62edafb7",
+    "assets/chat-ui.js": "8151508a860c64d1bf53f26d5d411df0434a5b9e56c14e9b62c2830a0a48439c",
     "assets/chat-ui.css": "63cb322e967faf7807b6cade936c99a09ae5b7e8f05c9ddee44d43bd002c31c1",
     "assets/support-public.js": "b9d4878b9f2caadea9958a3e09083a43916dce73aa1c9d98d19b155fa18bf584",
-    "assets/selection-view.js": "fc19982c4a8996f4f15da2c6348b4992d66fe177734ab443986ca7ff791e5290"
+    "assets/selection-view.js": "fc19982c4a8996f4f15da2c6348b4992d66fe177734ab443986ca7ff791e5290",
+    "assets/input-ux.js": "9d61d608280ebda6938a2b55aa0a8ba8206af6585f7e0af8e307083432b93136",
+    "assets/amount-display.js": "b3bce0564923cdfec1d4110305c990e9f0811bd6a11525aa3c8e42f5613dc982",
+    "assets/ux-first.css": "1bef8744409f8d9dd837cc8dafc3a2dae7abcddf4e0752a28ac17a071f43fd6e"
   },
   "runtime": {
     "scripts/rag_search.py": "5af3afda3f53f9d36a6190dc46ac85b778d63c414f9434fed0e60d5f303ea9fc",
