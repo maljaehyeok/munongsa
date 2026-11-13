@@ -152,6 +152,10 @@
     const answer=text('div','','chat-answer-text');
     readableAnswer(data).split(/\n{2,}/).filter(Boolean).forEach(paragraph=>answer.append(text('p',paragraph)));
     node.append(answer);node.className='chat-message chat-message-answer';
+    if(['help','condition_edit'].includes(data.kind)){
+      const actions=text('div','','chat-followups');
+      actions.append(conditionButton('내 조건 선택·수정',()=>{if(!pending)openConditions();}));node.append(actions);
+    }
     if(data.suggestions?.length){
       const choices=text('div','','chat-followups');
       data.suggestions.forEach(value=>{const b=text('button',value);b.type='button';b.addEventListener('click',()=>{if(pending)return;input.value=value;sync();input.focus();});choices.append(b);});node.append(choices);

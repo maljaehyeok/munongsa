@@ -79,6 +79,47 @@ def corpus_text(document):
     return ' '.join(str(v) for v in (item.get('title',''),item.get('target',''),
         item.get('support',''),fields.get('conditions',{}).get('value','')))
 
+def service_response(encoded,corpus,intent=None):
+    """Bounded service guidance, not generated grant facts. No model call needed."""
+    question,context=decode(encoded);context=dict(context)
+    live={d['public']['id'] for d in corpus['documents'].values()}
+    context['notice_ids']=[v for v in context.get('notice_ids',[]) if v in live]
+    facts,error=rag_profile.extract(question,AREAS,CROPS,normalized)
+    if error:return None
+    # Advice/help must not consume new facts or a factual business question.
+    if facts:return None
+    compact=re.sub(r'[\s!?.~,，。]','',question)
+    rest=re.sub(r'^(?:안녕하세요|안녕하십니까|안녕|반가워요?|반갑습니다)[,，!\s]*','',question).strip()
+    rest=re.sub(r'[\s!?.~,，。]','',rest)
+    edit=bool(re.fullmatch(r'(?:내|제)?조건(?:을)?(?:바꾸고싶어|바꾸고싶어요|변경하고싶어|수정하고싶어|수정|변경|선택)(?:요)?',compact))
+    guide=bool(re.search(r'너는누구|무농사(?:는|가)?(?:어떤|무슨)서비스|(?:너는)?(?:무슨|어떤)역할|어떤도움|무엇을할수|뭘할수|어떻게사용|사용방법|도움말|어떤기능|어떤정보(?:를)?알려|지원사업도찾아줄수',rest))
+    starter=bool(re.fullmatch(r'(?:나는|제가)?농업(?:을)?처음시작하려고(?:하는데)?어떻게(?:해야해|하면돼)(?:요)?',compact))
+    greet=bool(re.fullmatch(r'(안녕|안녕하세요|안녕하십니까|반가워|반가워요|반갑습니다)(무농사)?',compact))
+    thanks=bool(re.fullmatch(r'(고마워|고마워요|감사합니다|감사해|감사해요|고맙습니다|감사)',compact))
+    # Validated GPT intents help paraphrases without replacing factual questions.
+    specific=bool(area_in(question) or any(c in question for c in CROPS) or re.search(r'자격|마감|서류|지원금|얼마|계산|이차보전|비가림|R&D',question))
+    if specific:guide=False
+    if intent in ('greeting','help','thanks') and not specific:
+        greet=greet or intent=='greeting';guide=guide or intent=='help';thanks=thanks or intent=='thanks'
+    if edit:
+        return response('아래 ‘내 조건 선택·수정’에서 바꿀 항목만 고쳐주세요. 이미 알려주신 값은 채워 두고, 적용하면 같은 공식 근거로 다시 비교해요. 모르는 항목은 비워 두어도 됩니다.',context,'condition_edit')
+    if thanks and not guide:
+        return response('도움이 되셨다니 다행이에요. 궁금한 사업의 신청 조건이나 마감일을 이어서 물어보세요.',context,'thanks')
+    if re.fullmatch(r'(?:오늘)?(?:날씨(?:는|어때|알려줘)?|점심(?:뭐먹지|추천해줘)|저녁메뉴추천|재밌는이야기해줘|농담해줘)',compact):
+        return response('저는 농업 지원사업 탐색과 신청 준비를 돕는 상담이에요. 날씨·식사·일반 잡담은 안내 범위가 아니지만, 지역이나 관심 작물을 알려주시면 공개된 사업을 함께 찾아볼 수 있어요.',context,'help',suggestions=('내 조건에 맞는 지원사업을 찾고 싶어',))
+    if not (guide or greet or starter):return None
+    missing=[]
+    if 'farm_region' not in context:missing.append('어느 시·군에서 농사짓고 있거나 시작할 예정인가요?')
+    if 'farm_registered' not in context:missing.append('농업경영체 등록 여부를 알려주세요. 잘 모르시면 건너뛰어도 돼요.')
+    answer=('안녕하세요! 무농사 AI 상담이에요. ' if greet else '')+'공식 농업 지원사업을 찾고, 알려주신 조건과 공고 요건을 비교하며 신청 방법·서류·마감일을 근거와 함께 확인해 드려요.'
+    answer+='\n\n질문을 바로 입력하거나 아래에서 조건을 한 번에 선택해 주세요. 거주지와 영농지는 구분하며, 모르는 조건은 비워 두어도 검색할 수 있어요.'
+    if missing:answer+='\n\n먼저 '+missing[0]
+    answer+='\n\n일부 조건이 맞아도 신청 자격이나 현재 접수 가능 여부를 확정하지 않아요. 확인되지 않은 내용은 따로 안내해요.'
+    out=response(answer,context,'help',suggestions=('내 조건에 맞는 지원사업을 찾고 싶어','청년농업인 지원사업'))
+    out['followup_questions']=missing[:2]
+    return out
+
+
 def basic_response(encoded,corpus,grounded):
     question,context=decode(encoded);context=dict(context)
     compact=re.sub(r'[\s!?.~。]+','',question)
@@ -149,7 +190,7 @@ def basic_response(encoded,corpus,grounded):
         if re.search('청년|후계농',question):topic.append(('청년','후계농'))
         if '귀농' in question:topic.append(('귀농',))
         if crop:topic.append((crop,))
-        generic=bool(area or topic or re.search(r'(지원사업|지원\s*사업|공고|받을\s*수\s*있는\s*지원)',question))
+        generic=bool(area or topic or re.search(r'(지원사업|지원\s*사업|공고|지원\s*받|받을\s*수\s*있는\s*지원)',question))
         if not generic:return response('지원사업을 찾는 질문으로 조금 더 구체적으로 알려주세요. 지역, 재배 작물, 사업명 중 하나를 적으면 확인된 공식 근거를 찾을 수 있어요.',context,'clarify',status='no_evidence',suggestions=('전주 관련 공고','마늘 재배 지원'))
         ranked=[]
         for k,document in docs.items():
@@ -187,6 +228,8 @@ def basic_response(encoded,corpus,grounded):
 
 
 def _respond(encoded,corpus,grounded):
+    guidance=service_response(encoded,corpus)
+    if guidance:return guidance
     question,context=decode(encoded)
     facts,error=rag_profile.extract(question,AREAS,CROPS,normalized)
     if error:return response(error,context,'clarify',status='needs_verification')
@@ -209,9 +252,10 @@ def _respond(encoded,corpus,grounded):
         out=grounded(canonical,live_by_id[ids[0]])
         out.update(kind='answer',conversation=context,suggestions=[])
     else:out=basic_response(encoded,corpus,grounded)
-    if out['kind'] in ('greeting','thanks','help') or out.get('scope_not_found'):return out
+    if out['kind'] in ('greeting','thanks','help','condition_edit') or out.get('scope_not_found'):return out
     wants=bool(facts or re.search('추천|맞는|받을|신청.*가능|지원사업|공고',question))
-    if personal and wants and not (followup and context.get('notice_ids')) and out['kind']!='answer':
+    explicit_explore=bool(area_in(question) and re.search(r'공고|사업|지원|신청',question) and area_in(question) not in (context.get('region'),context.get('farm_region')))
+    if personal and wants and not explicit_explore and not (followup and context.get('notice_ids')) and out['kind']!='answer':
         area=context.get('farm_region') or context.get('region');crop=context.get('crop');ranked=[]
         for key,document in corpus['documents'].items():
             score=region_matches(area,document['public'],document) if area else 0

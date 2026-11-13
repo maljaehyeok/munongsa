@@ -144,6 +144,10 @@ def local_pipeline(question):
         raise VerificationError()
     import rag_dialogue,rag_nlu
     original,context=rag_dialogue.decode(question)
+    guidance=rag_dialogue.service_response(question,corpus)
+    if guidance:
+        guidance['understanding']='rules'
+        return guidance
     # Explicit condition selection already carries the same validated profile.
     # Do not spend a model call reinterpreting this fixed UI action.
     understood=None if original=='선택한 조건으로 지원사업을 찾아주세요.' else rag_nlu.interpret(original,context)
@@ -155,7 +159,10 @@ def local_pipeline(question):
         intent='deadline' if re.search(r'언제까지|마감|언제.*신청',original) else 'eligibility'
         understood={'intent':intent,'facts':{},'hypothetical':bool(re.search(r'등록\s*(?:하면|한다면|할\s*경우)',original)),'reference_previous':True,'uncertain':[]}
     routed,actual,evaluation=rag_nlu.route(question,understood) if understood else (question,None,None)
-    if (understood and understood['intent']=='independent_management') or re.search(r'부모.*돕.*독립경영',original):
+    guidance=rag_dialogue.service_response(routed,corpus,understood['intent']) if understood else None
+    if guidance:
+        response=guidance
+    elif (understood and understood['intent']=='independent_management') or re.search(r'부모.*돕.*독립경영',original):
         response=rag_dialogue.response('부모님 농사를 돕는다는 사실만으로 독립경영 인정 여부를 확정할 수 없습니다. 사업마다 공식 정의·인정 서류·기준일이 다를 수 있어요. 확인하려는 지원사업명과 본인 농업경영체 등록 여부를 알려주세요.',actual or context,'clarify',status='needs_verification')
     else:
         response = rag_dialogue.respond(routed, corpus,
