@@ -400,6 +400,27 @@
       "kind": "jeonbuk_guidelines",
       "search_terms": [],
       "board_url": "https://www.jeonbuk.go.kr/board/list.jeonbuk?menuCd=DOM_000000104008006000&boardId=BBS_0000046"
+    },
+    {
+      "source_id": "jeonbuk-academy-official",
+      "kind": "jeonbuk_academy",
+      "institution": "전북특별자치도 농식품인력개발원",
+      "city": "전북",
+      "board_url": "https://agriacademy.jeonbuk.go.kr/bbs/board.php?bo_table=ad_02_01",
+      "discovery_url": "https://agriacademy.jeonbuk.go.kr/ai/feed.xml",
+      "official_hosts": [
+        "agriacademy.jeonbuk.go.kr"
+      ],
+      "method": "html",
+      "adapter": "academy-official-atom-v1",
+      "enabled": true,
+      "minimum_interval_hours": 24,
+      "max_items": 100,
+      "detail_limit": 4,
+      "reuse_policy": "unknown",
+      "policy_url": "https://agriacademy.jeonbuk.go.kr/robots.txt",
+      "policy_checked_at": "2026-11-13",
+      "notes": "공식 Atom으로 발견하고 원문 교육 표만 읽음. 교육일·피드 갱신일·접수 기한 구분. 학생 신청·댓글·첨부 수집 금지. 검토 대기만 저장; 재배포·외부 전송 권한 별도 확인."
     }
   ]
 }
