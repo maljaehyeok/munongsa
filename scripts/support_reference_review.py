@@ -30,25 +30,13 @@ def db_record(db,notice_id):
     record=monitor.notice_record(db,notice_id)
     record['institution']=db.execute('SELECT institution FROM monitor_sources WHERE source_id=?',(record['source_id'],)).fetchone()[0]
     record['structured_conditions']=eligibility.show(db,notice_id)
+    record['facts']=json.loads(record.get('hints_json') or '{}').get('objective_facts',{})
     return record
 
 
 def classify(record):
-    title=record['title']
-    if re.search(r'자문단|연구 참여자|효과검증|선정결과|축제|박람회',title):category='general_notice'
-    elif re.search(r'교육|연수|수강',title):category='training'
-    elif re.search(r'지원사업|시범사업|지원\s*사업|육성자금|임대농장|정착금|대출|기술창업|면세유|산업기능요원',title):category='support_candidate'
-    else:category='needs_review'
-    facts=record.get('facts',{})
-    period=record.get('period_assessment',{}).get('status','unknown')
-    return {'notice_id':record['notice_id'],'title':title,'institution':record['institution'],
-            'url':record['original_url'],'published_at':record.get('published_at'),'category':category,
-            'period':period,'fact_fields':sorted(facts),'publication':record.get('publication','review'),
-            'remaining_checks':['official basic facts and support-notice type',
-                                'permitted public-use scope and evidence',
-                                'explicit human reference approval'],
-            'basis':'title and stored extraction only; official verification/public rights still required',
-            'review_priority':'archive' if period=='closed' else 'candidate' if category=='support_candidate' and facts else 'check'}
+    from support_review_queue import classify as triage
+    return triage(record)
 
 
 def draft(record):
@@ -155,7 +143,7 @@ def private_output(path,data):
 def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='command',required=True)
     for name in ('queue','draft'):
-        p=sub.add_parser(name);p.add_argument('--snapshot',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
+        p=sub.add_parser(name);origin=p.add_mutually_exclusive_group(required=True);origin.add_argument('--snapshot',type=Path);origin.add_argument('--state-dir',type=Path);p.add_argument('--output',type=Path)
         if name=='draft':p.add_argument('--notice-id',required=True)
     for name in ('preview','approve-reference'):
         p=sub.add_parser(name);p.add_argument('--state-dir',type=Path,required=True);p.add_argument('--plan',type=Path,required=True)
@@ -165,9 +153,23 @@ def main():
     args=parser.parse_args()
     try:
         if args.command in ('queue','draft'):
-            snapshot=json.loads(args.snapshot.read_text('utf-8-sig'));records=snapshot['notices']
-            data={'candidates':[classify(n) for n in records]} if args.command=='queue' else draft(next(n for n in records if n['notice_id']==args.notice_id))
-            private_output(args.output,data);result={'saved':str(args.output),'db_changed':False}
+            if args.state_dir:
+                with closing(monitor.connect(args.state_dir,readonly=True)) as db:
+                    if args.command=='queue':
+                        from support_review_queue import from_database,source_status
+                        decisions=args.state_dir/'review-queue-decisions.json'
+                        data=from_database(db,decisions=json.loads(decisions.read_text('utf-8')) if decisions.exists() else {})
+                        registry=monitor.ROOT/'config/collector_sources.json';latest=args.state_dir/'latest-run.json'
+                        if registry.exists() and latest.exists():data['collection_sources']=source_status(json.loads(registry.read_text('utf-8'))['sources'],json.loads(latest.read_text('utf-8')),db.execute('SELECT * FROM monitor_sources'))
+                    else:data=draft(db_record(db,args.notice_id))
+            else:
+                snapshot=json.loads(args.snapshot.read_text('utf-8-sig'));records=snapshot['notices']
+                if args.command=='queue':
+                    from support_review_queue import report
+                    data=report(records)
+                else:data=draft(next(n for n in records if n['notice_id']==args.notice_id))
+            if args.output:private_output(args.output,data);result={'saved':str(args.output),'db_changed':False}
+            else:result=data
         else:
             plan=json.loads(args.plan.read_text('utf-8-sig'))
             if args.command=='preview':

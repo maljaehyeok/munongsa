@@ -152,7 +152,20 @@ class ReferenceReviewTests(unittest.TestCase):
 
     def test_classification_never_establishes_eligibility(self):
         record={**self.record,'facts':{},'period_assessment':{'status':'unknown'}}
-        self.assertEqual(review.classify(record)['category'],'support_candidate')
-        record['title']='청년자문단 모집 공고';self.assertEqual(review.classify(record)['category'],'general_notice')
+        self.assertEqual(review.classify(record)['category'],'needs_check')
+        self.assertIn('보류',review.classify(record)['approval'])
+        record['title']='청년자문단 모집 공고';self.assertEqual(review.classify(record)['category'],'unrelated')
+
+    def test_queue_reads_db_without_reviews_or_publication(self):
+        from support_review_queue import from_database
+        from contextlib import closing
+        events=self.db.execute('SELECT count(*) FROM review_events').fetchone()[0]
+        with closing(monitor.connect(self.state,readonly=True)) as ro:
+            result=from_database(ro,NOW)
+            self.assertEqual(ro.execute('PRAGMA query_only').fetchone()[0],1)
+        self.assertEqual(result['total_pending'],1)
+        self.assertFalse(result['automatic_approval'])
+        self.assertEqual(self.db.execute('SELECT count(*) FROM review_events').fetchone()[0],events)
+        self.assertEqual(monitor.notice_record(self.db,self.nid)['publication'],'review')
 
 if __name__=='__main__':unittest.main()
