@@ -22,7 +22,7 @@ MAX_OUTPUT=512
 DAILY_CALLS=30
 MINUTE_CALLS=6
 FIELDS=('region','farm_region','age','applicant','group_size','farm_registered','farming_years','planned','cultivating','facility_sqm','crop')
-INTENTS=('discover','eligibility','deadline','documents','funding','greeting','thanks','help','context','independent_management','other')
+INTENTS=('discover','eligibility','deadline','documents','funding','greeting','thanks','help','context','independent_management','rephrase','correction','next_step','compare','open_notices','other')
 SCHEMA={'type':'object','additionalProperties':False,'properties':{
  'intent':{'type':'string','enum':list(INTENTS)},'hypothetical':{'type':'boolean'},'reference_previous':{'type':'boolean'},
  'facts':{'type':'array','maxItems':6,'items':{'type':'object','additionalProperties':False,'properties':{
@@ -33,6 +33,7 @@ INSTRUCTIONS='''Interpret Korean agricultural-support questions only. Never answ
 Extract ONLY explicit self-reported facts supported by a short exact quote from the current question. Prior profile is context, never new evidence. Do not infer age, business registration, independent farming, residence or parcel eligibility.
 Hypothetical registration (등록하면), assumptions, and questions are not actual profile updates. Mark hypothetical=true. Parents' farming assistance never establishes independent management; use independent_management intent.
 Use reference_previous only for an explicit follow-up (그 사업, 아까, 그럼). Distinguish residence(region) and farming location(farm_region). Use supported area/crop names only. Registration values yes/no; applicant individual_farmer/group/agricultural_corporation/business; booleans true/false as strings, other numbers as plain numeric strings. Unknown facts are omitted and may be named uncertain. No tools, notice text or external knowledge.'''
+INSTRUCTIONS+=' Rephrasing a prior explanation uses rephrase; correcting a misunderstanding uses correction without invented facts; asking what to do next uses next_step; comparing listed businesses uses compare; asking which listed ones are within their dates uses open_notices. Never generate an explanation or business facts. previous_kind and previous_count are routing hints only.'
 
 def packed(value):return json.dumps(value,ensure_ascii=False,separators=(',',':')).encode('utf-8')
 def digest(raw):return hashlib.sha256(raw).hexdigest()
@@ -55,7 +56,7 @@ def make_request(question,context):
     if not q:return None
     profile={k:v for k,v in context.items() if k in FIELDS}
     payload={'model':MODEL,'store':False,'max_output_tokens':MAX_OUTPUT,'reasoning':{'effort':'none'},
-      'instructions':INSTRUCTIONS,'input':packed({'question':q,'profile':profile,'has_previous_business':bool(context.get('notice_ids')),
+      'instructions':INSTRUCTIONS,'input':packed({'question':q,'profile':profile,'has_previous_business':bool(context.get('notice_ids')),'previous_kind':context.get('last_kind'),'previous_count':len(context.get('list_ids',[])),
        'supported_areas':list(rag_dialogue.AREAS),'supported_crops':list(rag_dialogue.CROPS)}).decode(),
       'text':{'format':{'type':'json_schema','name':'munongsa_question','strict':True,'schema':SCHEMA}}}
     raw=packed(payload)
@@ -148,7 +149,7 @@ def interpret(question,context,queue=QUEUE):
         if len(list(queue.glob('q-*.json')))>=4:return None
         identity=uuid.uuid4().hex;qfile=queue/('q-'+identity+'.json');rfile=queue/('r-'+identity+'.json')
         question=json.loads(request['input'])['question']
-        body={'id':identity,'question':question,'context':{k:v for k,v in context.items() if k in FIELDS},'previous':bool(context.get('notice_ids')),'created':time.time()}
+        body={'id':identity,'question':question,'context':{k:v for k,v in context.items() if k in FIELDS or k=='last_kind'},'previous':bool(context.get('notice_ids')),'previous_count':len(context.get('list_ids',[])),'created':time.time()}
         atomic(qfile,body);deadline=time.monotonic()+WAIT
         while time.monotonic()<deadline:
             if rfile.exists():
@@ -173,7 +174,7 @@ def route(encoded,understood):
     evaluation={**context,**facts}
     if understood['hypothetical'] and re.search(r'등록\s*(?:하면|한다면|할\s*경우)',question):evaluation['farm_registered']='yes'
     canonical={'deadline':'그 사업 신청 대상 조건과 모집기간 마감은?','documents':'필요한 서류는?','funding':'지원금은?','eligibility':'그럼 신청 조건은?'}
-    if understood['reference_previous'] and context.get('notice_ids') and understood['intent'] in canonical:question=canonical[understood['intent']]
+    if understood['reference_previous'] and context.get('notice_ids') and understood['intent'] in canonical and not re.search(r'(?:첫|두|세|[1-3])\s*(?:번째|번)',question):question=canonical[understood['intent']]
     return rag_dialogue.PREFIX+json.dumps(evaluation,ensure_ascii=False)+rag_dialogue.SEPARATOR+question,actual,evaluation
 
 def broker(queue,budget,client_uid):
@@ -196,10 +197,15 @@ def broker(queue,budget,client_uid):
                 q=sanitize(item['question'])
                 if q!=item['question']:continue
                 context=item['context'];context['notice_ids']=['NOTICE-previous'] if item['previous'] else []
+                count=item.get('previous_count',0)
+                if type(count) is not int or not 0<=count<=3:raise ValueError('previous_count')
                 import rag_dialogue
                 # Do not trust the queue producer's context either.
                 rag_dialogue.decode(rag_dialogue.PREFIX+json.dumps(context,ensure_ascii=False)+rag_dialogue.SEPARATOR+q)
-                request=make_request(q,context);reply['question_sha']=digest(q.encode())
+                request=make_request(q,context)
+                if request:
+                    hints=json.loads(request['input']);hints['previous_count']=count;request['input']=packed(hints).decode()
+                reply['question_sha']=digest(q.encode())
                 now=time.monotonic();recent=[t for t in recent if now-t<60]
                 day=datetime.now(timezone(timedelta(hours=9))).date().isoformat()
                 ledger=reserve(budget,recent,day,now) if ready and request else None

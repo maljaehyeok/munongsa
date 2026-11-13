@@ -25,7 +25,7 @@ class ConsultationFlow(unittest.TestCase):
     def test_known_conditions_not_reasked_or_lost(self):
         c={'region':'전주','farm_region':'김제','farm_registered':'no','notice_ids':['NOTICE-jeonju']}
         out,calls=self.run_question('내가 어떤 정보를 알려주면 돼?',c)
-        self.assertEqual(out['conversation'],c);self.assertEqual(out['followup_questions'],[]);self.assertEqual(calls,0)
+        self.assertTrue(all(out['conversation'][k]==v for k,v in c.items()));self.assertEqual(out['followup_questions'],[]);self.assertEqual(calls,0)
     def test_edit_offers_existing_ui_and_preserves_profile(self):
         out,calls=self.run_question('내 조건을 바꾸고 싶어.',{'region':'전주'})
         self.assertEqual(out['kind'],'condition_edit');self.assertEqual(out['conversation']['region'],'전주');self.assertEqual(calls,0)

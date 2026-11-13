@@ -37,15 +37,19 @@ def decode(value):
     context={};question=value
     if value.startswith(PREFIX):
         raw,question=value[len(PREFIX):].split(SEPARATOR,1)
-        if len(raw)>900:raise ValueError('context_too_long')
+        if len(raw)>1600:raise ValueError('context_too_long')
         context=json.loads(raw)
-        if not isinstance(context,dict) or set(context)-({'region','crop','farm_registered','notice_ids'}|rag_profile.KEYS):raise ValueError('context_fields')
+        if not isinstance(context,dict) or set(context)-({'region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind'}|rag_profile.KEYS):raise ValueError('context_fields')
         if 'region' in context and context['region'] not in AREAS:raise ValueError('context_region')
         if 'crop' in context and context['crop'] not in CROPS:raise ValueError('context_crop')
         if 'farm_registered' in context and context['farm_registered'] not in ('yes','no'):raise ValueError('context_registration')
         if not rag_profile.valid_context(context,AREAS):raise ValueError('context_values')
         ids=context.get('notice_ids',[])
         if not isinstance(ids,list) or len(ids)>3 or any(not isinstance(v,str) or not re.fullmatch('NOTICE-[A-Za-z0-9_-]{1,70}',v) for v in ids):raise ValueError('context_notices')
+        listed=context.get('list_ids',[]);versions=context.get('list_versions',[])
+        if not isinstance(listed,list) or len(listed)>3 or len(set(str(v) for v in listed))!=len(listed) or any(not isinstance(v,str) or not re.fullmatch('NOTICE-[A-Za-z0-9_-]{1,70}',v) for v in listed):raise ValueError('context_list')
+        if not isinstance(versions,list) or len(versions)!=len(listed) or any(not isinstance(v,str) or not re.fullmatch('[a-f0-9]{64}',v) for v in versions):raise ValueError('context_versions')
+        if context.get('last_kind','help') not in ('help','results','clarify','context'):raise ValueError('context_kind')
     if not isinstance(question,str) or not 1<=len(question.strip())<=1000:raise ValueError('question_length')
     return question.strip(),context
 
@@ -78,6 +82,84 @@ def corpus_text(document):
     fields=record.get('fields',{})
     return ' '.join(str(v) for v in (item.get('title',''),item.get('target',''),
         item.get('support',''),fields.get('conditions',{}).get('value','')))
+
+
+def notice_version(document):
+    import hashlib
+    # Covers both evidence and approved public conditions/dates, never feed time.
+    return hashlib.sha256(json.dumps({'public':document['public'],'record':document['record']},ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+
+
+def remember(out,corpus):
+    """Only bounded routing metadata in browser memory; no answer/history text."""
+    context=out.setdefault('conversation',{});programs=out.get('programs',[])
+    by_id={d['public']['id']:d for d in corpus['documents'].values()}
+    ids=context.get('list_ids',[]);versions=context.get('list_versions',[])
+    intact=bool(ids) and len(ids)==len(versions) and all(i in by_id and notice_version(by_id[i])==v for i,v in zip(ids,versions))
+    if programs and (out.get('kind') in ('catalogue','recommendation') or not intact):
+        ids=[p['id'] for p in programs]
+        context.update(list_ids=ids,list_versions=[notice_version(by_id[i]) for i in ids])
+    context['last_kind']='results' if programs else 'help' if out.get('kind') in ('help','greeting','thanks','condition_edit') else 'clarify' if out.get('kind')=='clarify' else 'context'
+    return out
+
+
+def continuation(encoded,corpus,grounded,intent=None):
+    """Resolve follow-ups against an intact displayed list, then reuse evidence."""
+    question,context=decode(encoded);context=dict(context)
+    facts,error=rag_profile.extract(question,AREAS,CROPS,normalized)
+    if facts or error or rag_profile.hypothetical(question):return None
+    compact=re.sub(r'[\s?!.,~，。]','',question)
+    correction=compact in ('아니','아니내말은그게아니라','내말은그게아니야') or intent=='correction'
+    repeat=compact in ('응','네','무슨뜻이야','무슨말이야','다시설명해줘','다시설명해','아까말한거다시알려줘','아까알려준거다시알려줘') or intent=='rephrase'
+    next_step=compact in ('그럼어떻게해야해','어떻게하면돼','다음엔뭘해야해') or intent=='next_step'
+    ordinal=[]
+    for m in re.finditer(r'(첫|두|세|[1-3])\s*(?:번째|번)(?:째)?',question):
+        i={'첫':0,'두':1,'세':2,'1':0,'2':1,'3':2}[m[1]]
+        if i not in ordinal:ordinal.append(i)
+    group=bool(re.search(r'그\s*중|그중|아까.*(?:사업|공고).*중',question))
+    if not (correction or repeat or next_step or ordinal or group or intent in ('compare','open_notices')):return None
+    if correction:
+        return response('제가 어떤 부분을 다르게 이해했나요? 바꾸려는 지역·등록 여부나 궁금한 사업을 짧게 알려주세요. 말씀하시기 전까지 기존 조건은 바꾸지 않을게요.',context,'clarify')
+    by_id={d['public']['id']:k for k,d in corpus['documents'].items()}
+    ids=context.get('list_ids',[]);versions=context.get('list_versions',[])
+    intact=bool(ids) and len(ids)==len(versions) and all(i in by_id and notice_version(corpus['documents'][by_id[i]])==v for i,v in zip(ids,versions))
+    if (repeat or next_step) and not ids:
+        if context.get('last_kind')=='help':
+            return service_response('어떤 도움을 줄 수 있어?',corpus) | {'conversation':context,'answer':'쉽게 말해, 농업 지원사업을 찾고 내 조건과 비교하는 서비스예요. 질문을 입력하거나 ‘내 조건 선택·수정’에서 시작하세요. 모르는 항목은 건너뛰어도 돼요.'}
+        return response('앞서 어떤 내용을 다시 확인하고 싶으세요? 사업 이름이나 바꾸려는 조건 하나만 알려주세요. 기존 조건은 그대로 두었어요.',context,'clarify')
+    def choose(message):
+        suggestions=tuple(corpus['documents'][by_id[i]]['public']['title']+' 신청 조건' for i in ids if i in by_id)
+        return response(message,context,'clarify',status='needs_verification',suggestions=suggestions or ('현재 공개 지원사업',))
+    if not intact:return choose('앞서 본 목록이 변경됐거나 순서를 확인할 수 없어 임의로 사업을 고르지 않았어요. 사업명을 선택하거나 현재 공개 목록을 다시 확인해 주세요.')
+    if any(i>=len(ids) for i in ordinal):return choose('말씀하신 순서에 해당하는 사업을 앞선 목록에서 확인할 수 없어요. 어떤 사업인지 선택해 주세요.')
+    if not ordinal and not (repeat or next_step or group or intent=='open_notices'):
+        return choose('어떤 사업들을 비교할까요? 앞서 안내한 사업의 순서나 이름을 알려주세요.')
+    selected=[ids[i] for i in ordinal] if ordinal else list(ids)
+    if next_step:
+        return choose('신청 준비를 확인할 사업을 골라주세요. 그 사업의 공식 신청 방법·서류·접수처 중 저장된 근거가 있는 내용만 안내할게요. 전체 신청 자격이나 현재 접수 가능 여부는 별도 확인이 필요해요.')
+    query='지원 금액 한도' if re.search('얼마|지원금|금액',question) or intent=='funding' else '신청 대상 조건과 모집기간 마감' if re.search('마감|언제|모집',question) or intent in ('deadline','open_notices') else '신청 대상 자격 조건 지원 내용' 
+    if '서류' in question or intent=='documents':query='필수 제출서류 신청처'
+    date_filter=bool(re.search(r'모집\s*중|신청\s*기간\s*내',question)) or intent=='open_notices'
+    import rag_search
+    from datetime import datetime,timezone
+    if date_filter:
+        selected=[i for i in selected if rag_search.recruitment_context(corpus['documents'][by_id[i]],datetime.now(timezone.utc))['date_state'] in ('within_recorded_dates','deadline_day_time_unknown')]
+        if not selected:return response('앞서 안내한 목록에서 기재 날짜상 모집기간 내인 공고를 확인하지 못했어요. 실제 접수 상황·연장 여부는 공식 기관에 확인해야 해요.',context,'clarify',status='needs_verification')
+    programs=[];sources=[];parts=[];missing=[]
+    for i in selected:
+        found=grounded(query,by_id[i]);parts.append(found['answer'])
+        if not found['programs']:missing.append(corpus['documents'][by_id[i]]['public']['title'])
+        for program in found['programs']:
+            program['comparison']=rag_profile.compare(corpus['documents'][by_id[i]],context,rag_search.valid_url,AREAS)
+            programs.append(program)
+        sources.extend(found['sources'])
+    if not programs:return choose('해당 사업의 저장된 근거에서 질문하신 정보를 확인하지 못했어요. 금액·조건·서류를 추측하지 않고 공식 원문 확인을 안내해요.')
+    context['notice_ids']=[p['id'] for p in programs]
+    prefix='앞서 안내한 목록의 사업을 같은 순서로 다시 확인했어요.' if repeat else '선택한 사업의 확인 가능한 근거를 비교했어요.'
+    if group and not date_filter:prefix+=' 일부 조건이 맞아도 신청 가능으로 확정하지 않으며, 불일치·미확인을 함께 표시해요.'
+    if date_filter:prefix+=' 기재 날짜 기준이며 실제 접수 가능 여부를 확인한 결과는 아니에요.'
+    if missing:prefix+=' 다음 사업은 질문에 해당하는 저장 근거가 부족해 비교를 보류했어요: '+' / '.join(missing)
+    return response(prefix+'\n\n'+'\n\n'.join(parts),context,'answer',status='needs_verification',programs=programs,sources=sources)
 
 def service_response(encoded,corpus,intent=None):
     """Bounded service guidance, not generated grant facts. No model call needed."""

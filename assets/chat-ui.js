@@ -102,11 +102,14 @@
     const str=v=>typeof v==='string',strings=v=>Array.isArray(v)&&v.length<=100&&v.every(str);
     const context=data?.conversation;
     const validContext=context===undefined||(context&&typeof context==='object'&&!Array.isArray(context)
-      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm'].includes(k))
+      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm'].includes(k))
       &&['age','group_size','farming_years','facility_sqm'].every(k=>context[k]===undefined||(typeof context[k]==='number'&&Number.isFinite(context[k])&&context[k]>=0&&context[k]<=100000000))
       &&['planned','cultivating','group_min'].every(k=>context[k]===undefined||typeof context[k]==='boolean')
       &&['region','crop','farm_registered','farm_region','age_basis','applicant'].every(k=>context[k]===undefined||(str(context[k])&&context[k].length<=24))
-      &&(context.notice_ids===undefined||(strings(context.notice_ids)&&context.notice_ids.length<=3)));
+      &&(context.notice_ids===undefined||(strings(context.notice_ids)&&context.notice_ids.length<=3))
+      &&(context.list_ids===undefined||(strings(context.list_ids)&&context.list_ids.length<=3&&context.list_ids.every(i=>/^NOTICE-[A-Za-z0-9_-]{1,70}$/.test(i))))
+      &&(context.list_versions===undefined||(strings(context.list_versions)&&context.list_versions.length===(context.list_ids||[]).length&&context.list_versions.every(v=>/^[a-f0-9]{64}$/.test(v))))
+      &&(context.last_kind===undefined||['help','results','clarify','context'].includes(context.last_kind)));
     return data&&validContext&&(data.followup_questions===undefined||(strings(data.followup_questions)&&data.followup_questions.length<=2))&&(data.suggestions===undefined||(strings(data.suggestions)&&data.suggestions.length<=3))&&data.mode==='local'&&['answered','needs_verification','no_evidence'].includes(data.status)
       &&str(data.answer)&&data.answer.length<=100000&&Array.isArray(data.programs)&&data.programs.length<=3
       &&Array.isArray(data.sources)&&data.sources.length<=100
@@ -177,7 +180,7 @@
   }
 
   function renderResults(node,data){
-    const personal=Object.keys(data.conversation||{}).some(k=>!['notice_ids','region','crop'].includes(k));
+    const personal=fields.some(f=>data.conversation?.[f.key]!==undefined);
     const heading=text('header','','chat-result-heading');
     heading.append(text('h3',personal?'맞춤 추천 결과':'지원사업 검색 결과'),text('p',data.programs.length+'건을 안내합니다. 모집기간과 내 조건 비교를 함께 확인하세요.'));
     node.replaceChildren(heading);node.className='chat-message chat-message-answer chat-result-message';
@@ -187,7 +190,8 @@
       const status=text('div','','notice-status');
       const periodLabel={window:'기재 모집기간 내',upcoming:'모집 예정',elapsed:'모집기간 경과',unknown:'기간 확인 필요'}[d.state];
       status.append(text('span',periodLabel,'notice-chip '+d.tone),text('strong',d.headline,'deadline-badge '+d.tone));
-      card.append(status,text('h3',program.name,'chat-notice-title'));
+      const order=(data.conversation?.list_ids||[]).indexOf(program.id);
+      card.append(status,text('h3',(order>=0?(order+1)+'. ':'')+program.name,'chat-notice-title'));
       if(program.card.institution!=='확인 필요')card.append(text('p',program.card.institution,'notice-institution'));
       const comparison=text('section','','chat-condition-block');
       const mismatch=program.comparison?.label==='조건 불일치';
@@ -250,7 +254,7 @@
     if(!question||question.length>1000||/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(question)){input.setCustomValidity('질문을 1~1,000자로 입력하고 사용할 수 없는 특수문자는 지워주세요.');input.reportValidity();return;}
     if(editor?.isConnected)editor.remove();
     showConversation(true);byId('chatFormStatus').textContent='';message('내 질문',label,'user');
-    const status=message('무농사','승인된 공고에서 공식 근거를 찾고 있어요.','status');status.setAttribute('role','status');
+    const status=message('무농사','생각 중...','status');status.setAttribute('role','status');
     pending=true;sync();status.scrollIntoView({block:'nearest',behavior:'instant'});
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
     try{

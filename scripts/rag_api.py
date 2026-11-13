@@ -18,7 +18,7 @@ import rag_answer
 import rag_search
 
 API_PATH = '/api/chat'
-MAX_QUESTION = 2000  # Includes bounded transient context; the user question stays <=1,000.
+MAX_QUESTION = 3000  # Bounded list versions + profile; the user question stays <=1,000.
 MAX_BODY = 8192
 PIPELINE_TIMEOUT = 8
 REQUEST_TIMEOUT = 15
@@ -144,13 +144,13 @@ def local_pipeline(question):
         raise VerificationError()
     import rag_dialogue,rag_nlu
     original,context=rag_dialogue.decode(question)
-    guidance=rag_dialogue.service_response(question,corpus)
-    if guidance:
+    guidance=rag_dialogue.service_response(question,corpus) or rag_dialogue.continuation(question,corpus,lambda query,notice:grounded_response(query,corpus,notice))
+    if guidance and not guidance['programs']:
         guidance['understanding']='rules'
-        return guidance
+        return rag_dialogue.remember(guidance,corpus)
     # Explicit condition selection already carries the same validated profile.
     # Do not spend a model call reinterpreting this fixed UI action.
-    understood=None if original=='선택한 조건으로 지원사업을 찾아주세요.' else rag_nlu.interpret(original,context)
+    understood=None if guidance or original=='선택한 조건으로 지원사업을 찾아주세요.' else rag_nlu.interpret(original,context)
     used_gpt=understood is not None
     if understood is None and rag_dialogue.rag_profile.hypothetical(original):
         understood={'intent':'discover','facts':{},'hypothetical':True,'reference_previous':bool(context.get('notice_ids')),'uncertain':[]}
@@ -159,7 +159,7 @@ def local_pipeline(question):
         intent='deadline' if re.search(r'언제까지|마감|언제.*신청',original) else 'eligibility'
         understood={'intent':intent,'facts':{},'hypothetical':bool(re.search(r'등록\s*(?:하면|한다면|할\s*경우)',original)),'reference_previous':True,'uncertain':[]}
     routed,actual,evaluation=rag_nlu.route(question,understood) if understood else (question,None,None)
-    guidance=rag_dialogue.service_response(routed,corpus,understood['intent']) if understood else None
+    guidance=guidance or ((rag_dialogue.service_response(routed,corpus,understood['intent']) or rag_dialogue.continuation(routed,corpus,lambda query,notice:grounded_response(query,corpus,notice),understood['intent'])) if understood else None)
     if guidance:
         response=guidance
     elif (understood and understood['intent']=='independent_management') or re.search(r'부모.*돕.*독립경영',original):
@@ -188,7 +188,7 @@ def local_pipeline(question):
                     or rag_search.record_sha(before[identity]['record']) != rag_search.record_sha(after[identity]['record'])
                     or rag_sync.material(before[identity]['public']) != rag_sync.material(after[identity]['public'])):
                 raise VerificationError()
-    return response
+    return rag_dialogue.remember(response,corpus)
 
 
 def decorate_cards(response,corpus):
