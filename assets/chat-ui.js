@@ -11,7 +11,7 @@
   let opener=null,pending=false,conversation={};
   const selectionQuestion='선택한 조건으로 지원사업을 찾아주세요.';
   // Reuse the API's bounded conversation fields; no separate profile or engine.
-  const areas=['전주','부안','고창','파주','포항','부산','서울','전북','전남','경북','경남','경기','충남','충북','강원','제주'];
+  const areas=['전주','부안','고창','안산','김제','군산','익산','정읍','남원','완주','진안','무주','장수','임실','순창','파주','포항','부산','서울','전북','전남','경북','경남','경기','충남','충북','강원','제주','인천','대전','대구','광주','울산','세종'];
   const crops=['마늘','고추','배추','딸기','토마토','상추','감자','벼','쌀','사과','포도','콩','오이','버섯'];
   const fields=[
     {key:'region',label:'현재 거주지',options:areas},

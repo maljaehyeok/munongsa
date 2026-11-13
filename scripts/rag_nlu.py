@@ -74,6 +74,8 @@ def validate(value,question):
         if name not in FIELDS or name in facts or not isinstance(v,str) or len(v)>24 or not isinstance(quote,str) or not 1<=len(quote)<=90 or quote not in question:raise ValueError('unsupported_fact')
         if name in ('region','farm_region'):
             if v not in rag_dialogue.AREAS or v not in rag_dialogue.normalized(quote):raise ValueError('area')
+            stated,_=rag_profile.extract(question,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
+            if stated.get(name)!=v:continue  # A place in a business query is not the user's address.
         elif name=='crop':
             if v not in rag_dialogue.CROPS or v not in quote:raise ValueError('crop')
         elif name=='farm_registered':
@@ -92,7 +94,7 @@ def validate(value,question):
         facts[name]=v
     if not rag_profile.valid_context(facts,rag_dialogue.AREAS):raise ValueError('bounds')
     # Grounding is not trust: rules retain precedence; speculative data cannot persist.
-    hypothetical=value['hypothetical'] or bool(re.search(r'만약|가정|등록\s*(?:하면|한다면|할\s*경우)|이라면',question))
+    hypothetical=value['hypothetical'] or rag_profile.hypothetical(question)
     return {'intent':value['intent'],'facts':facts,'hypothetical':hypothetical,
             'reference_previous':value['reference_previous'] and bool(re.search(r'그\s*사업|아까|앞서|그럼|이\s*사업',question)),
             'uncertain':value['uncertain']}
@@ -167,7 +169,7 @@ def route(encoded,understood):
     question,context=rag_dialogue.decode(encoded)
     rules,error=rag_profile.extract(question,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
     if error:return encoded,None,None
-    facts={**understood['facts'],**rules};actual={**context,**facts} if not understood['hypothetical'] else dict(context)
+    facts={**understood['facts'],**rules};actual={**context,**facts} if not (understood['hypothetical'] or rag_profile.hypothetical(question)) else dict(context)
     evaluation={**context,**facts}
     if understood['hypothetical'] and re.search(r'등록\s*(?:하면|한다면|할\s*경우)',question):evaluation['farm_registered']='yes'
     canonical={'deadline':'그 사업 신청 대상 조건과 모집기간 마감은?','documents':'필요한 서류는?','funding':'지원금은?','eligibility':'그럼 신청 조건은?'}

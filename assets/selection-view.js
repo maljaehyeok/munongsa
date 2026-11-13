@@ -6,13 +6,23 @@
  function regionFilter(item,p){
   const scope=String(item.region||'').trim();
   if(item.verification_status!=='verified'||!['approved','approved_reference'].includes(item.publication))return {state:'check',keep:true,text:'지역 적용 확인 필요'};
-  if(/전국|국가 지원사업/.test(scope))return {state:'match',keep:true,text:'전국 대상 · 세부 자격 별도 확인'};
+  const comparison=root.MunongsaSupport?.regional(item,p);
+  if(comparison?.conditionStatus==='mismatch')return {state:'mismatch',keep:false,text:'입력한 거주지·영농지와 확인된 지역 요건 불일치'};
+  if(comparison?.conditionStatus==='match')return {state:'match',keep:true,text:'확인된 지역 요건 비교 · 전체 자격 별도 확인'};
+  if((item.eligibility?.conditions||[]).some(c=>['residence','business_location'].includes(c.kind)))return {state:'check',keep:true,text:'공식 지역 기준 또는 입력 정보 추가 확인 필요'};
+  if(/^전국(?:\s*대상)?$/.test(scope))return {state:'match',keep:true,text:'전국 대상 · 세부 자격 별도 확인'};
   // Do not turn an office location, an unclear scope or an institution name into a restriction.
-  if(/미확인|확인 필요|안내|지역본부|unknown/i.test(scope))return {state:'check',keep:true,text:'지역 적용 확인 필요'};
+  if(/미확인|확인 필요|확인되지|안내|지역본부|unknown/i.test(scope))return {state:'check',keep:true,text:'지역 적용 확인 필요'};
+  // A bare city or reception-office label establishes relevance, not whether
+  // the applicant must live there or farm there. Never guess that basis.
+  if(!/농지|영농지|재배지|거주/.test(scope))return {state:'check',keep:true,text:'거주지·영농지 중 적용 기준 확인 필요'};
+  if(/거주/.test(scope)&&/농지|영농지|재배지/.test(scope))return {state:'check',keep:true,text:'거주지·영농지의 결합 기준 추가 확인 필요'};
   const token=scope.split(/[\s;,./]+/)[0],place=root.MunongsaInputUX?.region(token);
   if(!place)return {state:'check',keep:true,text:'지역 적용 확인 필요'};
-  if(!selected(p.region)||p.customFarmRegion)return {state:'unselected',keep:true,text:'탐색 지역 미선택'};
-  const same=place.region===p.region&&(!place.district||!selected(p.district)||place.district===p.district);
+  const residence=/거주/.test(scope),province=residence?p.residenceRegion:p.region,district=residence?p.residenceDistrict:p.district;
+  if(!selected(province)||(residence?p.customResidence:p.customFarmRegion))return {state:'unselected',keep:true,text:'비교할 지역 미입력'};
+  if(place.district&&!selected(district)&&place.region===province)return {state:'check',keep:true,text:'비교할 시·군 추가 확인 필요'};
+  const same=place.region===province&&(!place.district||place.district===district);
   return {state:same?'match':'mismatch',keep:same,text:same?'선택 지역의 공고 · 세부 자격 별도 확인':'선택한 탐색 지역과 공고 지역이 다름'};
  }
  function chips(p,category,fields,optionText){

@@ -47,11 +47,14 @@
             // That combined selection does not establish a specific legal form.
             // Prospective status does not establish that the user is already a farmer.
             known=!!actual&&Array.isArray(v.one_of);ok=known&&v.one_of.includes(actual);
-          }else if(c.kind==='residence'){
-            const province=normalize(p.residenceRegion),district=normalize(p.residenceDistrict);
+          }else if(c.kind==='residence'||c.kind==='business_location'){
+            const residence=c.kind==='residence',farm=c.kind==='business_location'&&v.location_basis==='farm_land';
+            const province=normalize(residence?p.residenceRegion:farm?p.region:''),district=normalize(residence?p.residenceDistrict:farm?p.district:'');
             const scopes=Array.isArray(v.regions)?v.regions.map(normalize):[];
             const values=scopes.map(scope=>{
-              const parts=scope.split(/\s+/);if(scope==='전국')return 'match';
+              const parsed=root.MunongsaInputUX?.region(scope),parts=parsed?[parsed.region,parsed.district].filter(Boolean):scope.split(/\s+/);if(scope==='전국')return 'match';
+              if(parts.length===1&&!['전북','전남','경북','경남','경기','충북','충남','강원','제주','서울','부산','인천','대전','대구','광주','울산','세종'].includes(parts[0]))return 'check';
+              if(!residence&&!farm)return 'check';
               if(!selected(province))return 'check';
               if(province!==parts[0])return 'mismatch';
               if(parts.length===1)return 'match';
@@ -59,7 +62,7 @@
               return parts.length===2?(district===parts[1]?'match':'mismatch'):'check';
             });
             state=values.includes('match')?'match':!values.length||values.includes('check')?'check':'mismatch';
-            detail=state==='check'?'거주지 또는 지역 범위 추가 확인':'입력한 거주지와 원문 지역 비교';
+            detail=state==='check'?'거주지·영농지·사업장 중 공식 지역 기준 추가 확인':residence?'입력한 거주지와 원문 지역 비교':'입력한 영농지와 원문 지역 비교';
           }else if(c.kind==='age'){
             const born=date(p.birthDate),basis=date(v.basis_date);
             if(born&&basis&&born<=basis&&['international','calendar'].includes(v.age_basis)){
@@ -133,5 +136,11 @@
     rows.sort((a,b)=>rank(a)-rank(b)||((a.recruitment.end||'9999-12-31').localeCompare(b.recruitment.end||'9999-12-31'))||({match:0,check:1,mismatch:2}[a.match.conditionStatus]-{match:0,check:1,mismatch:2}[b.match.conditionStatus]));
     return {recommendations:rows.filter(r=>r.available&&r.match.conditionStatus!=='mismatch'),excluded:rows.filter(r=>r.available&&r.match.conditionStatus==='mismatch'),references:rows.filter(r=>!r.available)};
   }
-  root.MunongsaSupport={evaluate,explore,eligible,status,recruitment,safeUrl,schema};
+  function regional(item,p){
+    const payload=item.eligibility||{},regional=(payload.conditions||[]).filter(c=>['residence','business_location'].includes(c.kind));
+    if(!regional.length)return {conditionStatus:'check',conditions:[]};
+    const conditions=(payload.conditions||[]).map(c=>['residence','business_location'].includes(c.kind)?c:{...c,status:'ambiguous'});
+    return evaluate({...item,eligibility:{...payload,conditions}},p);
+  }
+  root.MunongsaSupport={evaluate,regional,explore,eligible,status,recruitment,safeUrl,schema};
 })(globalThis);

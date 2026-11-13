@@ -148,6 +148,8 @@ def local_pipeline(question):
     # Do not spend a model call reinterpreting this fixed UI action.
     understood=None if original=='선택한 조건으로 지원사업을 찾아주세요.' else rag_nlu.interpret(original,context)
     used_gpt=understood is not None
+    if understood is None and rag_dialogue.rag_profile.hypothetical(original):
+        understood={'intent':'discover','facts':{},'hypothetical':True,'reference_previous':bool(context.get('notice_ids')),'uncertain':[]}
     # Conservative follow-up routing still works when GPT is unavailable.
     if understood is None and context.get('notice_ids') and re.search(r'그\s*사업|아까|그럼',original):
         intent='deadline' if re.search(r'언제까지|마감|언제.*신청',original) else 'eligibility'

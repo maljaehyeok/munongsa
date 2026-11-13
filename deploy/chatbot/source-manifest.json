@@ -4,22 +4,24 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "2456d96374885430bb7a2be868824fecef5d6d233db8feb691e7335f5852f1d3",
-    "assets/chat-ui.js": "2fac78e06553425fb1c2e9a6aebfca365846c1c27d4a518a03184c680d3b1a4c",
-    "assets/chat-ui.css": "63cb322e967faf7807b6cade936c99a09ae5b7e8f05c9ddee44d43bd002c31c1"
+    "index.html": "35b4424c18c4b4faca0e8469dc5c5c8c169010989982a38184d4b14b7a17c216",
+    "assets/chat-ui.js": "dfe42a2f7f0104f9fd282b9c6b515f9a22ee0a7fa799b5f9cd1517649a77b12f",
+    "assets/chat-ui.css": "63cb322e967faf7807b6cade936c99a09ae5b7e8f05c9ddee44d43bd002c31c1",
+    "assets/support-public.js": "b9d4878b9f2caadea9958a3e09083a43916dce73aa1c9d98d19b155fa18bf584",
+    "assets/selection-view.js": "fc19982c4a8996f4f15da2c6348b4992d66fe177734ab443986ca7ff791e5290"
   },
   "runtime": {
     "scripts/rag_search.py": "5af3afda3f53f9d36a6190dc46ac85b778d63c414f9434fed0e60d5f303ea9fc",
     "scripts/rag_answer.py": "6b9a573cdc7fc2bdadabef09ab7524b76c39c5a6818f4574d6dc7962e7c37186",
-    "scripts/rag_api.py": "529004a72412e5911ed785cce2d26011102f0b37bae9b383c795346e18ce6f49",
+    "scripts/rag_api.py": "37abed92cd0dd549f5daa67bda123a8abf8ac36e25296f9d371f868adf928edc",
     "scripts/chat_wsgi.py": "3360cc48becc6a2279c4bd8a9a3f5827bdbc999a22401e8f0c0f27710047e292",
     "scripts/host_proxy_entry.py": "0af6b39819cabd9215924cd29b38e196046c1fc1bb0e64871b8f8c2c3710b97d",
     "scripts/host_socket_entry.py": "076623b171e962812b279d0268408281d1893981374702ced3ed3b776cf00b45",
     "scripts/rag_sync.py": "3e740fb63ea031b28076c0fac071e872752751f5c7117ffd4e44a8c531faa3e2",
     "scripts/rag_refresh_cycle.py": "1534735163a23b4167fcb365f904f7def84da2c5cd533ec88da7a4edec13ff04",
-    "scripts/rag_dialogue.py": "14b0ac01acca62a461165545f7741483bb95ebaa19d77d850e2864235231507f",
-    "scripts/rag_profile.py": "a229a61018a8cc85dca7070f3485eac2eb5e4387dc8c73d6ca783890ee1362c2",
-    "scripts/rag_nlu.py": "969e7e1f3c5963312b1cf25f87bf87513b45a41487e79340d00dbe25df22d923"
+    "scripts/rag_dialogue.py": "fc2711a7c38f5564faa3f916b34acdbec6c592e5b6fd35c8b304f7f2782efb70",
+    "scripts/rag_profile.py": "b463294d73c600f956668e67bb5c4c72e1c778c068f795e2af641c17d6693e9f",
+    "scripts/rag_nlu.py": "bfa562f4d73ffd8ab92f6feb79ab37ebab6eceafb846b90a668474254a16478b"
   },
   "private_corpus": {
     "assets/support-details.json": "01a3d2eb61ab8ea6d70b1514eddafaf60b107e3a777c5df342991ac5c6e72c62",

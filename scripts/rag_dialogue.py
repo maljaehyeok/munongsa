@@ -19,10 +19,12 @@ def candidate_order(key, corpus, context, relevance=0):
 PREFIX='[무농사 대화 참고]\n'
 SEPARATOR='\n[질문]\n'
 AREAS={'전주':('전주','전북'),'부안':('부안','전북'),'고창':('고창','전북'),
+       '안산':('안산','경기'),'김제':('김제','전북'),'군산':('군산','전북'),'익산':('익산','전북'),'정읍':('정읍','전북'),'남원':('남원','전북'),'완주':('완주','전북'),'진안':('진안','전북'),'무주':('무주','전북'),'장수':('장수','전북'),'임실':('임실','전북'),'순창':('순창','전북'),
        '파주':('파주','경기'),'포항':('포항','경북'),'부산':('부산','부산'),
        '서울':('서울','서울'),'전북':('전북',None),'전남':('전남',None),
        '경북':('경북',None),'경남':('경남',None),'경기':('경기',None),
-       '충남':('충남',None),'충북':('충북',None),'강원':('강원',None),'제주':('제주',None)}
+       '충남':('충남',None),'충북':('충북',None),'강원':('강원',None),'제주':('제주',None),
+       '인천':('인천',None),'대전':('대전',None),'대구':('대구',None),'광주':('광주',None),'울산':('울산',None),'세종':('세종',None)}
 ALIASES={'전북특별자치도':'전북','전라북도':'전북','전라남도':'전남','경상북도':'경북',
          '경상남도':'경남','경기도':'경기','충청남도':'충남','충청북도':'충북','강원특별자치도':'강원'}
 CROPS=('마늘','고추','배추','딸기','토마토','상추','감자','벼','쌀','사과','포도','콩','오이','버섯')
@@ -68,6 +70,7 @@ def region_matches(area,item,document=None):
         other_cities=[name for name,(c,p) in AREAS.items() if p==province and name!=area]
         if not any(c in region for c in other_cities):return 2
     if not province and any(p==city and name in region for name,(c,p) in AREAS.items()):return 2
+    if not region.strip() or region=='unknown' or re.search(r'미확인|확인 필요|확인되지|접수 공고',region):return 1
     return 0
 
 def corpus_text(document):
@@ -91,19 +94,20 @@ def basic_response(encoded,corpus,grounded):
     explicit_area=area_in(question)
     crops=[(question.rfind(v),v) for v in CROPS if v in question]
     explicit_crop=max(crops)[1] if crops else None
-    residence=bool(explicit_area and re.search(r'(살아|살고|살아요|살아[요.]?$|거주|주소)',question))
+    mentioned,_=rag_profile.extract(question,AREAS,CROPS,normalized)
+    residence='region' in mentioned
     registration=None
     if '경영체' in question:
         if re.search(r'(없|미등록|등록(?:이|을|은)?\s*안|등록하지\s*않)',question):registration='no'
         elif re.search(r'(등록(?:되어|했|돼|이야)|있어)',question):registration='yes'
     crop_statement=bool(explicit_crop and re.search(r'(재배(?:해|하고|중|할|예정)|키워|농사(?:를)?\s*짓)',question))
-    if residence:context['region']=explicit_area
+    if residence:context['region']=mentioned['region']
     if explicit_crop:context['crop']=explicit_crop
     if registration:context['farm_registered']=registration
     asks=bool(re.search(r'(공고|지원|사업|조건|자격|서류|알려|찾|가능|신청|방법|얼마|계산)',question))
     if (residence or crop_statement or registration) and not asks:
         facts=[]
-        if residence:facts.append(explicit_area+'에 거주하시는군요.')
+        if residence:facts.append(context['region']+'에 거주하시는군요.')
         if crop_statement:facts.append(explicit_crop+' 재배 상황을 참고할게요.')
         if registration:facts.append('농업경영체 '+('미등록' if registration=='no' else '등록')+'으로 알려주신 내용을 참고할게요.')
         return response(' '.join(facts)+'\n\n어떤 지원사업이 궁금하세요? 청년농업인 지원이나 재배 작물처럼 관심 분야를 알려주세요. 거주지와 실제 농지 소재지, 신청 자격은 별도로 확인해야 해요.',context,'context',suggestions=('청년농업인 지원사업','마늘 재배 지원'))
@@ -156,7 +160,6 @@ def basic_response(encoded,corpus,grounded):
             # Without another topic, prefer explicitly local notices over nationwide ones.
             ranked.append((score,k))
         if area and not topic:
-            ranked=[v for v in ranked if v[0]>=2]
             if AREAS[area][1] and any(v[0]==3 for v in ranked):ranked=[v for v in ranked if v[0]==3]
         keys=[k for score,k in sorted(ranked,key=lambda v:candidate_order(v[1],corpus,context,v[0]))]
         if not keys:
@@ -183,13 +186,13 @@ def basic_response(encoded,corpus,grounded):
     return response('\n\n'.join(parts),context,'catalogue',programs=programs,sources=list(unique.values()),suggestions=('그럼 신청 조건은?','필요한 서류는?'))
 
 
-def respond(encoded,corpus,grounded):
+def _respond(encoded,corpus,grounded):
     question,context=decode(encoded)
     facts,error=rag_profile.extract(question,AREAS,CROPS,normalized)
     if error:return response(error,context,'clarify',status='needs_verification')
     context={**context,**facts}
     encoded=PREFIX+json.dumps(context,ensure_ascii=False)+SEPARATOR+question
-    personal=any(k in context for k in ('age','applicant','group_size','farm_registered','farming_years','planned','facility_sqm','cultivating','farm_region'))
+    personal=any(k in context for k in ('region','age','applicant','group_size','farm_registered','farming_years','planned','facility_sqm','cultivating','farm_region'))
     followup=bool(re.search(r'그\s*사업|그럼|신청\s*(?:서류|조건)|필요한\s*서류|지원금|보조금',question))
     # Reuse the existing scoped evidence retriever for named notices and follow-ups.
     compact=re.sub(r'[\s?？.!]','',question)
@@ -213,7 +216,12 @@ def respond(encoded,corpus,grounded):
         for key,document in corpus['documents'].items():
             score=region_matches(area,document['public'],document) if area else 0
             topic=(crop and crop in corpus_text(document)) or ('청년' in question and '청년' in corpus_text(document))
-            if score>=2 or topic:ranked.append((score,key))
+            import rag_search
+            comparison=rag_profile.compare(document,context,rag_search.valid_url,AREAS)
+            # Proven ineligibility is not a recommendation. Explicit named
+            # exploration above remains available with its mismatch explanation.
+            if comparison['label']=='조건 불일치':continue
+            if score>=1 or topic or not area:ranked.append((score,key))
         if not ranked and not area and not crop and out.get('programs'):
             # Age/applicant alone must not prevent an incomplete-profile search.
             # Reuse the existing general discovery list and compare it below.
@@ -250,4 +258,11 @@ def respond(encoded,corpus,grounded):
     # a business name overwrite the user's actual residence.
     out['conversation']={**out.get('conversation',context),**facts}
     if out['programs']:out['conversation']['notice_ids']=[p['id'] for p in out['programs']]
+    return out
+
+def respond(encoded,corpus,grounded):
+    question,actual=decode(encoded)
+    out=_respond(encoded,corpus,grounded)
+    if rag_profile.hypothetical(question):
+        out['conversation']={**actual,'notice_ids':out.get('conversation',{}).get('notice_ids',actual.get('notice_ids',[]))}
     return out

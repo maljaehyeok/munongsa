@@ -11,6 +11,34 @@ ENUMS={'age_basis':('international','unspecified'),'applicant':('individual_farm
 BOOLEANS=('planned','cultivating','group_min')
 KEYS=set(NUMBERS)|set(ENUMS)|set(BOOLEANS)|{'farm_region'}
 
+def hypothetical(q):
+    return bool(re.search(r'만약|가정|이라면|살면|이주하면|이사\s*(?:하면|한다면)|옮기면|등록\s*(?:하면|한다면|할\s*경우)',q))
+
+def region_state(actual,scopes,areas):
+    """Verified geographic scopes only; partial/unknown addresses stay unknown."""
+    aliases={'전북특별자치도':'전북','전라북도':'전북','전라남도':'전남','경기도':'경기','경상북도':'경북','경상남도':'경남','충청북도':'충북','충청남도':'충남','강원특별자치도':'강원','강원도':'강원','제주특별자치도':'제주'}
+    def place(text):
+        if not isinstance(text,str):return None
+        for a,b in aliases.items():text=text.replace(a,b)
+        parts=text.strip().split()
+        if len(parts)>2:return None
+        names=[re.sub(r'(?:특별시|광역시|특별자치시|시|군|도)$','',p) for p in parts]
+        if not names:return None
+        name=names[-1]
+        if name not in areas:return None
+        city,province=areas[name];parent=province or city
+        if len(names)==2 and names[0]!=parent:return None
+        return parent,city if province else None
+    a=place(actual) if actual else None;states=[]
+    for scope in scopes if isinstance(scopes,list) else []:
+        if scope=='전국':states.append('match');continue
+        b=place(scope)
+        if not a or not b:states.append('check')
+        elif a[0]!=b[0]:states.append('mismatch')
+        elif b[1] and not a[1]:states.append('check')
+        else:states.append('match' if not b[1] or a[1]==b[1] else 'mismatch')
+    return 'match' if 'match' in states else 'check' if not states or 'check' in states else 'mismatch'
+
 def valid_context(c,areas):
     for key,(low,high) in NUMBERS.items():
         if key in c and (type(c[key]) not in (int,float) or not math.isfinite(c[key]) or not low<=c[key]<=high):return False
@@ -21,11 +49,13 @@ def valid_context(c,areas):
 
 def extract(q,areas,crops,normalize):
     q=normalize(q);out={}
-    for area in sorted(areas,key=len,reverse=True):
-        for m in re.finditer(re.escape(area)+r'(?:시|군|도)?(?:에|에서|의)?\s*([^,，.\n]{0,18})',q):
-            tail=m.group(1)
-            if re.search(r'거주|살아|살고|사는|주소',tail):out['region']=area
-            if re.search(r'농지|영농지역|재배지역|농사|재배',tail):out['farm_region']=area
+    matches=list(re.finditer('|'.join(map(re.escape,sorted(areas,key=len,reverse=True))),q))
+    for i,m in enumerate(matches):
+        area=m[0];end=matches[i+1].start() if i+1<len(matches) else len(q)
+        tail=re.split(r'[,，.\n]',q[m.end():end],1)[0][:24]
+        prefix=q[max(0,m.start()-12):m.start()]
+        if (re.search(r'거주|살아|살고|사는|살면|주소|이사|이주하면',tail) and not re.search(r'거주(?:지)?\s*(?:제한|요건|기준|조건)',tail)) or re.search(r'(?:거주지|주소)\s*[:：은는이가]*\s*$',prefix):out['region']=area
+        if (re.search(r'농지|영농|재배지역|농사|재배',tail) and not re.search(r'(?:영농지|농지|재배지역)\s*(?:제한|요건|기준|조건)',tail)) or re.search(r'(?:영농지|농지|재배지역)\s*[:：은는이가]*\s*$',prefix):out['farm_region']=area
     matches=list(re.finditer(r'(?<![\d-])(만\s*)?(\d{1,3})\s*(?:세|살)(?!\s*(?:이상|이하|미만|부터|까지|기준|조건))',q));m=matches[-1] if matches else None
     if m and not re.search(r'나이\s*기준|연령\s*기준',q):out.update(age=int(m[2]),age_basis='international' if m[1] else 'unspecified')
     if re.search(r'개인(?:\s*(?:농업인|농민|신청))?|혼자\s*(?:농사|신청)|단독\s*신청',q):out['applicant']='individual_farmer'
@@ -88,13 +118,13 @@ def compare(document,context,valid_url,areas):
             elif kind=='farm_registration':
                 known=context.get('farm_registered') in ('yes','no') and type(v.get('registered')) is bool;ok=(context.get('farm_registered')=='yes')==v.get('registered');reason='농업경영체 등록 요건 비교'
                 if not known:missing.append('농업경영체가 등록되어 있나요?')
-            elif kind=='residence':
-                area=context.get('region');scopes=v.get('regions',[]);known=bool(area and scopes)
-                # A province alone never establishes a specific municipal address.
-                if area and area in ('전북','전남','경북','경남','경기','충북','충남','강원','제주') and any(len(s.split())>1 for s in scopes):known=False
-                province=areas.get(area,(None,None))[1]
-                ok=bool(area and any(area in s or s=='전국' or (province and province in s and len(s.split())==1) for s in scopes));reason='알려주신 거주지와 공고 주소 요건 비교'
-                if not known:missing.append('현재 거주하는 시·군을 알려주세요.')
+            elif kind in ('residence','business_location'):
+                basis=v.get('location_basis')
+                actual=context.get('region') if kind=='residence' else context.get('farm_region') if basis=='farm_land' else None
+                # A business-office requirement is not a farm-land requirement.
+                state=region_state(actual,v.get('regions',[]),areas)
+                reason='거주지 요건 비교' if kind=='residence' else '영농지 요건 비교' if basis=='farm_land' else '사업장 소재지·지역 적용 기준 추가 확인 필요'
+                if state=='check':missing.append('현재 거주하는 시·군을 알려주세요.' if kind=='residence' else '실제 영농지의 시·군을 알려주세요.' if basis=='farm_land' else '사업장 소재지 기준은 공식 공고와 별도로 확인해 주세요.')
             elif kind=='group_size' and v.get('unit')=='persons' and 'group_size' in context:
                 known=not context.get('group_min') or v.get('max') is None;ok=in_range(context['group_size'],v);reason='공동 신청 인원 비교'
             elif kind=='crop' and isinstance(v.get('any_of'),list):
