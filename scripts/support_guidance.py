@@ -180,12 +180,14 @@ def refresh(db, state, *, now=None, portal=None, link_check=None, source_checks=
     now=now or datetime.now(timezone.utc)
     plans_path=state/'comparison-plans.json'
     plans=json.loads(plans_path.read_text('utf-8')) if plans_path.exists() else []
+    facts_path=state/'verified-fact-plans.json'
+    fact_plans=json.loads(facts_path.read_text('utf-8')) if facts_path.exists() else []
     decisions_path=state/'guidance-source-decisions.json'
     decisions=json.loads(decisions_path.read_text('utf-8')) if decisions_path.exists() else {}
     all_rows=records(db)
     if source_checks is None:
-        planned={p['id'] for p in plans}|{d['primary'] for d in decisions.values()}|{r['notice_id'] for r in all_rows if r['publication'] in ('approved','approved_reference')}
-        candidates=[r for r in all_rows if r['source_id']!='bizinfo-support-api' and (r['publication']=='review' or r['notice_id'] in planned)]
+        planned={p['id'] for p in plans+fact_plans}|{d['primary'] for d in decisions.values()}|{r['notice_id'] for r in all_rows if r['publication'] in ('approved','approved_reference')}
+        candidates=[r for r in all_rows if (r['source_id']!='bizinfo-support-api' and r['publication']=='review') or r['notice_id'] in planned]
         preferred={'jeonbuk-jeonju-official','jeonbuk-gunsan-official','jeonbuk-sunchang-official'}
         candidates.sort(key=lambda r:(r['notice_id'] not in planned,r['source_id'] not in preferred))
         source_checks=sources.inspect(candidates)
@@ -199,6 +201,8 @@ def refresh(db, state, *, now=None, portal=None, link_check=None, source_checks=
     from collections import Counter
     result['summary']['by_source']={source:dict(Counter(d['hold_reason'] or 'basic_guidance' for d in result['decisions'] if next(r for r in all_rows if r['notice_id']==d['id'])['source_id']==source)) for source in sorted({r['source_id'] for r in all_rows if r['publication']=='review'})}
     result['summary']['comparison_ready']=len(result['verified_comparisons'])
+    append(db,strict,result,now)
+    result['verified_facts']=sources.reviewed_facts(strict,fact_plans,source_checks,now)
     ingestion.atomic(state/'official-guidance.json', result)
     ingestion.atomic(state/'logs'/('guidance-'+hashlib.sha256(result['generated_at'].encode()).hexdigest()[:16]+'.json'), result)
     return result
@@ -256,4 +260,7 @@ def append(db, feed, manifest, now=None):
     import support_guidance_sources as sources
     feed['verified_comparisons']={k:v for k,v in manifest.get('verified_comparisons',{}).items() if k in by_id and sources.comparison_basis(by_id[k])==v['basis'] and v.get('complete') is False and instant(v['expires_at'])>now}
     feed['source_review']={k:v for k,v in manifest.get('source_review',{}).items() if k in by_id}
+    feed['verified_facts']={k:v for k,v in manifest.get('verified_facts',{}).items() if k in by_id
+                            and sources.comparison_basis(by_id[k])==v.get('basis') and v.get('complete') is False
+                            and instant(v['expires_at'])>now}
     return total

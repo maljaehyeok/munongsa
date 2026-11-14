@@ -29,6 +29,15 @@ def license_types(soup):
     return sorted(kinds)
 def article(raw,url):
     soup=BeautifulSoup(raw,'html.parser')
+    host=urlsplit(url).hostname
+    if host in ('www.bizinfo.go.kr','bizinfo.go.kr'):
+        node=soup.select_one('.support_project_detail')
+        if node:
+            # Related announcements outside this node must not supply facts.
+            return re.sub(r'\s+',' ',node.get_text(' ',strip=True))
+    if host=='global.at.or.kr':
+        node=soup.select_one('article.contentGroup')
+        return re.sub(r'\s+',' ',node.get_text(' ',strip=True)) if node else ''
     selector='.viewArea .viewBody' if urlsplit(url).hostname=='www.rda.go.kr' else '.bbs_view .bbs_con, .border_view > .exp' if urlsplit(url).hostname=='www.gochang.go.kr' else '.view-con, .bbsview-con, .bbs_view_con, .view_content, .view_cont, .boardView table.view'
     node=soup.select_one(selector)
     return node.get_text(' ',strip=True) if node else ''
@@ -68,6 +77,40 @@ def inspect(rows,*,seconds=120):
                              licenses=license_types(soup),body_sha256=hashlib.sha256(raw).hexdigest(),article=article(raw,url))
             except Exception:check['status']='request_failed'
         result[row['notice_id']]=check
+    return result
+
+def reviewed_facts(feed,plans,checks,now):
+    """Version-bound facts; never turn a basic listing into eligibility approval."""
+    items={n['id']:n for n in feed['notices']};result={}
+    for p in plans:
+        item=items.get(p.get('id'));c=checks.get(p.get('id'),{})
+        if not item or comparison_basis(item)!=p.get('basis'):continue
+        if c.get('status')!='checked' or not c.get('title_match') or c.get('url')!=item['url']:continue
+        if article_sha(c)!=p.get('article_sha') or not c.get('article'):continue
+        if not all(norm(x) in norm(c['article']) for x in p.get('required_fragments',[])):continue
+        fields=p.get('fields',{})
+        # Fixed operator-reviewed fact fields only; no HTML or arbitrary rule graph.
+        allowed={'reference_application_dates','application_method','target','support','geographic_scope','scope_note'}
+        if not isinstance(fields,dict) or set(fields)-allowed:continue
+        if any(isinstance(x,str) and (len(x)>600 or '<' in x or '>' in x) for x in fields.values()):continue
+        for key in ('start','end'):
+            value=fields.get('reference_application_dates',{}).get(key,{})
+            if value and not re.fullmatch(r'\d{4}-\d{2}-\d{2}',value.get('date','')):break
+        else:
+            reception=p.get('reception',{})
+            verified_at=reception.get('checked_at','')
+            try:age=(now-datetime.fromisoformat(verified_at)).total_seconds()
+            except (ValueError,TypeError):age=float('inf')
+            # Reception is an observation, not a claim renewed by merely fetching dates.
+            reception=reception if 0<=age<86400 and reception.get('status')=='open_notice_verified' else {}
+            result[item['id']]={'basis':p['basis'],'fields':fields,'checked_at':now.isoformat(),
+                'expires_at':(now+timedelta(hours=26)).isoformat(),'complete':False,
+                'evidence':{'url':item['url'],'location':p['location'],'fact_confirmed':True},
+                'reception':reception,'unknown':p.get('unknown',[])}
+            conditions=p.get('conditions',[])
+            if conditions and all(c.get('kind') in ('farm_registration','residence','business_location','crop','scale','applicant') for c in conditions):
+                result[item['id']]['conditions']=[{**c,'presence':'specified','status':'verified',
+                    'evidence':{'url':item['url'],'location':p['location'],'fact_confirmed':True,'checked_at':now.isoformat()}} for c in conditions]
     return result
 
 def comparison_basis(item):

@@ -53,11 +53,14 @@
     let headline=closed?(item.known_closed===true?'마감':'기한 경과'):state==='upcoming'?'모집 예정':days===0?'오늘 마감 · 시각 미확인':days!==null&&days>0?'마감 D-'+days:state==='window'?'기재 모집기간 내':'마감일 미확인';
     if(!closed&&days===0&&cutoff)headline='오늘 '+Number(cutoff.slice(0,2))+'시'+(cutoff.slice(3,5)==='00'?'':Number(cutoff.slice(3,5))+'분')+(cutoff.length===8&&cutoff.slice(6)!=='00'?Number(cutoff.slice(6))+'초':'')+' 마감';
     const chips=[];
+    const reception=item.verified_reception,age=ms-Date.parse(reception?.checked_at),receptionConfirmed=state==='window'&&age>=0&&age<86400000&&reception?.status==='open_notice_verified';
+    if(receptionConfirmed)chips.push({text:'모집 중 안내 확인 · 최종 접수는 원문 확인',tone:'window'});
+    if(item.geographic_scope==='nationwide_verified')chips.push({text:'전국 대상 · 세부 자격 별도 확인',tone:'check'});
     if(item.recorded_period_elapsed===true)chips.push({text:'기록된 기간 경과 · 최신 원문 확인',tone:'muted'});
     if(item.publication==='official_guidance'){
       chips.push({text:'공식 공고',tone:'check'});
       chips.push({text:'일부 정보 미확인',tone:'check'});
-      chips.push({text:'모집 상태 미확인',tone:'check'});
+      if(!receptionConfirmed)chips.push({text:state==='upcoming'?'접수 시작 전':state==='elapsed'?'기재 신청기간 경과':'접수 가능 여부 미확인',tone:'check'});
     }else if(item.eligibility_complete===true)chips.push({text:'신청 자격 검증 완료 · 개인 승인 아님',tone:'check'});
     if(reference)chips.push({text:'검토중 · 참고자료',tone:'review'});
     if(urgent)chips.push({text:'마감 임박',tone:'urgent'});
@@ -71,7 +74,7 @@
       tone:closed?'muted':urgent?'urgent':state==='window'?'window':state==='upcoming'?'upcoming':'check',
       periodText:start&&end?start+' ~ '+end+(cutoff?' '+cutoff+'(KST)':''):end?'기재 기한 '+end:'신청기간 확인 필요',
       // A calendar window is never a claim of verified reception or eligibility.
-      eligibility_confirmed:false,reception_confirmed:false};
+      eligibility_confirmed:false,reception_confirmed:receptionConfirmed};
   }
   function sortRows(rows){
     const rank=r=>r.display.state==='elapsed'?4:r.display.urgent?0:r.display.state==='window'?1:r.display.state==='upcoming'?2:3;
