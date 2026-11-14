@@ -41,3 +41,4 @@ deploy/collector/munongsa-collector.timer
 deploy/collector/README.md
 deploy/collector/release-files.txt
 scripts/support_guidance.py
+scripts/support_guidance_sources.py

@@ -4,7 +4,7 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "2d131d55c52b888e20a9ef391f57c963d81088a3074b102f2d3e3f9f0166466d",
+    "index.html": "5f6b715f437795df681219cb7bcf8928be84eb54889efe469cfb57bc5a66f82c",
     "assets/chat-ui.js": "8151508a860c64d1bf53f26d5d411df0434a5b9e56c14e9b62c2830a0a48439c",
     "assets/chat-ui.css": "63cb322e967faf7807b6cade936c99a09ae5b7e8f05c9ddee44d43bd002c31c1",
     "assets/support-public.js": "53944ea230cadbb18bc0e023fb94ef46dc701469088fa5213989a2199997aaee",
@@ -12,7 +12,8 @@
     "assets/input-ux.js": "9d61d608280ebda6938a2b55aa0a8ba8206af6585f7e0af8e307083432b93136",
     "assets/amount-display.js": "b3bce0564923cdfec1d4110305c990e9f0811bd6a11525aa3c8e42f5613dc982",
     "assets/ux-first.css": "1bef8744409f8d9dd837cc8dafc3a2dae7abcddf4e0752a28ac17a071f43fd6e",
-    "assets/support-review.js": "76d2928f6fb0e0e4bb947b43d6a3793514408755e91e49dc1f1c3e59c89eb576"
+    "assets/support-review.js": "8970ab6f29f8b920adb3a6799a8abc7de165cacf66ded7d1134ef41d9e17d08b",
+    "assets/personalization.js": "1dab95269cf1f4996d4f74b6a90de0b578aa5489e7e408a2f6cbf3799658e1b8"
   },
   "runtime": {
     "scripts/rag_search.py": "5af3afda3f53f9d36a6190dc46ac85b778d63c414f9434fed0e60d5f303ea9fc",

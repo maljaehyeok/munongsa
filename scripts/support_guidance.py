@@ -57,7 +57,7 @@ def records(db):
     return [dict(r) for r in db.execute('SELECT n.*,s.institution FROM discovered_notices n JOIN monitor_sources s ON s.source_id=n.source_id ORDER BY n.first_collected_at,n.notice_id')]
 
 
-def select(rows, portal, link_check, now=None):
+def select(rows, portal, link_check, now=None, source_checks=None):
     """All pending rows are classified; only matching licensed metadata can pass."""
     now = now or datetime.now(timezone.utc)
     import support_official_apis as api
@@ -87,7 +87,25 @@ def select(rows, portal, link_check, now=None):
             elif key in seen or category == 'duplicate':
                 reason = 'duplicate'
             elif row['source_id'] != 'bizinfo-support-api':
-                reason = 'source_reuse_policy_unconfirmed'
+                import support_guidance_sources as sources
+                checked = (source_checks or {}).get(row['notice_id'], {})
+                policy = sources.validate_item(row, checked)
+                if checked.get('duplicate_of'):
+                    reason='duplicate';policy=None
+                elif checked.get('decision_changed'):
+                    reason='official_version_recheck_required';policy=None
+                if re.search(r'종자대\s*지원대상[이가]?\s*아님',checked.get('article','')):
+                    reason='agricultural_relevance_insufficient';policy=None
+                if policy and category != 'reference':
+                    safe_title(row['title']);safe_title(row['institution'])
+                    public.checked_url(row['original_url'])
+                    items.append({'id':row['notice_id'],'content_hash':row['content_hash'],'title':row['title'],
+                                  'institution':row['institution'],'url':row['original_url'],'source_id':row['source_id'],
+                                  'checked_at':now.isoformat(),'policy_id':sources.POLICY_ID,'source_policy':policy,
+                                  'archive':category=='elapsed'})
+                    seen.add(key)
+                else:
+                    reason = reason or ('reference_document' if policy and category=='reference' else 'official_link_unconfirmed' if checked and checked.get('status')!='checked' else 'source_reuse_policy_unconfirmed')
             else:
                 canonical(row['original_url'])
                 origin = by_url.get(key)
@@ -121,7 +139,7 @@ def select(rows, portal, link_check, now=None):
                         'elapsed_pending': sum(d['category'] == 'elapsed' for d in decisions)}}
 
 
-def refresh(db, state, *, now=None, portal=None, link_check=None):
+def refresh(db, state, *, now=None, portal=None, link_check=None, source_checks=None):
     """Explicit bounded public network checks. DB remains read-only."""
     import support_official_apis as api
     from support_runtime import ingestion
@@ -158,7 +176,29 @@ def refresh(db, state, *, now=None, portal=None, link_check=None):
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
             outcomes = dict(zip(sorted(candidates), pool.map(check, sorted(candidates))))
         link_check = lambda url: outcomes.get(url, False)
-    result = select(records(db), portal, link_check, now)
+    import support_guidance_sources as sources
+    now=now or datetime.now(timezone.utc)
+    plans_path=state/'comparison-plans.json'
+    plans=json.loads(plans_path.read_text('utf-8')) if plans_path.exists() else []
+    decisions_path=state/'guidance-source-decisions.json'
+    decisions=json.loads(decisions_path.read_text('utf-8')) if decisions_path.exists() else {}
+    all_rows=records(db)
+    if source_checks is None:
+        planned={p['id'] for p in plans}|{d['primary'] for d in decisions.values()}|{r['notice_id'] for r in all_rows if r['publication'] in ('approved','approved_reference')}
+        candidates=[r for r in all_rows if r['source_id']!='bizinfo-support-api' and (r['publication']=='review' or r['notice_id'] in planned)]
+        preferred={'jeonbuk-jeonju-official','jeonbuk-gunsan-official','jeonbuk-sunchang-official'}
+        candidates.sort(key=lambda r:(r['notice_id'] not in planned,r['source_id'] not in preferred))
+        source_checks=sources.inspect(candidates)
+    sources.apply_decisions(source_checks,decisions)
+    result = select(all_rows, portal, link_check, now, source_checks)
+    rights=json.loads((state/'publication-rights.json').read_text('utf-8')) if (state/'publication-rights.json').exists() else {}
+    strict,_=public.export(db,rights,now)
+    result['verified_comparisons']=sources.verified_comparisons(strict,plans,source_checks,now)
+    result['source_review']={n['id']:{'title_needs_review':True,'checked_at':now.isoformat()} for n in strict['notices']
+                              if n['id'] in source_checks and source_checks[n['id']].get('status')=='checked' and not source_checks[n['id']].get('title_match')}
+    from collections import Counter
+    result['summary']['by_source']={source:dict(Counter(d['hold_reason'] or 'basic_guidance' for d in result['decisions'] if next(r for r in all_rows if r['notice_id']==d['id'])['source_id']==source)) for source in sorted({r['source_id'] for r in all_rows if r['publication']=='review'})}
+    result['summary']['comparison_ready']=len(result['verified_comparisons'])
     ingestion.atomic(state/'official-guidance.json', result)
     ingestion.atomic(state/'logs'/('guidance-'+hashlib.sha256(result['generated_at'].encode()).hexdigest()[:16]+'.json'), result)
     return result
@@ -181,8 +221,21 @@ def append(db, feed, manifest, now=None):
                 continue
             if any(row[k] != item[v] for k,v in [('title','title'),('original_url','url'),('source_id','source_id')]):
                 continue
-            key = canonical(item['url']); safe_title(item['title']); safe_title(item['institution'])
-            if key in seen or item['id'] in ids or item['policy_id'] != POLICY['id']:
+            policy=item.get('source_policy')
+            if policy:
+                import support_guidance_sources as sources
+                if (item['policy_id']!=sources.POLICY_ID or policy['id']!=sources.POLICY_ID or policy['scope']!='unchanged_metadata_only'
+                        or policy['type'] not in ('1','2','3','4') or urlsplit(item['url']).hostname!=sources.source_hosts().get(item['source_id'])
+                        or policy['type'] in ('2','4') and not sources.NONCOMMERCIAL_METADATA_ONLY):continue
+                public.checked_url(item['url']);key=identity(item['url'])
+                evidence_url=policy['evidence_url'];checked_day=item['checked_at'][:10]
+                license_name='공공누리 제'+policy['type']+'유형 · 출처표시'+('·비상업적 이용' if policy['type'] in ('2','4') else '')+('·변경금지' if policy['type'] in ('3','4') else '')
+                attribution='출처: '+item['institution']+' · 공식 공고 원문'
+            else:
+                key=canonical(item['url']);evidence_url=POLICY['url'];checked_day=POLICY['checked_at'];license_name=POLICY['license'];attribution='출처: 중소벤처기업부·기업마당 / 공공데이터포털'
+                if item['policy_id']!=POLICY['id']:continue
+            safe_title(item['title']); safe_title(item['institution'])
+            if key in seen or item['id'] in ids:
                 continue
             feed['notices'].append({'id': item['id'], 'title': item['title'], 'institution': item['institution'],
                 'url': item['url'], 'source_id': item['source_id'], 'publication': 'official_guidance',
@@ -190,12 +243,17 @@ def append(db, feed, manifest, now=None):
                 'verification_status': 'basics_only', 'freshness': 'current', 'last_checked_at': item['checked_at'],
                 'recommendation_eligible': False, 'eligibility_complete': False, 'guidance_level': 'official_notice',
                 'application_status': 'unknown', 'application_period': {}, 'reference_application_dates': {},
+                **({'recorded_period_elapsed':True} if item.get('archive') is True else {}),
                 'region': 'unknown', 'target': 'unknown', 'support': 'unknown',
                 'eligibility': {'conditions': [], 'logic': {'op': 'UNKNOWN', 'children': []}},
                 'evidence': {'notice': {'url': item['url'], 'location': '공식 API 제목·원문 링크 확인'}},
-                'rights': {'public_display': 'allowed', 'evidence_url': POLICY['url'], 'checked_at': POLICY['checked_at']},
-                'attribution': '출처: 중소벤처기업부·기업마당 / 공공데이터포털', 'license': POLICY['license']})
+                'rights': {'public_display': 'allowed', 'evidence_url': evidence_url, 'checked_at': checked_day},
+                'attribution': attribution, 'license': license_name})
             ids.add(item['id']); seen.add(key); total += 1
         except (ValueError, TypeError, KeyError, monitor.MonitorError):
             continue
+    by_id={n['id']:n for n in feed['notices']}
+    import support_guidance_sources as sources
+    feed['verified_comparisons']={k:v for k,v in manifest.get('verified_comparisons',{}).items() if k in by_id and sources.comparison_basis(by_id[k])==v['basis'] and v.get('complete') is False and instant(v['expires_at'])>now}
+    feed['source_review']={k:v for k,v in manifest.get('source_review',{}).items() if k in by_id}
     return total

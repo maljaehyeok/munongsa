@@ -2,6 +2,16 @@
 (function(root){
  'use strict';
  const names={applicant:'신청 대상',residence:'거주 지역',farm_registration:'경영체 등록',crop:'재배 작물',export_activity:'수출 활동',group_size:'공동 신청 인원',age:'연령',independent_management:'독립경영 기간',farming_experience:'영농 경력'};
+ const canonical=v=>Array.isArray(v)?'['+v.map(canonical).join(',')+']':v&&typeof v==='object'?'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}':JSON.stringify(v);
+ function sourceConditions(item,annotation,now){
+  const basis=Object.fromEntries(['id','title','url','target','region','reference_application_dates','application_period','eligibility'].map(k=>[k,item[k]??null]));
+  if(!annotation||annotation.complete!==false||Date.parse(annotation.expires_at)<=now||!Number.isFinite(Date.parse(annotation.expires_at))||canonical(annotation.basis)!==canonical(basis)||!['approved','approved_reference'].includes(item.publication))return null;
+  const allowed=['farm_registration','residence','business_location','crop','scale','applicant'];
+  if(!Array.isArray(annotation.conditions)||!annotation.conditions.length||!annotation.conditions.every(c=>allowed.includes(c.kind)&&c.status==='verified'&&c.presence==='specified'&&c.evidence?.fact_confirmed===true&&c.evidence.url===item.url&&c.evidence.location))return null;
+  const original=item.eligibility||{},conditions=[...(original.conditions||[]),...annotation.conditions];
+  if(new Set(conditions.map(c=>c.condition_id)).size!==conditions.length)return null;
+  return {...item,eligibility:{conditions,logic:{op:'AND',children:[original.logic||{op:'UNKNOWN',children:[]},...annotation.conditions.map(c=>({condition_id:c.condition_id}))]}}};
+ }
  function project(item){
   if(item.verification_status!=='verified'||!['approved_reference','approved'].includes(item.publication)||!root.MunongsaSupport.safeUrl(item.url))return item;
   const target=item.target||'',original=item.eligibility||{},conditions=[...(original.conditions||[])],added=[];
@@ -31,13 +41,15 @@
  }
  function support(data,profile,now=Date.now()){
   const groups=root.MunongsaSupport.explore(data,profile,now),rows=[...groups.recommendations,...groups.excluded,...groups.references];
-  return rows.map(row=>{const projected=project(row.item),match=root.MunongsaSupport.evaluate(projected,profile),why=reasons(projected,match),place=String(profile.district||'').replace(/[시군]$/,''),scope=row.item.region||'';
+  return rows.map(row=>{const reviewed=sourceConditions(row.item,data.verified_comparisons?.[row.item.id],now),projected=project(reviewed||row.item),match=root.MunongsaSupport.evaluate(projected,profile),why=reasons(projected,match),place=String(profile.district||'').replace(/[시군]$/,''),scope=row.item.region||'';
    const geographic=place.length>=2&&place!=='all'&&scope.includes(place)?'영농지역과 안내 지역 관련 · 거주·농지 자격 충족 아님':null;
-   return {...row,match,comparisonItem:projected,reasons:why,geographic,recommendationAllowed:row.available&&match.conditionStatus==='match',display:root.MunongsaSupportReview.presentation(row.item,now),relevance:why.reduce((n,r)=>n+(r.state==='match'?r.weight:0),0)+(geographic?2:0)};
+   const display=root.MunongsaSupportReview.presentation(row.item,now),relatedCandidate=!!reviewed&&display.state==='window'&&match.conditionStatus!=='mismatch'&&why.some(r=>r.state==='match');
+   const sourceWarning=data.source_review?.[row.item.id]?.title_needs_review===true;
+   return {...row,match,comparisonItem:projected,reasons:why,geographic,sourceWarning,comparisonReady:!!reviewed&&!sourceWarning,relatedCandidate:relatedCandidate&&!sourceWarning,recommendationAllowed:row.available&&match.conditionStatus==='match'&&!sourceWarning,display,relevance:why.reduce((n,r)=>n+(r.state==='match'?r.weight:0),0)+(geographic?2:0)};
   }).sort((a,b)=>{
    const period=r=>({window:0,unknown:1,upcoming:2,elapsed:3}[r.display.state]),condition=r=>({match:0,check:1,mismatch:2}[r.match.conditionStatus]);
    return period(a)-period(b)||condition(a)-condition(b)||b.relevance-a.relevance||(a.display.end||'9999-12-31').localeCompare(b.display.end||'9999-12-31')||a.item.id.localeCompare(b.item.id);
   });
  }
- root.MunongsaPersonalization={project,reasons,support};
+ root.MunongsaPersonalization={project,reasons,support,sourceConditions};
 })(globalThis);

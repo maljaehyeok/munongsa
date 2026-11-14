@@ -53,6 +53,7 @@
     let headline=closed?(item.known_closed===true?'마감':'기한 경과'):state==='upcoming'?'모집 예정':days===0?'오늘 마감 · 시각 미확인':days!==null&&days>0?'마감 D-'+days:state==='window'?'기재 모집기간 내':'마감일 미확인';
     if(!closed&&days===0&&cutoff)headline='오늘 '+Number(cutoff.slice(0,2))+'시'+(cutoff.slice(3,5)==='00'?'':Number(cutoff.slice(3,5))+'분')+(cutoff.length===8&&cutoff.slice(6)!=='00'?Number(cutoff.slice(6))+'초':'')+' 마감';
     const chips=[];
+    if(item.recorded_period_elapsed===true)chips.push({text:'기록된 기간 경과 · 최신 원문 확인',tone:'muted'});
     if(item.publication==='official_guidance'){
       chips.push({text:'공식 공고',tone:'check'});
       chips.push({text:'일부 정보 미확인',tone:'check'});
