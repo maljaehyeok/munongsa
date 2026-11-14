@@ -121,6 +121,11 @@ def export_public(state, output, rights_file, now=None):
     with closing(monitor.connect(state, readonly=True)) as ro:
         ro.execute('BEGIN')
         data, stats = public.export(ro, rights, now)
+        guidance = state / 'official-guidance.json'
+        if guidance.exists():
+            import support_guidance
+            stats['official_guidance'] = support_guidance.append(ro, data, json.loads(guidance.read_text('utf-8')), now)
+            stats['exported'] = len(data['notices'])
     output.mkdir(parents=True, exist_ok=True)
     previous = output / 'support-public.json'
     if previous.exists():
@@ -210,6 +215,15 @@ def execute(state, output, rights_file, registry, groups=None, live=False, expor
                     'counts': local_counts, 'errors': [str(e).split(':')[0][:70] for e in errors], 'last_success_at': stamp})
                 if group.get('api_results') is not None:
                     reports[-1].update(api_results=group['api_results'],duplicate_count=group.get('duplicate_count',0),conflicting_count=group.get('conflicting_count',0))
+            if live and not export_only:
+                # A guidance failure cannot stop valid approved notices being exported.
+                # Existing guidance expires, and every export rechecks DB hashes/state.
+                try:
+                    import support_guidance
+                    support_guidance.refresh(db, state, now=now)
+                except Exception as error:
+                    ingestion.atomic(state/'logs'/('guidance-failed-'+run_id+'.json'),
+                                    {'error': type(error).__name__, 'unsafe_fallback': False})
             stats = export_public(state, output, rights_file, now)
             failed = any(r['status'] == 'failed' for r in reports)
             result = {'status': 'partial_failure' if failed else 'completed', 'exit_code': 1 if failed else 0,
