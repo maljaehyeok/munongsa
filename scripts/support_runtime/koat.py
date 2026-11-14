@@ -42,13 +42,16 @@ def collect(source, now, known=None, detail_policy=None):
     try:
         transport.get('https://www.koat.or.kr/robots.txt', True)
         listed = rows(transport.get(BOARD))
+        for page in range(2,min(int(source.get('max_pages',1)),3)+1):
+            listed += rows(transport.get(BOARD+'?currentPageNo='+str(page)))
+        listed=list({r['original_id']:r for r in listed}.values())
         group['list_count'] = len(listed)
         items = [r for r in listed if candidate(r)]
         group.update(candidate_count=len(items), list_rows=items, state='연결 성공')
         # No publication-age cutoff: an old announcement may still be open.
         items.sort(key=lambda r: ((source['kind'], r['original_id']) in (known or {}),
                                   '연장' not in r['title'], r['published_at'] or ''))
-        for row in items[:min(int(source.get('detail_limit', 2)), 4)]:
+        for row in items[:min(int(source.get('detail_limit', 2)), 6)]:
             prior = (known or {}).get((source['kind'], row['original_id']))
             fetch = True
             if detail_policy:

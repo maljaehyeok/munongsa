@@ -180,7 +180,7 @@ def execute(state, output, rights_file, registry, groups=None, live=False, expor
                     if old:
                         item['id'] = old['id']
                         item['metadata']['original_id'] = old['metadata']['original_id']
-                        if item.get('status') == 'failed' or not item.get('detail_fetched'):
+                        if item.get('status') == 'failed' or not (item.get('detail_fetched') or item.get('api_response_fetched')):
                             retained = copy.deepcopy(old)
                             retained['metadata'].update(item['metadata'])
                             if item.get('status') == 'failed':
@@ -208,6 +208,8 @@ def execute(state, output, rights_file, registry, groups=None, live=False, expor
                 reports.append({'source_id': source['source_id'], 'status': 'failed' if errors else 'completed',
                     'list_count': group.get('list_count', 0), 'candidate_count': group.get('candidate_count', 0),
                     'counts': local_counts, 'errors': [str(e).split(':')[0][:70] for e in errors], 'last_success_at': stamp})
+                if group.get('api_results') is not None:
+                    reports[-1].update(api_results=group['api_results'],duplicate_count=group.get('duplicate_count',0),conflicting_count=group.get('conflicting_count',0))
             stats = export_public(state, output, rights_file, now)
             failed = any(r['status'] == 'failed' for r in reports)
             result = {'status': 'partial_failure' if failed else 'completed', 'exit_code': 1 if failed else 0,

@@ -290,7 +290,7 @@
       "board_url": "https://www.bizinfo.go.kr/",
       "discovery_url": "https://www.bizinfo.go.kr/uss/rss/bizinfoApi.do",
       "method": "bizinfo_api",
-      "enabled": false,
+      "enabled": true,
       "allowed_hosts": [
         "www.bizinfo.go.kr",
         "bizinfo.go.kr"
@@ -307,14 +307,20 @@
       "minimum_interval_hours": 24,
       "max_attempts": 1,
       "official_call_quota": "unknown",
-      "policy_checked_at": "2026-10-25",
+      "policy_checked_at": "2026-11-14",
       "policy_url": "https://www.bizinfo.go.kr/apiDetail.do?id=bizinfoApi",
       "rights_url": "https://www.bizinfo.go.kr/biz/bizd/selectBIZD120View.do",
-      "policy_note": "공식 문서의 GET·crtfcKey·JSON(jsonArray.item)/XML(RSS) 기준 어댑터 준비. 호출 횟수 제한과 오류 코드 체계는 문서에 없어 미확인. 비활성 유지; 실제 API 호출은 코드에서도 차단하며 모의 transport만 테스트. 인증키 값은 설정/DB에 저장하지 않음.",
+      "policy_note": "Both official APIs authenticated on AWS. One canonical PBLN identity; conflicts held; provider omissions are not deletion evidence. API reuse requires attribution and unchanged work (portal KOGL type 3); separate rights review before publication. Call quota/account scope remains provider-account specific.",
       "kind": "bizinfo",
       "city": "전국",
-      "notes": "비공개 사실정보 수집; 공개에는 별도 검토 승인 및 이용 근거 필요",
-      "disabled_reason": "운영 API 활성화 별도 승인 필요"
+      "notes": "Authorized official APIs; private agricultural candidates only; no automatic publication. At most two pages of 50 per provider per daily run.",
+      "api_providers": [
+        "bizinfo",
+        "data_go_kr_bizinfo"
+      ],
+      "api_pages": 2,
+      "portal_api_key_env": "DATA_GO_KR_BIZINFO_API_KEY",
+      "authentication_checked_at": "2026-11-14"
     },
     {
       "kind": "rda_young",
@@ -346,12 +352,13 @@
         "www.koat.or.kr"
       ],
       "minimum_interval_hours": 24,
-      "max_items": 10,
-      "detail_limit": 2,
+      "max_items": 30,
+      "detail_limit": 6,
       "policy_checked_at": "2026-10-29",
       "policy_url": "https://www.koat.or.kr/robots.txt",
       "reuse_policy": "unknown",
-      "notes": "Private factual review only; no automatic publication. Individual farmer access not assumed."
+      "notes": "Private factual review only; no automatic publication. Individual farmer access not assumed.",
+      "max_pages": 3
     },
     {
       "institution": "전북특별자치도",

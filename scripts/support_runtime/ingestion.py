@@ -108,6 +108,9 @@ def collect_source(source,entries,now,first=False):
 def central(source,kind):
     group={'kind':kind,'analyses':[],'errors':[],'requests':0,'list_count':0,'state':'연결 미완료'}
     if not source.get('enabled'):return dict(group,state='비활성 유지',skipped=True)
+    if kind=='bizinfo' and source.get('api_providers'):
+        import support_official_apis
+        return support_official_apis.collect(source)
     try:
         source=copy.deepcopy(source);source['max_attempts']=1
         if kind=='mafra':raw,_,_=m.fetch_rss(source);rows=m.parse_rss(raw,source);group['requests']=2

@@ -8,6 +8,8 @@ scripts/support_eligibility.py
 scripts/support_source_registry.py
 scripts/support_notice_body.py
 scripts/support_bizinfo.py
+scripts/support_official_apis.py
+scripts/test_official_apis.py
 scripts/export_support_public.py
 scripts/run_support_collection.py
 scripts/verify_support_publication.py
