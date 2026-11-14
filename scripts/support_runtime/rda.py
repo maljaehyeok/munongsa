@@ -81,7 +81,8 @@ def collect(source,now,known=None,detail_policy=None):
             if signature in seen:
                 group.setdefault('duplicate_candidates',[]).append(row);continue
             seen.add(signature);unique.append(row)
-        for row in unique[:min(int(source.get('detail_limit',4)),8)]:
+        # Nationwide coverage is explicitly bounded; all entries still require review.
+        for row in unique[:min(int(source.get('detail_limit',4)),24)]:
             prior=(known or {}).get((source['kind'],row['original_id']))
             fetch=True
             if detail_policy:fetch,prior=detail_policy(source['kind'],row,prior,now)

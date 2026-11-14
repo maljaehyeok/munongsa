@@ -328,11 +328,11 @@
         "www.rda.go.kr"
       ],
       "minimum_interval_hours": 24,
-      "max_items": 20,
-      "detail_limit": 4,
+      "max_items": 30,
+      "detail_limit": 20,
       "reuse_policy": "unknown",
       "notes": "비공개 사실정보 시험; 공개·추천 승인 없음",
-      "max_pages": 2
+      "max_pages": 3
     },
     {
       "kind": "koat",
@@ -421,6 +421,31 @@
       "policy_url": "https://agriacademy.jeonbuk.go.kr/robots.txt",
       "policy_checked_at": "2026-11-13",
       "notes": "공식 Atom으로 발견하고 원문 교육 표만 읽음. 교육일·피드 갱신일·접수 기한 구분. 학생 신청·댓글·첨부 수집 금지. 검토 대기만 저장; 재배포·외부 전송 권한 별도 확인."
+    },
+    {
+      "source_id": "at-export-official",
+      "kind": "at_export",
+      "institution": "aT export support",
+      "city": "nationwide; eligibility unverified",
+      "board_url": "https://global.at.or.kr/",
+      "method": "html",
+      "adapter": "at-official-listing-v1",
+      "enabled": true,
+      "official_hosts": [
+        "global.at.or.kr"
+      ],
+      "minimum_interval_hours": 24,
+      "max_items": 8,
+      "policy_url": "https://global.at.or.kr/robots.txt",
+      "policy_checked_at": "2026-11-14",
+      "reuse_policy": "unknown",
+      "notes": "Private recruitment metadata only. No login, attachment, API, publication or eligibility approval. Article HTTP 400 is not bypassed.",
+      "existing_official_ids": [
+        "project:8113:0",
+        "project:8173:0",
+        "project:8210:0",
+        "project:8232:0"
+      ]
     }
   ]
 }

@@ -84,6 +84,9 @@ def analyse(entry,t,now):
 
 
 def search_source(source,now,known=None,refresh_details=False,detail_policy=None,fact_enricher=None):
+    if source.get('adapter')=='at-official-listing-v1':
+        from .at_export import collect
+        return collect(source,now,known,detail_policy)
     if source.get('adapter')=='academy-official-atom-v1':
         from .academy import collect
         return collect(source,now,known,detail_policy)
