@@ -36,6 +36,11 @@ def search_text(item,feed,now):
     # Only current, version-bound typed conditions augment title relevance.
     labels={'farm_registration':'농업경영체 등록','crop':'작물 재배','residence':'거주지','business_location':'영농지 농지','applicant':'신청자'}
     values=[item['title'],item['institution']]
+    # Approved locality text supports discovery only, never a location requirement.
+    if item.get('publication') in ('approved','approved_reference') and item.get('verification_status')=='verified':
+        for field in ('region','target'):
+            value=item.get(field);evidence=item.get('evidence',{}).get(field,{})
+            if isinstance(value,str) and len(value)<=1000 and evidence.get('url')==item['url'] and evidence.get('location'):values.append(value)
     observed=review.project(item,feed.get('notice_observations',{}).get(item['id']),now)
     # Office locality helps discovery, never supplies a residence/farm requirement.
     office=observed.get('application_preparation',{}).get('office_note')

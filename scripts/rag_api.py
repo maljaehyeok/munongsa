@@ -196,7 +196,8 @@ def local_pipeline(question):
             listing['answer']='가정한 조건으로 탐색했습니다. 실제 입력 상태와 전체 신청 자격은 변경하거나 확정하지 않았습니다.\n\n'+listing['answer']
         return catalogue_response(listing,corpus)
     decorate_cards(response,corpus)
-    if response.get('kind') in ('catalogue','recommendation') and not rag_catalogue.archive_requested(original):
+    discovery=not context.get('notice_ids') and bool(re.search(r'찾아|지원사업.*(?:알려|있)|관련.*사업',original))
+    if (response.get('kind') in ('catalogue','recommendation') or discovery) and not rag_catalogue.archive_requested(original):
         current_programs=[p for p in response['programs'] if p.get('card',{}).get('period_state')!='elapsed']
         if len(current_programs)!=len(response['programs']):
             if not current_programs:

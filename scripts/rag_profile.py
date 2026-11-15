@@ -55,7 +55,10 @@ def extract(q,areas,crops,normalize):
         tail=re.split(r'[,，.\n]',q[m.end():end],1)[0][:24]
         prefix=q[max(0,m.start()-12):m.start()]
         if (re.search(r'거주|살아|살고|사는|사는데|살면|주소|이사|이주하면',tail) and not re.search(r'거주(?:지)?\s*(?:제한|요건|기준|조건)',tail)) or re.search(r'(?:거주지|주소)\s*[:：은는이가]*\s*$',prefix):out['region']=area
-        if (re.search(r'농지|영농|재배지역|농사|재배',tail) and not re.search(r'(?:영농지|농지|재배지역)\s*(?:제한|요건|기준|조건)',tail)) or re.search(r'(?:영농지|농지|재배지역)\s*[:：은는이가]*\s*$',prefix):out['farm_region']=area
+        farm=re.search(r'농지|영농|재배지역|농사|재배',tail)
+        residence=re.search(r'거주|살아|살고|사는|사는데|주소',tail)
+        next_place=i+1<len(matches) and (bool(residence and farm and residence.start()<farm.start()) or bool(re.search(r'(?:영농지|농지|재배지역|농사는)\s*[:：은는이가]*\s*$',tail)))
+        if (farm and not next_place and not re.search(r'(?:영농지|농지|재배지역)\s*(?:제한|요건|기준|조건)',tail)) or re.search(r'(?:영농지|농지|재배지역|농사는|농사짓는\s*곳)\s*[:：은는이가]*\s*$',prefix):out['farm_region']=area
     matches=list(re.finditer(r'(?<![\d-])(만\s*)?(\d{1,3})\s*(?:세|살)(?!\s*(?:이상|이하|미만|부터|까지|기준|조건))',q));m=matches[-1] if matches else None
     if m and not re.search(r'나이\s*기준|연령\s*기준',q):out.update(age=int(m[2]),age_basis='international' if m[1] else 'unspecified')
     if re.search(r'개인(?:\s*(?:농업인|농민|신청))?|혼자\s*(?:농사|신청)|단독\s*신청',q):out['applicant']='individual_farmer'
