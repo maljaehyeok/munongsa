@@ -145,6 +145,9 @@ def local_pipeline(question):
     import rag_dialogue,rag_nlu
     original,context=rag_dialogue.decode(question)
     import rag_catalogue
+    if original.startswith(rag_catalogue.PAGE_PREFIX) or re.fullmatch(r'(?:전체|모든)\s*(?:공식|공개)?\s*(?:공고|지원사업)',original.strip()):
+        listing=rag_catalogue.respond(question,corpus)
+        return catalogue_response(listing,corpus) if listing else rag_dialogue.response('공개 목록이 변경됐어요. 같은 질문으로 다시 검색해 주세요.',context,'clarify',status='needs_verification')
     listing=rag_catalogue.respond(question,corpus,explicit=True)
     if listing:return catalogue_response(listing,corpus)
     # Exact official names are routed locally; do not send listing titles to NLU.
@@ -186,8 +189,12 @@ def local_pipeline(question):
     else:
         response = rag_dialogue.respond(routed, corpus,
             lambda query, notice: grounded_response(query, corpus, notice))
-    listing=rag_catalogue.respond(question,corpus,fallback=response)
-    if listing and (response.get('kind') in ('catalogue','recommendation','clarify') or context.get('notice_ids')):return catalogue_response(listing,corpus)
+    listing=rag_catalogue.respond(routed,corpus,fallback=response)
+    if listing and (response.get('kind') in ('catalogue','recommendation','clarify') or context.get('notice_ids')):
+        if understood and understood['hypothetical'] and actual is not None:
+            listing['conversation']={**actual,'notice_ids':listing['conversation'].get('notice_ids',[]),'list_ids':[],'list_versions':[],'last_kind':'results'}
+            listing['answer']='가정한 조건으로 탐색했습니다. 실제 입력 상태와 전체 신청 자격은 변경하거나 확정하지 않았습니다.\n\n'+listing['answer']
+        return catalogue_response(listing,corpus)
     decorate_cards(response,corpus)
     if understood and understood['hypothetical'] and actual is not None:
         notice_ids=response.get('conversation',{}).get('notice_ids',context.get('notice_ids',[]))
@@ -245,6 +252,7 @@ def decorate_cards(response,corpus):
         return list(dict.fromkeys(clean(v) for v in raw if isinstance(v,str) and v.strip()))[:12]
     for program in response['programs']:
         document=by_id[program['id']];public=document['public']
+        live=None
         comparison=program.get('comparison') or rag_profile.compare(document,context,rag_search.valid_url,rag_dialogue.AREAS)
         if corpus.get('guidance_feed'):
             import rag_catalogue
@@ -268,6 +276,9 @@ def decorate_cards(response,corpus):
                 state=support_notice_review.state(dates,datetime.now(rag_answer.KST))
                 period={**period,'date_state':{'window':'within_recorded_dates','upcoming':'upcoming','elapsed':'elapsed'}.get(state,'unknown')}
                 program['application_period']={**program['application_period'],'start':dates.get('start',{}),'end':dates.get('end',{}),'description':'공식 본문에서 확인한 기재 신청기간 · 실제 접수·전체 자격은 별도 확인','actual_reception_confirmed':False}
+                preparation=observed.get('application_preparation',{})
+                program['application_entry_url']=preparation.get('entry_url')
+                program['application_entry_kind']=preparation.get('entry_kind')
         mismatch=comparison['label']=='조건 불일치'
         group='elapsed' if period['date_state']=='elapsed' else 'mismatch' if mismatch else 'related' if comparison['label']=='관련 가능성 있음' else 'check'
         program['card']={'group':group,'label':{'elapsed':'모집기간 경과','mismatch':'확인된 조건 불일치','related':'관련 가능성 있음','check':'추가 확인 필요'}[group],
@@ -276,6 +287,11 @@ def decorate_cards(response,corpus):
                      'funding':field(document,'funding'),'method':field(document,'method'),
                      'documents':field(document,'documents_required')},
             'questions':comparison['questions'][:2]}
+        if live and observed.get('official_observation_at'):
+            preparation=observed.get('application_preparation',{})
+            if preparation.get('method'):program['card']['facts']['method']=[preparation['method']]
+            if preparation.get('documents_note'):program['card']['facts']['documents']=[preparation['documents_note']]
+            program['card']['reception_state']=observed.get('actual_reception_state','unconfirmed')
     priorities={'related':0,'check':1,'elapsed':2,'mismatch':3}
     response['programs'].sort(key=lambda p:(p['comparison']['label']=='조건 불일치',p['card']['period_state']=='elapsed',
         {'within_recorded_dates':0,'deadline_day_time_unknown':0,'upcoming':1,'unknown':2,'elapsed':3}[p['card']['period_state']],priorities[p['card']['group']]))

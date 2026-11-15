@@ -115,7 +115,9 @@
       &&(context.list_ids===undefined||(strings(context.list_ids)&&context.list_ids.length<=3&&context.list_ids.every(i=>/^NOTICE-[A-Za-z0-9_-]{1,70}$/.test(i))))
       &&(context.list_versions===undefined||(strings(context.list_versions)&&context.list_versions.length===(context.list_ids||[]).length&&context.list_versions.every(v=>/^[a-f0-9]{64}$/.test(v))))
       &&(context.last_kind===undefined||['help','results','clarify','context'].includes(context.last_kind)));
-    return data&&validContext&&(data.followup_questions===undefined||(strings(data.followup_questions)&&data.followup_questions.length<=2))&&(data.suggestions===undefined||(strings(data.suggestions)&&data.suggestions.length<=3))&&data.mode==='local'&&['answered','needs_verification','no_evidence'].includes(data.status)
+    const page=data?.catalogue_next;
+    const validPage=page==null||(page&&str(page.query)&&page.query.length>0&&page.query.length<=300&&Number.isInteger(page.offset)&&page.offset>=3&&page.offset<=1998&&page.offset%3===0&&str(page.fingerprint)&&/^[a-f0-9]{64}$/.test(page.fingerprint));
+    return data&&validPage&&validContext&&(data.followup_questions===undefined||(strings(data.followup_questions)&&data.followup_questions.length<=2))&&(data.suggestions===undefined||(strings(data.suggestions)&&data.suggestions.length<=3))&&data.mode==='local'&&['answered','needs_verification','no_evidence'].includes(data.status)
       &&str(data.answer)&&data.answer.length<=100000&&Array.isArray(data.programs)&&data.programs.length<=3
       &&Array.isArray(data.sources)&&data.sources.length<=100
       &&data.sources.every(s=>s&&str(s.url)&&str(s.location)&&str(s.checked_at))
@@ -188,7 +190,7 @@
     const personal=fields.some(f=>data.conversation?.[f.key]!==undefined);
     const basic=data.programs.every(p=>p.evidence_level==='공식 공고 기본 안내');
     const heading=text('header','','chat-result-heading');
-    heading.append(text('h3',basic?'공식 공고 검색 결과':personal?'맞춤 추천 결과':'지원사업 검색 결과'),text('p',(data.catalogue_total||data.programs.length)+'건 중 '+data.programs.length+'건을 안내합니다. '+(basic?'기본 안내와 일부 조건 비교이며, 신청 가능 판정이 아닙니다.':'모집기간과 내 조건 비교를 함께 확인하세요.')));
+    heading.append(text('h3',basic?'공식 공고 검색 결과':personal?'맞춤 추천 결과':'지원사업 검색 결과'),text('p',(data.catalogue_total||data.programs.length)+'건 중 '+(data.catalogue_start?data.catalogue_start+'~'+(data.catalogue_start+data.programs.length-1)+'번째':data.programs.length+'건')+'를 안내합니다. '+(basic?'기본 안내와 일부 조건 비교이며, 신청 가능 판정이 아닙니다.':'모집기간과 내 조건 비교를 함께 확인하세요.')));
     node.replaceChildren(heading);node.className='chat-message chat-message-answer chat-result-message';
     for(const program of data.programs){
       const card=text('section','','card notice-card chat-notice');card.dataset.noticeId=program.id;
@@ -228,6 +230,7 @@
       const footer=text('footer','','notice-footer chat-notice-footer');
       const meta=text('div','','chat-notice-meta');meta.append(text('span',checked(program.checked_at)),text('span',program.evidence_level));
       footer.append(meta,officialLink(program.source_url,'공식 원문'));
+      if(program.application_entry_url===program.source_url)footer.append(officialLink(program.application_entry_url,program.application_entry_kind==='login_unverified'?'신청 절차 확인 · 로그인 필요':'신청 방법·서식 확인'));
       const detail=text('a','사이트 상세보기 ↗');detail.href='#categories?'+new URLSearchParams({category:'support',kind:'supportPublic',key:program.id});
       detail.addEventListener('click',event=>{if(typeof navigateTo!=='function'||typeof publicSupport==='undefined'||!publicSupport?.notices?.some(p=>p.id===program.id))return;
         event.preventDefault();dialog.close();navigateTo('support','',{kind:'supportPublic',key:program.id});});footer.append(detail);card.append(footer);
@@ -237,6 +240,10 @@
       list(content,'필수조건·조건별 근거',program.required_conditions);list(content,'추가 확인 사항',[...new Set([...program.additional_checks,...checks])]);
       for(const source of data.sources.filter(s=>s.url===program.source_url)){content.append(text('p',source.location+' · '+checked(source.checked_at)));}
       details.append(content);card.append(details);node.append(card);
+    }
+    if(data.catalogue_next){
+      const next=data.catalogue_next,row=text('div','','chat-followups');
+      row.append(conditionButton('다음 공고 더 보기',()=>{if(!pending)sendQuestion('[공식 공고 더 보기]\n'+JSON.stringify(next),'다음 공고 더 보기');}));node.append(row);
     }
     const questions=data.followup_questions||[];
     if(questions.length){const ask=text('section','','chat-next-question');ask.append(text('h4','더 정확히 찾아보려면'));questions.slice(0,2).forEach(q=>ask.append(text('p',q)));node.append(ask);}

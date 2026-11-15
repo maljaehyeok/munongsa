@@ -11,7 +11,7 @@
   return {...item,reference_application_dates:Object.keys(dates).length?dates:item.reference_application_dates,
    actual_reception_state:['operator_notice','login_unverified','confirmed','unavailable'].includes(reception)?reception:'unconfirmed',
    official_observation_at:value.checked_at,standing_application:value.standing===true,
-   application_method:value.method||item.application_method,published_at:value.published_at||item.published_at};
+   application_preparation:value.preparation||{},application_method:value.preparation?.method||value.method||item.application_method,published_at:value.published_at||item.published_at};
  }
  root.MunongsaNoticeReview={project};
 })(globalThis);

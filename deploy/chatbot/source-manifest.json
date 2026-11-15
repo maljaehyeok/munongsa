@@ -4,8 +4,8 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "8a10533e4f6e5cb4fb6d219416ad530951173d38f42a98417dbb6c07df74b673",
-    "assets/chat-ui.js": "d1896d3eaa29a670e599287dc9749e2f31ec21dd29a6cabb6b03912acd931757",
+    "index.html": "d3673fabe1dc61de430779cf60c2fd5f0ad341058057df0ccc2746cd653ea15c",
+    "assets/chat-ui.js": "f58a8d3e015a05bbd0eda92837588a9f4e3d6a4d9d74c375fb0b9d2b5e38bc26",
     "assets/chat-ui.css": "63cb322e967faf7807b6cade936c99a09ae5b7e8f05c9ddee44d43bd002c31c1",
     "assets/support-public.js": "53944ea230cadbb18bc0e023fb94ef46dc701469088fa5213989a2199997aaee",
     "assets/selection-view.js": "fc19982c4a8996f4f15da2c6348b4992d66fe177734ab443986ca7ff791e5290",
@@ -14,12 +14,12 @@
     "assets/ux-first.css": "1bef8744409f8d9dd837cc8dafc3a2dae7abcddf4e0752a28ac17a071f43fd6e",
     "assets/support-review.js": "b747ecd2897c2349cfa485d9c082fb003dd6ffa547609d224f6edcc4b79784de",
     "assets/personalization.js": "f526312e608066294be12e1754255ed64438ddb8a4c20436199d1b08e39775f8",
-    "assets/notice-review.js": "b4f415c1ac7cbecaccb0856a1ef8ec70a3769e2cb7d9322cf8f100d83220ec61"
+    "assets/notice-review.js": "93f51b3aa746e3fd210aced1ea56024d112bb03926b01d0148b324b9dfaf34e4"
   },
   "runtime": {
     "scripts/rag_search.py": "5af3afda3f53f9d36a6190dc46ac85b778d63c414f9434fed0e60d5f303ea9fc",
     "scripts/rag_answer.py": "6b9a573cdc7fc2bdadabef09ab7524b76c39c5a6818f4574d6dc7962e7c37186",
-    "scripts/rag_api.py": "0499d17c818bec753b017faaaacd006c8eebb375efa299c868d39e65051e2a5c",
+    "scripts/rag_api.py": "069dd1a05b195a39478567bbe51af9fd53d2b2cb3323190fe68904e9fadde744",
     "scripts/chat_wsgi.py": "3360cc48becc6a2279c4bd8a9a3f5827bdbc999a22401e8f0c0f27710047e292",
     "scripts/host_proxy_entry.py": "0af6b39819cabd9215924cd29b38e196046c1fc1bb0e64871b8f8c2c3710b97d",
     "scripts/host_socket_entry.py": "076623b171e962812b279d0268408281d1893981374702ced3ed3b776cf00b45",
@@ -28,8 +28,8 @@
     "scripts/rag_dialogue.py": "23cceea9b20357bd4fa7fda51db7574dd74bd2f57d0d7298f4c48e4478651c03",
     "scripts/rag_profile.py": "e03ed2b445eca33b896640f3408caabd2a614b09d84debc44f1449debdd5a659",
     "scripts/rag_nlu.py": "dd022820d863f7b027613cce09ebedff7c4376ad168f2505679562f2f068ea42",
-    "scripts/rag_catalogue.py": "fd6cf7de7b963ae2f6bcdbace1c008e6cde862f1ce1509a213394ad08f653ff9",
-    "scripts/support_notice_review.py": "5b9dc48e2d371597918665b733be8c88ab8417f6577386af7c08819ab6827c6e"
+    "scripts/rag_catalogue.py": "8c5b6eda5c4385c8244c7d5c318a14c39a0fc95f4470d9daa5e70289164f0df2",
+    "scripts/support_notice_review.py": "ec5e2bcf92816e548db2ea5ed1ef9b991eafcbb555f9df1a4336beed3ab3fa5b"
   },
   "private_corpus": {
     "assets/support-details.json": "01a3d2eb61ab8ea6d70b1514eddafaf60b107e3a777c5df342991ac5c6e72c62",

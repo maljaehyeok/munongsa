@@ -75,6 +75,11 @@ def attach(feed,checks,now,plans=None):
                     value['period_location']='공식 본문의 운영자 대조 신청기간'
                     if plan.get('standing') is True:value['standing']=True
                     if plan.get('method'):value['method']=plan['method']
+                    preparation=plan.get('preparation')
+                    if isinstance(preparation,dict) and set(preparation)<= {'method','target_note','documents_note','entry_url','entry_kind','office_note'}:
+                        if all(isinstance(v,str) and 0<len(v)<=250 and not re.search(r'[<>\x00-\x1f]',v) for v in preparation.values()):
+                            # Entry is the checked official page, not a guessed form URL.
+                            if preparation.get('entry_url') in (None,item['url']):value['preparation']=preparation
                     if state(dates,now)=='window' and value.get('method'):
                         value['actual_reception']='operator_notice'
         result[item['id']]=value
@@ -96,4 +101,5 @@ def project(item,value,now):
             'standing_application':value.get('standing') is True,
             'official_observation_at':value['checked_at'],'actual_reception_state':reception,
             'application_method':value.get('method') or item.get('application_method'),
+            'application_preparation':value.get('preparation',{}),
             'published_at':value.get('published_at') or item.get('published_at')}

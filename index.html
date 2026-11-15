@@ -293,6 +293,11 @@
       document.getElementById('modalSummary').textContent=item.publication==='official_guidance'?'공식 공고 안내 · 신청 자격 확인 필요 · 모집 여부 미확인. '+(item.attribution||'')+' · '+(item.license||''):'';
       for(const id of ['modalEligibilityHeading','modalEligibility','modalSupportHeading','modalSupport','modalSchedule'])document.getElementById(id).hidden=true;
       document.getElementById('modalSource').innerHTML=MunongsaDisplay.supportDetail(row?.comparisonItem||item,row,d,publicPeriod(item));
+      const preparation=item.application_preparation;
+      if(preparation){const section=document.createElement('section');section.className='data-note';const heading=document.createElement('strong');heading.textContent='신청 준비';section.append(heading);
+        for(const key of ['method','documents_note'])if(preparation[key]){const p=document.createElement('p');p.textContent=preparation[key];section.append(p);}
+        if(preparation.entry_url===item.url){const link=document.createElement('a');link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent=preparation.entry_kind==='login_unverified'?'공식 신청 절차 확인 · 로그인 이후 미검증 ↗':'공식 신청 방법·서식 확인 ↗';section.append(link);}
+        const caution=document.createElement('p');caution.textContent='신청서 제출 완료·전체 신청 자격·잔여 예산을 확인한 것은 아닙니다.';section.append(caution);document.getElementById('modalSource').append(section);}
       modal.classList.add('show');document.getElementById('closeModal').focus();
     }
     function openApprovedSupport(id){const row=approvedRows().find(r=>r.item.id===id);if(row)showSupportDetail(row.item,row)}
