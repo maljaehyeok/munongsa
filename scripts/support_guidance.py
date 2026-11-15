@@ -1,7 +1,7 @@
 """Minimal official metadata browsing, independent of recommendation approval.
 
-Only the licensed data.go.kr response is eligible. Full text, attachments,
-unreviewed eligibility and amounts are never published by this module.
+Licensed metadata and separately reviewed official names/direct links are eligible.
+Full text, attachments, unreviewed eligibility and amounts are not published here.
 """
 import concurrent.futures
 import hashlib
@@ -58,7 +58,7 @@ def records(db):
 
 
 def select(rows, portal, link_check, now=None, source_checks=None):
-    """All pending rows are classified; only matching licensed metadata can pass."""
+    """Classify all pending rows; require a reviewed policy for the displayed fields."""
     now = now or datetime.now(timezone.utc)
     import support_official_apis as api
     pending = [r for r in rows if r['publication'] == 'review']
@@ -89,7 +89,12 @@ def select(rows, portal, link_check, now=None, source_checks=None):
             elif row['source_id'] != 'bizinfo-support-api':
                 import support_guidance_sources as sources
                 checked = (source_checks or {}).get(row['notice_id'], {})
-                policy = sources.validate_item(row, checked)
+                import support_link_policy as links
+                policy = sources.validate_item(row, checked) or links.allowed(row,checked)
+                if checked.get('metadata_link_restricted'):
+                    reason='metadata_reuse_restricted';policy=None
+                if len(row['title'])>180:
+                    reason='metadata_not_minimal';policy=None
                 if checked.get('duplicate_of'):
                     reason='duplicate';policy=None
                 elif checked.get('decision_changed'):
@@ -101,10 +106,14 @@ def select(rows, portal, link_check, now=None, source_checks=None):
                     public.checked_url(row['original_url'])
                     items.append({'id':row['notice_id'],'content_hash':row['content_hash'],'title':row['title'],
                                   'institution':row['institution'],'url':row['original_url'],'source_id':row['source_id'],
-                                  'checked_at':now.isoformat(),'policy_id':sources.POLICY_ID,'source_policy':policy,
+                                  'checked_at':now.isoformat(),'policy_id':policy['id'],'source_policy':policy,
                                   'archive':category=='elapsed'})
                     seen.add(key)
                 else:
+                    if reason is None and checked.get('metadata_link_restricted'):reason='metadata_reuse_restricted'
+                    if reason is None and row['source_id'] in links.SOURCES and checked.get('status')=='checked':
+                        if not checked.get('title_match') or not checked.get('metadata_title_confirmed'):reason='official_title_unconfirmed'
+                        elif len(row['title'])>180:reason='metadata_not_minimal'
                     reason = reason or ('reference_document' if policy and category=='reference' else 'official_link_unconfirmed' if checked and checked.get('status')!='checked' else 'source_reuse_policy_unconfirmed')
             else:
                 canonical(row['original_url'])
@@ -228,12 +237,20 @@ def append(db, feed, manifest, now=None):
             policy=item.get('source_policy')
             if policy:
                 import support_guidance_sources as sources
-                if (item['policy_id']!=sources.POLICY_ID or policy['id']!=sources.POLICY_ID or policy['scope']!='unchanged_metadata_only'
+                import support_link_policy as links
+                name_link=policy.get('id')==links.POLICY_ID
+                if name_link:
+                    spec=links.SOURCES.get(item['source_id']);u=urlsplit(item['url'])
+                    if (item['policy_id']!=links.POLICY_ID or policy.get('scope')!='title_institution_link_only'
+                        or policy.get('evidence_url')!=links.TITLE_BASIS or policy.get('link_basis_url')!=links.LINK_BASIS
+                        or policy.get('body_redistribution') is not False or policy.get('attachment_redistribution') is not False
+                        or not spec or u.hostname!=spec[0] or not re.fullmatch(spec[1],u.path)):continue
+                elif (item['policy_id']!=sources.POLICY_ID or policy['id']!=sources.POLICY_ID or policy['scope']!='unchanged_metadata_only'
                         or policy['type'] not in ('1','2','3','4') or urlsplit(item['url']).hostname!=sources.source_hosts().get(item['source_id'])
                         or policy['type'] in ('2','4') and not sources.NONCOMMERCIAL_METADATA_ONLY):continue
                 public.checked_url(item['url']);key=identity(item['url'])
                 evidence_url=policy['evidence_url'];checked_day=item['checked_at'][:10]
-                license_name='공공누리 제'+policy['type']+'유형 · 출처표시'+('·비상업적 이용' if policy['type'] in ('2','4') else '')+('·변경금지' if policy['type'] in ('3','4') else '')
+                license_name='제목·기관·공식 링크 안내 · 본문·첨부 재배포 없음' if name_link else '공공누리 제'+policy['type']+'유형 · 출처표시'+('·비상업적 이용' if policy['type'] in ('2','4') else '')+('·변경금지' if policy['type'] in ('3','4') else '')
                 attribution='출처: '+item['institution']+' · 공식 공고 원문'
             else:
                 key=canonical(item['url']);evidence_url=POLICY['url'];checked_day=POLICY['checked_at'];license_name=POLICY['license'];attribution='출처: 중소벤처기업부·기업마당 / 공공데이터포털'
@@ -250,7 +267,7 @@ def append(db, feed, manifest, now=None):
                 **({'recorded_period_elapsed':True} if item.get('archive') is True else {}),
                 'region': 'unknown', 'target': 'unknown', 'support': 'unknown',
                 'eligibility': {'conditions': [], 'logic': {'op': 'UNKNOWN', 'children': []}},
-                'evidence': {'notice': {'url': item['url'], 'location': '공식 API 제목·원문 링크 확인'}},
+                'evidence': {'notice': {'url': item['url'], 'location': '공식 게시물 제목·기관·원문 링크 대조' if policy else '공식 API 제목·원문 링크 확인'}},
                 'rights': {'public_display': 'allowed', 'evidence_url': evidence_url, 'checked_at': checked_day},
                 'attribution': attribution, 'license': license_name})
             ids.add(item['id']); seen.add(key); total += 1

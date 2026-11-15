@@ -1,7 +1,7 @@
 """Reuse explicit article KOGL marks for unchanged metadata, not whole documents."""
 import hashlib,json,re,time,urllib.request,urllib.robotparser
 from datetime import datetime,timezone,timedelta
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit,urljoin
 from bs4 import BeautifulSoup
 import support_monitor as m
 import support_bizinfo as transport
@@ -44,6 +44,26 @@ def article(raw,url):
 def source_hosts():
     registry=json.loads((m.ROOT/'config/collector_sources.json').read_text(encoding='utf-8'))['sources']
     return {s['source_id']:urlsplit(s['board_url']).hostname for s in registry}
+
+def checked_page(url,robots,timeout=6):
+    """Follow at most two public same-host HTTPS redirects, including framework routing."""
+    import urllib.error
+    host=urlsplit(url).hostname;current=url
+    opener=urllib.request.build_opener(transport.NoProbeRedirects())
+    for hop in range(3):
+        if not robots.can_fetch(m.USER_AGENT,current):return b'',403,False
+        try:
+            with opener.open(urllib.request.Request(current,headers={'User-Agent':m.USER_AGENT}),timeout=timeout) as response:
+                raw=response.read(m.MAX_BYTES+1)
+                if len(raw)>m.MAX_BYTES:return b'',413,False
+                return raw,response.status,hop>0
+        except urllib.error.HTTPError as e:
+            status=e.code;location=e.headers.get('Location');e.close()
+            if status not in (301,302,303,307,308) or not location or hop==2:return b'',status,False
+            destination=urljoin(current,location);u=urlsplit(destination)
+            if u.scheme!='https' or u.hostname!=host or u.username or u.password or u.port not in (None,443):return b'',status,False
+            current=destination
+    return b'',302,False
 def validate_item(row,check):
     if (not check or check.get('status')!='checked' or not check.get('title_match') or check.get('url')!=row['original_url']
         or urlsplit(row['original_url']).hostname!=source_hosts().get(row['source_id'])):return None
@@ -52,7 +72,7 @@ def validate_item(row,check):
     if kinds[0] in ('2','4') and not NONCOMMERCIAL_METADATA_ONLY:return None
     return {'id':POLICY_ID,'type':kinds[0],'evidence_url':row['original_url'],'scope':'unchanged_metadata_only',
             'noncommercial':kinds[0] in ('2','4'),'body_sha256':check['body_sha256']}
-def inspect(rows,*,seconds=120):
+def _inspect_serial(rows,*,seconds=120):
     """One bounded pass; blocked/unknown robots never bypassed or retried."""
     start=time.monotonic();result={};robots={}
     for row in rows:
@@ -71,13 +91,31 @@ def inspect(rows,*,seconds=120):
         if robots[host] and robots[host].can_fetch(m.USER_AGENT,url):
             try:
                 time.sleep(.5)
-                raw,status,_=transport.probe_transport(urllib.request.Request(url,headers={'User-Agent':m.USER_AGENT}),timeout=6)
+                raw,status,redirected=checked_page(url,robots[host],timeout=6)
                 soup=BeautifulSoup(raw,'html.parser')
+                import support_link_policy as links
                 check.update(status='checked' if status==200 else 'http_'+str(status),title_match=norm(row['title']) in norm(soup.get_text(' ',strip=True)),
                              licenses=license_types(soup),body_sha256=hashlib.sha256(raw).hexdigest(),article=article(raw,url))
+                check['metadata_title_confirmed']=links.title_check(soup,row['title'],norm)
+                check['redirects_verified']=redirected
+                check['metadata_link_restricted']=links.restricted(check['article'])
             except Exception:check['status']='request_failed'
         result[row['notice_id']]=check
     return result
+
+def inspect(rows,*,seconds=120):
+    """Three hosts at most; each host retains its request interval and robots check."""
+    from concurrent.futures import ThreadPoolExecutor
+    grouped={}
+    for row in rows:grouped.setdefault(urlsplit(row['original_url']).hostname,[]).append(row)
+    started=time.monotonic()
+    def group(batch):
+        remaining=seconds-(time.monotonic()-started)
+        return _inspect_serial(batch,seconds=remaining) if remaining>0 else {}
+    out={}
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        for part in pool.map(group,grouped.values()):out.update(part)
+    return out
 
 def reviewed_facts(feed,plans,checks,now):
     """Version-bound facts; never turn a basic listing into eligibility approval."""
