@@ -153,6 +153,11 @@ def local_pipeline(question):
     if len(exact)==1:
         key,document=exact[0]
         response=grounded_response(original,corpus,key)
+        if not response['programs']:
+            # A name lookup can succeed even when no reviewed passage answers it.
+            # Return only current public metadata, never invent a detailed answer.
+            listing=rag_catalogue.respond(question,corpus,explicit=True,include_approved=True)
+            if listing:return catalogue_response(listing,corpus)
         response.update(kind='answer',conversation={**context,'notice_ids':[document['public']['id']]},suggestions=[],understanding='rules')
         decorate_cards(response,corpus)
         return rag_dialogue.remember(response,corpus)

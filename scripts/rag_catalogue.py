@@ -93,7 +93,7 @@ def program(item,feed,now,context=None):
             'card':{'group':'elapsed' if state=='elapsed' else 'check','label':'공식 공고 기본 안내','period_state':{'window':'within_recorded_dates','upcoming':'upcoming','elapsed':'elapsed'}.get(state,'unknown'),
                     'institution':item['institution'],'reception_state':shown.get('actual_reception_state','unconfirmed'),'facts':{'region':'확인 필요','target':'확인 필요','support':'공식 원문에서 확인','funding':[],'method':[shown['application_method']] if shown.get('application_method') else [],'documents':[]},'questions':[]}}
 
-def respond(encoded,corpus,*,explicit=False,fallback=None):
+def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False):
     feed=corpus.get('guidance_feed')
     if not feed:return None
     question,context=rag_dialogue.decode(encoded);now=datetime.now(timezone.utc)
@@ -101,7 +101,7 @@ def respond(encoded,corpus,*,explicit=False,fallback=None):
     found=matches(question,feed,context,now)
     exact=[n for n in found if re.sub(r'[^0-9a-z가-힣]','',rag_dialogue.normalized(n['title']).lower()) in re.sub(r'[^0-9a-z가-힣]','',rag_dialogue.normalized(question).lower())]
     if explicit:
-        found=[n for n in exact if n['id'] not in strict]
+        found=[n for n in exact if include_approved or n['id'] not in strict]
         if not found:return None
     elif fallback and fallback.get('programs'):return None
     # Follow-up to a metadata-only listing: do not redirect it to another approved business.

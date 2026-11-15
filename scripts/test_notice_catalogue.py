@@ -44,4 +44,13 @@ class NoticeReviewTests(unittest.TestCase):
     def test_safe_source_and_no_body(self):
         feed={'schema_version':'munongsa-support-public-v1','notices':[{**self.item,'url':'https://attacker.example/a'}]}
         self.assertFalse(rag_catalogue.records(feed,self.now))
+    def test_approved_name_can_fall_back_without_promoting_evidence(self):
+        item={**self.item,'publication':'approved_reference','verification_status':'verified'}
+        feed={'schema_version':'munongsa-support-public-v1','notices':[item]}
+        corpus={'documents':{'test':{'public':item}},'guidance_feed':feed}
+        self.assertIsNone(rag_catalogue.respond(item['title'],corpus,explicit=True))
+        result=rag_catalogue.respond(item['title'],corpus,explicit=True,include_approved=True)
+        self.assertEqual(result['programs'][0]['id'],item['id'])
+        self.assertEqual(result['programs'][0]['evidence_level'],'공식 공고 기본 안내')
+        self.assertTrue(result['programs'][0]['needs_verification'])
 if __name__=='__main__':unittest.main()

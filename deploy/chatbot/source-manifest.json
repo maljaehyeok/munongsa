@@ -19,7 +19,7 @@
   "runtime": {
     "scripts/rag_search.py": "5af3afda3f53f9d36a6190dc46ac85b778d63c414f9434fed0e60d5f303ea9fc",
     "scripts/rag_answer.py": "6b9a573cdc7fc2bdadabef09ab7524b76c39c5a6818f4574d6dc7962e7c37186",
-    "scripts/rag_api.py": "655af39937dce1b7b7f6a3842dce38b6f531c86aaed09e5edce4d73ff2a418c1",
+    "scripts/rag_api.py": "0499d17c818bec753b017faaaacd006c8eebb375efa299c868d39e65051e2a5c",
     "scripts/chat_wsgi.py": "3360cc48becc6a2279c4bd8a9a3f5827bdbc999a22401e8f0c0f27710047e292",
     "scripts/host_proxy_entry.py": "0af6b39819cabd9215924cd29b38e196046c1fc1bb0e64871b8f8c2c3710b97d",
     "scripts/host_socket_entry.py": "076623b171e962812b279d0268408281d1893981374702ced3ed3b776cf00b45",
@@ -28,7 +28,7 @@
     "scripts/rag_dialogue.py": "23cceea9b20357bd4fa7fda51db7574dd74bd2f57d0d7298f4c48e4478651c03",
     "scripts/rag_profile.py": "e03ed2b445eca33b896640f3408caabd2a614b09d84debc44f1449debdd5a659",
     "scripts/rag_nlu.py": "dd022820d863f7b027613cce09ebedff7c4376ad168f2505679562f2f068ea42",
-    "scripts/rag_catalogue.py": "3bdaf3aa5a0700aa1658de2d9d038dff28cbecb0df951285080853b47ecee99d",
+    "scripts/rag_catalogue.py": "fd6cf7de7b963ae2f6bcdbace1c008e6cde862f1ce1509a213394ad08f653ff9",
     "scripts/support_notice_review.py": "5b9dc48e2d371597918665b733be8c88ab8417f6577386af7c08819ab6827c6e"
   },
   "private_corpus": {
