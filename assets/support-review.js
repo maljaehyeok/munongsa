@@ -47,12 +47,16 @@
     let cutoff=dates.end?.timezone==='Asia/Seoul'&&/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(dates.end?.time||'')?dates.end.time:null;
     if(!cutoff&&awareDay(aware.end)){const d=new Date(Date.parse(aware.end)+9*3600000);cutoff=d.toISOString().slice(11,19)}
     const closed=item.known_closed===true||(end&&(end<today||(end===today&&cutoff&&ms>=Date.parse(end+'T'+cutoff+(cutoff.length===5?':00':'')+'+09:00'))));
-    const state=closed?'elapsed':start&&start>today?'upcoming':start&&end&&start<=today&&today<=end&&(today!==end||cutoff)?'window':'unknown';
+    const state=closed?'elapsed':start&&start>today?'upcoming':item.standing_application===true?'standing':start&&end&&start<=today&&today<=end?'window':'unknown';
     const days=end?Math.round((Date.parse(end+'T00:00:00Z')-Date.parse(today+'T00:00:00Z'))/86400000):null;
     const urgent=!closed&&state!=='upcoming'&&days!==null&&days>=0&&days<=10;
     let headline=closed?(item.known_closed===true?'마감':'기한 경과'):state==='upcoming'?'모집 예정':days===0?'오늘 마감 · 시각 미확인':days!==null&&days>0?'마감 D-'+days:state==='window'?'기재 모집기간 내':'마감일 미확인';
     if(!closed&&days===0&&cutoff)headline='오늘 '+Number(cutoff.slice(0,2))+'시'+(cutoff.slice(3,5)==='00'?'':Number(cutoff.slice(3,5))+'분')+(cutoff.length===8&&cutoff.slice(6)!=='00'?Number(cutoff.slice(6))+'초':'')+' 마감';
     const chips=[];
+    const observed=item.actual_reception_state;
+    if(observed==='operator_notice'&&state==='window')chips.push({text:'운영기관 모집 안내 확인 · 최종 접수 미검증',tone:'window'});
+    if(observed==='login_unverified'&&state==='window')chips.push({text:'로그인 이후 접수 미검증',tone:'check'});
+    if(state==='standing')chips.push({text:'상시·예산 소진 조건 · 잔여 예산·접수 확인 필요',tone:'check'});
     const reception=item.verified_reception,age=ms-Date.parse(reception?.checked_at),receptionConfirmed=state==='window'&&age>=0&&age<86400000&&reception?.status==='open_notice_verified';
     if(receptionConfirmed)chips.push({text:'모집 중 안내 확인 · 최종 접수는 원문 확인',tone:'window'});
     if(item.geographic_scope==='nationwide_verified')chips.push({text:'전국 대상 · 세부 자격 별도 확인',tone:'check'});
@@ -70,14 +74,14 @@
     const org=conditions.some(c=>c.kind==='applicant'&&c.presence==='specified'&&Array.isArray(c.value?.one_of)&&!c.value.one_of.includes('individual_farmer')&&c.value.one_of.some(v=>/corporation|institution|group|business/.test(v)));
     if(org||/법인|모임|단체|기관/.test(item.target||''))chips.push({text:'개인 신청 전 확인 필요',tone:'check'});
     if(closed)chips.push({text:item.known_closed===true?'마감 확인':'기재 기간 경과',tone:'muted'});
-    return {state,days,start,end,cutoff,urgent,headline,chips,reference,
+    return {state,days,start,end,cutoff,urgent,headline:state==='standing'?'상시·예산 조건 확인':headline,chips,reference,operator_notice:state==='window'&&['operator_notice','login_unverified'].includes(observed),
       tone:closed?'muted':urgent?'urgent':state==='window'?'window':state==='upcoming'?'upcoming':'check',
       periodText:start&&end?start+' ~ '+end+(cutoff?' '+cutoff+'(KST)':''):end?'기재 기한 '+end:'신청기간 확인 필요',
       // A calendar window is never a claim of verified reception or eligibility.
       eligibility_confirmed:false,reception_confirmed:receptionConfirmed};
   }
   function sortRows(rows){
-    const rank=r=>r.display.state==='elapsed'?4:r.display.urgent?0:r.display.state==='window'?1:r.display.state==='upcoming'?2:3;
+    const rank=r=>r.display.state==='elapsed'?5:r.display.operator_notice?0:r.display.urgent?1:r.display.state==='window'?2:r.display.state==='upcoming'?3:4;
     return rows.sort((a,b)=>rank(a)-rank(b)||(a.display.end||'9999-12-31').localeCompare(b.display.end||'9999-12-31')||String(b.item.published_at||'').localeCompare(String(a.item.published_at||'')));
   }
   function displayDate(value){

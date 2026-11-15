@@ -29,7 +29,7 @@ def allowed(row,check):
         or not check.get('title_match') or check.get('metadata_title_confirmed') is not True
         or check.get('metadata_link_restricted') is True):return None
     # A paragraph pasted into a title is not treated as an unprotected name.
-    title=row['title']
+    title=check.get('display_title') or row['title']
     if len(title)>180 or re.search(r'\b\d{2,3}-\d{3,4}-\d{4}\b|@|[<>\x00-\x1f]',title):return None
     return {'id':POLICY_ID,'type':'name_link','scope':'title_institution_link_only',
             'evidence_url':TITLE_BASIS,'link_basis_url':LINK_BASIS,'source_policy_url':spec[2],
@@ -40,6 +40,18 @@ def title_check(soup,title,normalizer):
     # Do not accept a title just because it appears in menus or related notices.
     candidates=soup.select('h4.title, .viewArea h4, .view_tit, .bbs_view h4, .border_view h4, .view-con h4, h4, .bbs-subject, .bo_v_title, .artclTitle, .artclViewTitle, .view-title, .view_top > dl > dt')
     return bool(wanted) and any(normalizer(n.get_text(' ',strip=True))==wanted for n in candidates)
+
+def recovered_title(soup,stored,url,normalizer):
+    """Only a truncated aT name can be completed from its labelled business-name cell."""
+    if urlsplit(url).hostname!='global.at.or.kr' or not re.search(r'(?:\.\.\.|…)\s*$',stored):return None
+    prefix=normalizer(re.sub(r'(?:\.\.\.|…)\s*$','',stored))
+    values=[]
+    for node in soup.select('article.contentGroup th'):
+        if normalizer(node.get_text(' ',strip=True)) not in ('사업명','사업명필수'):continue
+        cell=node.find_next_sibling('td')
+        value=cell.get_text(' ',strip=True) if cell else ''
+        if 5<=len(value)<=180 and normalizer(value).startswith(prefix) and not re.search(r'@|[<>\x00-\x1f]|\d{2,3}-\d{3,4}-\d{4}',value):values.append(value)
+    return values[0] if len(set(values))==1 else None
 
 def restricted(text):
     return bool(re.search(r'(?:직접\s*링크|제목.{0,12}재게시|자동.{0,8}수집)\s*(?:를|을)?\s*금지',text))

@@ -50,7 +50,7 @@
  }
  function support(data,profile,now=Date.now()){
   const groups=root.MunongsaSupport.explore(data,profile,now),rows=[...groups.recommendations,...groups.excluded,...groups.references];
-  return rows.map(row=>{const facts=data.verified_facts?.[row.item.id],shown=sourceFacts(row.item,facts,now),reviewed=sourceConditions(row.item,data.verified_comparisons?.[row.item.id]||facts,now),projected=project(reviewed||row.item),match=root.MunongsaSupport.evaluate(projected,profile),why=reasons(projected,match),place=String(profile.district||'').replace(/[시군]$/,''),scope=row.item.region||'';
+  return rows.map(row=>{const facts=data.verified_facts?.[row.item.id],shown=root.MunongsaNoticeReview?.project(sourceFacts(row.item,facts,now),data.notice_observations?.[row.item.id],now)||sourceFacts(row.item,facts,now),reviewed=sourceConditions(row.item,data.verified_comparisons?.[row.item.id]||facts,now),projected=project(reviewed||row.item),match=root.MunongsaSupport.evaluate(projected,profile),why=reasons(projected,match),place=String(profile.district||'').replace(/[시군]$/,''),scope=row.item.region||'';
    const geographic=place.length>=2&&place!=='all'&&scope.includes(place)?'영농지역과 안내 지역 관련 · 거주·농지 자격 충족 아님':null;
    const display=root.MunongsaSupportReview.presentation(shown,now),relatedCandidate=!!reviewed&&display.state==='window'&&match.conditionStatus!=='mismatch'&&why.some(r=>r.state==='match');
    const sourceWarning=data.source_review?.[row.item.id]?.title_needs_review===true;

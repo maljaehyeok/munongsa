@@ -8,7 +8,7 @@
   <link rel="canonical" href="https://munongsa.duckdns.org/">
 <link rel="stylesheet" href="./assets/chat-ui.css?v=conditions-20261112">
 <script src="./assets/amount-display.js?v=ux-20261114"></script>
-<script src="./assets/chat-ui.js?ux-20261114" defer></script>
+<script src="./assets/chat-ui.js?usability-20261115" defer></script>
   <link rel="stylesheet" href="./assets/ui-v2.css?v=support-readable-20261029">
   <link rel="stylesheet" href="./assets/finance-mvp.css?v=finance-20261029">
 </head>
@@ -146,8 +146,9 @@
   <script src="./assets/finance-mvp.js?v=selection-20261031"></script>
   <script src="./assets/support-details.js?v=details-20261030"></script>
   <script src="./assets/user-display.js?v=support-final-20261030"></script>
-  <script src="./assets/personalization.js?reception-20261114-reception-20261114-verified-20261114-v=support-final-20261030"></script>
-  <script src="./assets/support-review.js?reception-20261114-reception-20261114-guidance-20261114-v=support-final-20261030"></script>
+  <script src="./assets/notice-review.js?v=usability-20261115"></script>
+  <script src="./assets/personalization.js?v=usability-20261115"></script>
+  <script src="./assets/support-review.js?usability-20261115"></script>
   <script>
     // 이 페이지의 사업 자료는 시연용 예시이며, 제출 전 최신 공식 공고를 다시 확인합니다.
     let programs=[];
@@ -257,7 +258,7 @@
     let supportViewFilter='all';
     function supportDisplayDate(value){return MunongsaSupportReview.displayDate(value)}
     function supportBadges(d){return `<div class="notice-status"><span class="deadline-badge ${d.tone}" data-deadline-days="${d.days??''}">${esc(d.headline)}</span>${d.chips.map(c=>`<span class="notice-chip ${c.tone}">${esc(c.text==='세부 자격 일부 미확인'?'공고 조건 일부 미확인':c.text)}</span>`).join('')}</div>`}
-    function supportFilterMatches(d,reference=false){return (supportPeriodFilter==='all'||d.state===supportPeriodFilter)&&(supportViewFilter==='all'||supportViewFilter==='review'&&reference||supportViewFilter==='urgent'&&d.urgent||supportViewFilter===d.state)}
+    function supportFilterMatches(d,reference=false){return (supportPeriodFilter==='all'||d.state===supportPeriodFilter)&&(supportViewFilter==='all'||supportViewFilter==='review'&&reference||supportViewFilter==='urgent'&&d.urgent||supportViewFilter==='confirmed'&&d.operator_notice||supportViewFilter===d.state)}
     function reviewCard(item){const d=MunongsaSupportReview.presentation(item,Date.now(),true);return `<article class="card notice-card review-notice" data-review-id="${esc(item.id)}">${supportBadges(d)}<button class="compact-open" type="button" data-info-kind="supportReview" data-info-key="${esc(item.id)}"><strong>${esc(MunongsaDisplay.title(item.title))}</strong><span class="notice-institution">${esc(item.institution)}</span><span class="notice-period">${esc(publicPeriod(item))}</span><span class="notice-meta">게시일 ${esc(supportDisplayDate(item.published_at))} · 마지막 수집일 ${esc(supportDisplayDate(item.checked_at))}</span><span class="compact-hint">수집 정보 보기 ↗</span></button><p class="notice-footer">검토 전 자료 · 신청 추천 아님 <a class="source-action" href="${esc(item.url)}" target="_blank" rel="noopener">공식 공고 보기 ↗</a></p></article>`}
     function appendSupportReviews(){
       const rows=MunongsaSupportReview.sortRows(MunongsaSupportReview.publicRecords(supportReview,document.getElementById('supportSearch').value).map(item=>({item,display:MunongsaSupportReview.presentation(item,Date.now(),true)}))).filter(r=>supportFilterMatches(r.display,true));
@@ -276,12 +277,12 @@
       const personalized=publicSupport?MunongsaPersonalization.support(publicSupport,x):[],query=document.getElementById('supportSearch').value.trim().toLocaleLowerCase();
       const official=personalized.filter(r=>MunongsaSelection.regionFilter(r.item,x).keep).filter(r=>[r.item.title,r.item.institution,r.item.target,r.item.region].join(' ').toLocaleLowerCase().includes(query)).map(r=>({...r,display:MunongsaSupportReview.presentation(r.item)}));
       const refs=MunongsaSupportReview.publicRecords(supportReview,query).map(item=>({item,display:MunongsaSupportReview.presentation(item,Date.now(),true),reference:true}));
-      const all=[...official,...refs],labels={all:'전체',window:'기재 모집기간 내',urgent:'마감 임박',review:'검토 중',unknown:'기간 확인 필요',elapsed:'기한 경과·마감',upcoming:'모집 예정'};
-      const total=v=>v==='all'?all.length:v==='review'?refs.length:v==='urgent'?all.filter(r=>r.display.urgent).length:all.filter(r=>r.display.state===v).length;
+      const all=[...official,...refs],labels={confirmed:'\uBAA8\uC9D1 \uC548\uB0B4 \uD655\uC778',standing:'\uC0C1\uC2DC\u00B7\uC608\uC0B0 \uC870\uAC74',all:'전체',window:'기재 모집기간 내',urgent:'마감 임박',review:'검토 중',unknown:'기간 확인 필요',elapsed:'기한 경과·마감',upcoming:'모집 예정'};
+      const total=v=>v==='all'?all.length:v==='review'?refs.length:v==='urgent'?all.filter(r=>r.display.urgent).length:v==='confirmed'?all.filter(r=>r.display.operator_notice).length:all.filter(r=>r.display.state===v).length;
       document.getElementById('supportStateFilter').hidden=true;document.querySelector('label[for="supportStateFilter"]').hidden=true;document.querySelector('#supportBrowseFields p').hidden=true;
       count.textContent=`공식 안내 ${official.length}건 · 검토 중 참고 ${refs.length}건`;
       const toolbar=`<div class="notice-toolbar"><div class="notice-filters" aria-label="공고 상태 필터">${Object.entries(labels).map(([v,label])=>`<button type="button" data-support-status="${v}" aria-pressed="${supportViewFilter===v}" class="${supportViewFilter===v?'active':''}">${label} <b>${total(v)}</b></button>`).join('')}</div><details class="notice-period-details"><summary>기간별 상세 필터 · 한국시간 기준 자동 갱신</summary><div class="support-period-toolbar"><label for="supportPeriodFilter">모집기간</label><select id="supportPeriodFilter">${Object.entries({all:'전체 기간',window:'기재 모집기간 내',upcoming:'모집 예정',unknown:'기간·시각 확인 필요',elapsed:'기한 경과'}).map(([v,label])=>`<option value="${v}" ${v===supportPeriodFilter?'selected':''}>${label}</option>`).join('')}</select><span>한국시간을 기준으로 자동 갱신됩니다.</span></div></details></div>`;
-      const rows=official.filter(r=>supportFilterMatches(r.display));count.textContent=`\uacf5\uc2dd \uc548\ub0b4 ${rows.length}\uac74 \u00b7 \uac80\ud1a0 \uc911 \ucc38\uace0 ${refs.filter(r=>supportFilterMatches(r.display,true)).length}\uac74`;
+      const rows=MunongsaSupportReview.sortRows(official.filter(r=>supportFilterMatches(r.display)));count.textContent=`\uacf5\uc2dd \uc548\ub0b4 ${rows.length}\uac74 \u00b7 \uac80\ud1a0 \uc911 \ucc38\uace0 ${refs.filter(r=>supportFilterMatches(r.display,true)).length}\uac74`;
       cards.innerHTML=toolbar+`<section class="notice-section" data-support-section="official"><header><div><span class="section-eyebrow">공식 출처 기반 안내</span><h2>공식 공고 안내 <span>${rows.length}</span></h2></div><p>제목·공식 링크를 확인한 안내와 검토·승인된 공고를 함께 제공합니다. 자격·모집 여부가 미확인인 공고는 신청 가능 판정에 사용하지 않습니다.<br>신청기간은 한국시간 기준이며, 다른 시간대의 원문 시각은 별도 표시합니다.</p></header><div class="notice-list">${rows.map(approvedCard).join('')||`<p class="notice-empty" data-load-state="${!publicSupport?(publicSupportError?'error':'loading'):'empty'}" role="${!publicSupport&&publicSupportError?'alert':'status'}">${!publicSupport?publicSupportError?'공식 공고를 불러오지 못했어요. 잠시 후 새로고침해 주세요. 검색 결과가 없는 상황과는 다릅니다.':'공식 공고를 불러오는 중입니다.':'현재 검색어·상태 필터에 맞는 공고가 없어요. 검색어를 지우거나 상태를 전체로 바꿔보세요. 신청 자격 미달을 뜻하지는 않아요.'}</p>`}</div></section>`;
     }
     function resetSupportDetail(){for(const id of ['modalEligibilityHeading','modalEligibility','modalSupportHeading','modalSupport','modalSchedule'])document.getElementById(id).hidden=false;const box=document.querySelector('#modal .modal-box');delete document.getElementById('modal').dataset.supportDetail;document.getElementById('modalEligibilityHeading').textContent='누가 신청할 수 있나요? - 확인할 조건';document.getElementById('modalSupportHeading').textContent='지원 내용·규모';box.append(document.getElementById('modalEligibilityHeading'),document.getElementById('modalEligibility'),document.getElementById('modalSupportHeading'),document.getElementById('modalSupport'),document.getElementById('modalSchedule'),document.getElementById('modalSource'))}

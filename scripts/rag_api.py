@@ -144,8 +144,22 @@ def local_pipeline(question):
         raise VerificationError()
     import rag_dialogue,rag_nlu
     original,context=rag_dialogue.decode(question)
+    import rag_catalogue
+    listing=rag_catalogue.respond(question,corpus,explicit=True)
+    if listing:return catalogue_response(listing,corpus)
+    # Exact official names are routed locally; do not send listing titles to NLU.
+    compact=lambda value:re.sub(r'[^0-9a-z가-힣]','',rag_dialogue.normalized(value).lower())
+    exact=[(key,d) for key,d in corpus['documents'].items() if len(compact(d['public']['title']))>=6 and compact(d['public']['title']) in compact(original)]
+    if len(exact)==1:
+        key,document=exact[0]
+        response=grounded_response(original,corpus,key)
+        response.update(kind='answer',conversation={**context,'notice_ids':[document['public']['id']]},suggestions=[],understanding='rules')
+        decorate_cards(response,corpus)
+        return rag_dialogue.remember(response,corpus)
     guidance=rag_dialogue.service_response(question,corpus) or rag_dialogue.continuation(question,corpus,lambda query,notice:grounded_response(query,corpus,notice))
     if guidance and not guidance['programs']:
+        listing=rag_catalogue.respond(question,corpus,fallback=guidance)
+        if listing and guidance.get('kind') in ('catalogue','clarify'):return catalogue_response(listing,corpus)
         guidance['understanding']='rules'
         return rag_dialogue.remember(guidance,corpus)
     # Explicit condition selection already carries the same validated profile.
@@ -167,6 +181,8 @@ def local_pipeline(question):
     else:
         response = rag_dialogue.respond(routed, corpus,
             lambda query, notice: grounded_response(query, corpus, notice))
+    listing=rag_catalogue.respond(question,corpus,fallback=response)
+    if listing and (response.get('kind') in ('catalogue','recommendation','clarify') or context.get('notice_ids')):return catalogue_response(listing,corpus)
     decorate_cards(response,corpus)
     if understood and understood['hypothetical'] and actual is not None:
         notice_ids=response.get('conversation',{}).get('notice_ids',context.get('notice_ids',[]))
@@ -191,6 +207,21 @@ def local_pipeline(question):
     return rag_dialogue.remember(response,corpus)
 
 
+def catalogue_response(response,corpus):
+    """Recheck the served public listing before returning metadata or partial facts."""
+    if os.environ.get('MUNONGSA_RAG_SYNC_DIR'):
+        import rag_sync,rag_catalogue
+        current=rag_sync.load(os.environ['MUNONGSA_RAG_SYNC_DIR'])
+        old=corpus.get('guidance_feed',{});new=current.get('guidance_feed',{})
+        before={n['id']:n for n in rag_catalogue.records(old)};after={n['id']:n for n in rag_catalogue.records(new)}
+        for p in response['programs']:
+            identity=p['id']
+            if identity not in before or before[identity]!=after.get(identity):raise VerificationError()
+            for key in ('notice_observations','verified_facts','verified_comparisons'):
+                if old.get(key,{}).get(identity)!=new.get(key,{}).get(identity):raise VerificationError()
+    return response
+
+
 def decorate_cards(response,corpus):
     """Public, hash-verified facts only. Never parse new eligibility rules here."""
     if not response['programs']:return
@@ -210,11 +241,28 @@ def decorate_cards(response,corpus):
     for program in response['programs']:
         document=by_id[program['id']];public=document['public']
         comparison=program.get('comparison') or rag_profile.compare(document,context,rag_search.valid_url,rag_dialogue.AREAS)
+        if corpus.get('guidance_feed'):
+            import rag_catalogue
+            live=next((n for n in rag_catalogue.records(corpus['guidance_feed']) if n['id']==program['id']),None)
+            partial=rag_catalogue.comparison(live,corpus['guidance_feed'],context,datetime.now(rag_answer.KST)) if live else None
+            if partial:
+                comparison={**comparison,'label':'조건 불일치' if '조건 불일치' in (comparison['label'],partial['label']) else '관련 가능성 있음' if '관련 가능성 있음' in (comparison['label'],partial['label']) else '추가 확인 필요',
+                            'reasons':list(dict.fromkeys(comparison.get('reasons',[])+partial['reasons']))[:3],
+                            'checks':list(dict.fromkeys(partial['checks']+comparison.get('checks',[])))[:4],
+                            'questions':list(dict.fromkeys(partial['questions']+comparison.get('questions',[])))[:2]}
         area=context.get('farm_region') or context.get('region')
         if area and public.get('region') not in (None,'','unknown') and not rag_dialogue.region_matches(area,public,document) and comparison['label']!='조건 불일치':
             comparison={**comparison,'label':'추가 확인 필요','checks':['알려주신 '+area+' 지역과 공고의 지원 지역을 함께 확인해야 합니다. 거주지·영농지 요건은 서로 다를 수 있습니다.']+comparison['checks']}
         program['comparison']=comparison
         period=rag_search.recruitment_context(document,datetime.now(rag_answer.KST))
+        if corpus.get('guidance_feed') and live:
+            import support_notice_review
+            observed=support_notice_review.project(live,corpus['guidance_feed'].get('notice_observations',{}).get(program['id']),datetime.now(rag_answer.KST))
+            if observed.get('official_observation_at'):
+                dates=observed.get('reference_application_dates',{})
+                state=support_notice_review.state(dates,datetime.now(rag_answer.KST))
+                period={**period,'date_state':{'window':'within_recorded_dates','upcoming':'upcoming','elapsed':'elapsed'}.get(state,'unknown')}
+                program['application_period']={**program['application_period'],'start':dates.get('start',{}),'end':dates.get('end',{}),'description':'공식 본문에서 확인한 기재 신청기간 · 실제 접수·전체 자격은 별도 확인','actual_reception_confirmed':False}
         mismatch=comparison['label']=='조건 불일치'
         group='elapsed' if period['date_state']=='elapsed' else 'mismatch' if mismatch else 'related' if comparison['label']=='관련 가능성 있음' else 'check'
         program['card']={'group':group,'label':{'elapsed':'모집기간 경과','mismatch':'확인된 조건 불일치','related':'관련 가능성 있음','check':'추가 확인 필요'}[group],

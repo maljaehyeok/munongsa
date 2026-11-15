@@ -4,29 +4,32 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "0cdf6a2f9c9ae895ba7c436d07bf92fe1522b0c16a8f28b32a7aeffea3c75559",
-    "assets/chat-ui.js": "8151508a860c64d1bf53f26d5d411df0434a5b9e56c14e9b62c2830a0a48439c",
+    "index.html": "8a10533e4f6e5cb4fb6d219416ad530951173d38f42a98417dbb6c07df74b673",
+    "assets/chat-ui.js": "d1896d3eaa29a670e599287dc9749e2f31ec21dd29a6cabb6b03912acd931757",
     "assets/chat-ui.css": "63cb322e967faf7807b6cade936c99a09ae5b7e8f05c9ddee44d43bd002c31c1",
     "assets/support-public.js": "53944ea230cadbb18bc0e023fb94ef46dc701469088fa5213989a2199997aaee",
     "assets/selection-view.js": "fc19982c4a8996f4f15da2c6348b4992d66fe177734ab443986ca7ff791e5290",
     "assets/input-ux.js": "9d61d608280ebda6938a2b55aa0a8ba8206af6585f7e0af8e307083432b93136",
     "assets/amount-display.js": "b3bce0564923cdfec1d4110305c990e9f0811bd6a11525aa3c8e42f5613dc982",
     "assets/ux-first.css": "1bef8744409f8d9dd837cc8dafc3a2dae7abcddf4e0752a28ac17a071f43fd6e",
-    "assets/support-review.js": "11311250576e99ad1fd70de73c30e930fd7e69ac15f07b409819e5a5e9050a2e",
-    "assets/personalization.js": "be44f8b9e0d07c47792255a18328dff10ece8a42549247207830a17f4377c716"
+    "assets/support-review.js": "b747ecd2897c2349cfa485d9c082fb003dd6ffa547609d224f6edcc4b79784de",
+    "assets/personalization.js": "f526312e608066294be12e1754255ed64438ddb8a4c20436199d1b08e39775f8",
+    "assets/notice-review.js": "b4f415c1ac7cbecaccb0856a1ef8ec70a3769e2cb7d9322cf8f100d83220ec61"
   },
   "runtime": {
     "scripts/rag_search.py": "5af3afda3f53f9d36a6190dc46ac85b778d63c414f9434fed0e60d5f303ea9fc",
     "scripts/rag_answer.py": "6b9a573cdc7fc2bdadabef09ab7524b76c39c5a6818f4574d6dc7962e7c37186",
-    "scripts/rag_api.py": "a7007d736570354a59ce344db7c5649f47825e406ee8bc942cf4c52d25d4b96d",
+    "scripts/rag_api.py": "655af39937dce1b7b7f6a3842dce38b6f531c86aaed09e5edce4d73ff2a418c1",
     "scripts/chat_wsgi.py": "3360cc48becc6a2279c4bd8a9a3f5827bdbc999a22401e8f0c0f27710047e292",
     "scripts/host_proxy_entry.py": "0af6b39819cabd9215924cd29b38e196046c1fc1bb0e64871b8f8c2c3710b97d",
     "scripts/host_socket_entry.py": "076623b171e962812b279d0268408281d1893981374702ced3ed3b776cf00b45",
-    "scripts/rag_sync.py": "3e740fb63ea031b28076c0fac071e872752751f5c7117ffd4e44a8c531faa3e2",
+    "scripts/rag_sync.py": "d8b36906ebccf6d8f0a3522aeef5ddfe91e962ff14e10c298afe9bbdf9d3e4e1",
     "scripts/rag_refresh_cycle.py": "1534735163a23b4167fcb365f904f7def84da2c5cd533ec88da7a4edec13ff04",
     "scripts/rag_dialogue.py": "23cceea9b20357bd4fa7fda51db7574dd74bd2f57d0d7298f4c48e4478651c03",
     "scripts/rag_profile.py": "e03ed2b445eca33b896640f3408caabd2a614b09d84debc44f1449debdd5a659",
-    "scripts/rag_nlu.py": "dd022820d863f7b027613cce09ebedff7c4376ad168f2505679562f2f068ea42"
+    "scripts/rag_nlu.py": "dd022820d863f7b027613cce09ebedff7c4376ad168f2505679562f2f068ea42",
+    "scripts/rag_catalogue.py": "3bdaf3aa5a0700aa1658de2d9d038dff28cbecb0df951285080853b47ecee99d",
+    "scripts/support_notice_review.py": "5b9dc48e2d371597918665b733be8c88ab8417f6577386af7c08819ab6827c6e"
   },
   "private_corpus": {
     "assets/support-details.json": "01a3d2eb61ab8ea6d70b1514eddafaf60b107e3a777c5df342991ac5c6e72c62",

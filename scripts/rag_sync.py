@@ -462,6 +462,9 @@ def load(directory, *, now=None, pointer=None):
     corpus['specs'] = manifest['specs']
     corpus['sync_generation'] = root.name
     corpus['sync_verified'] = True
+    # Separate public discovery channel; never add these items to documents,
+    # specs, allowed bindings or approved evidence passages.
+    corpus['guidance_feed'] = feed
     corpus['unavailable_ids'] = sorted(set(manifest['bindings']) - {d['public']['id'] for d in corpus['documents'].values()})
     return corpus
 

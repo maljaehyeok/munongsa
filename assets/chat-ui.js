@@ -7,7 +7,7 @@
   const productionPage=location.protocol==='https:'&&location.hostname==='munongsa.duckdns.org';
   const localPage=productionPage||(location.protocol==='http:'&&['localhost','127.0.0.1'].includes(location.hostname));
   const endpoint=productionPage?'/api/chat':'http://127.0.0.1:8765/api/chat';
-  const officialHosts=new Set(['www.buan.go.kr','www.gochang.go.kr','www.rda.go.kr','www.jeonbuk.go.kr','www.oads.or.kr','global.at.or.kr','www.jeonju.go.kr']);
+  const officialHosts=new Set(['www.buan.go.kr','www.gochang.go.kr','www.rda.go.kr','www.jeonbuk.go.kr','www.oads.or.kr','global.at.or.kr','www.jeonju.go.kr','www.jinan.go.kr','www.imsil.go.kr','www.sunchang.go.kr','www.gunsan.go.kr','www.bizinfo.go.kr','bizinfo.go.kr','www.mafra.go.kr','www.koat.or.kr','www.gimje.go.kr','agriacademy.jeonbuk.go.kr']);
   let opener=null,pending=false,conversation={};
   const selectionQuestion='선택한 조건으로 지원사업을 찾아주세요.';
   // Reuse the API's bounded conversation fields; no separate profile or engine.
@@ -186,21 +186,23 @@
 
   function renderResults(node,data){
     const personal=fields.some(f=>data.conversation?.[f.key]!==undefined);
+    const basic=data.programs.every(p=>p.evidence_level==='공식 공고 기본 안내');
     const heading=text('header','','chat-result-heading');
-    heading.append(text('h3',personal?'맞춤 추천 결과':'지원사업 검색 결과'),text('p',data.programs.length+'건을 안내합니다. 모집기간과 내 조건 비교를 함께 확인하세요.'));
+    heading.append(text('h3',basic?'공식 공고 검색 결과':personal?'맞춤 추천 결과':'지원사업 검색 결과'),text('p',(data.catalogue_total||data.programs.length)+'건 중 '+data.programs.length+'건을 안내합니다. '+(basic?'기본 안내와 일부 조건 비교이며, 신청 가능 판정이 아닙니다.':'모집기간과 내 조건 비교를 함께 확인하세요.')));
     node.replaceChildren(heading);node.className='chat-message chat-message-answer chat-result-message';
     for(const program of data.programs){
       const card=text('section','','card notice-card chat-notice');card.dataset.noticeId=program.id;
-      const d=MunongsaSupportReview.presentation({reference_application_dates:program.application_period});
+      const d=MunongsaSupportReview.presentation({reference_application_dates:program.application_period,actual_reception_state:program.card.reception_state});
       const status=text('div','','notice-status');
       const periodLabel={window:'기재 모집기간 내',upcoming:'모집 예정',elapsed:'모집기간 경과',unknown:'기간 확인 필요'}[d.state];
       status.append(text('span',periodLabel,'notice-chip '+d.tone),text('strong',d.headline,'deadline-badge '+d.tone));
+      for(const chip of d.chips.filter(c=>/최종 접수|로그인 이후/.test(c.text)))status.append(text('span',chip.text,'notice-chip check'));
       const order=(data.conversation?.list_ids||[]).indexOf(program.id);
       card.append(text('h3',(order>=0?(order+1)+'. ':'')+program.name,'chat-notice-title'));
       if(program.card.institution!=='확인 필요')card.append(text('p',program.card.institution,'notice-institution'));
       const comparison=text('section','','chat-condition-block');
       const mismatch=program.comparison?.label==='조건 불일치';
-      const comparisonLabel=mismatch?'확인된 조건 불일치':program.card.group==='elapsed'&&program.comparison?.label==='관련 가능성 있음'?'일부 조건 일치 · 모집기간 경과':program.comparison?.label||'추가 확인 필요';
+      const comparisonLabel=program.guidance_only?'\uAE30\uBCF8 \uC548\uB0B4 \u00B7 \uC790\uACA9 \uD310\uB2E8 \uBCF4\uB958':mismatch?'확인된 조건 불일치':program.card.group==='elapsed'&&program.comparison?.label==='관련 가능성 있음'?'일부 조건 일치 · 모집기간 경과':program.comparison?.label||'추가 확인 필요';
       comparison.append(text('h4','내 조건과 비교'),text('strong',comparisonLabel,'condition-result '+(mismatch?'mismatch':program.card.group)));
       const reasons=program.comparison?.reasons||[],checks=program.comparison?.checks||[];
       const points=[...new Set([...reasons,...checks])].slice(0,1);

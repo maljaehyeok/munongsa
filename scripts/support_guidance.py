@@ -93,7 +93,7 @@ def select(rows, portal, link_check, now=None, source_checks=None):
                 policy = sources.validate_item(row, checked) or links.allowed(row,checked)
                 if checked.get('metadata_link_restricted'):
                     reason='metadata_reuse_restricted';policy=None
-                if len(row['title'])>180:
+                if len(checked.get('display_title') or row['title'])>180:
                     reason='metadata_not_minimal';policy=None
                 if checked.get('duplicate_of'):
                     reason='duplicate';policy=None
@@ -108,6 +108,8 @@ def select(rows, portal, link_check, now=None, source_checks=None):
                                   'institution':row['institution'],'url':row['original_url'],'source_id':row['source_id'],
                                   'checked_at':now.isoformat(),'policy_id':policy['id'],'source_policy':policy,
                                   'archive':category=='elapsed'})
+                    if row['source_id']=='at-export-official':items[-1]['institution']='한국농수산식품유통공사(aT)'
+                    if checked.get('display_title'):items[-1]['display_title']=safe_title(checked['display_title'])
                     seen.add(key)
                 else:
                     if reason is None and checked.get('metadata_link_restricted'):reason='metadata_reuse_restricted'
@@ -212,6 +214,10 @@ def refresh(db, state, *, now=None, portal=None, link_check=None, source_checks=
     result['summary']['comparison_ready']=len(result['verified_comparisons'])
     append(db,strict,result,now)
     result['verified_facts']=sources.reviewed_facts(strict,fact_plans,source_checks,now)
+    import support_notice_review
+    review_path=state/'notice-review-plans.json'
+    review_plans=json.loads(review_path.read_text('utf-8')) if review_path.exists() else {}
+    result['notice_observations']=support_notice_review.attach(strict,source_checks,now,review_plans)
     ingestion.atomic(state/'official-guidance.json', result)
     ingestion.atomic(state/'logs'/('guidance-'+hashlib.sha256(result['generated_at'].encode()).hexdigest()[:16]+'.json'), result)
     return result
@@ -258,7 +264,12 @@ def append(db, feed, manifest, now=None):
             safe_title(item['title']); safe_title(item['institution'])
             if key in seen or item['id'] in ids:
                 continue
-            feed['notices'].append({'id': item['id'], 'title': item['title'], 'institution': item['institution'],
+            display_title=item.get('display_title',item['title'])
+            if display_title!=item['title']:
+                if not policy or not name_link or item['source_id']!='at-export-official' or not re.search(r'(?:\.\.\.|…)\s*$',item['title']):continue
+                if not sources.norm(display_title).startswith(sources.norm(re.sub(r'(?:\.\.\.|…)\s*$','',item['title']))):continue
+                safe_title(display_title)
+            feed['notices'].append({'id': item['id'], 'title': display_title, 'institution': item['institution'],
                 'url': item['url'], 'source_id': item['source_id'], 'publication': 'official_guidance',
                 'guidance_expires_at': manifest['expires_at'],
                 'verification_status': 'basics_only', 'freshness': 'current', 'last_checked_at': item['checked_at'],
@@ -280,4 +291,6 @@ def append(db, feed, manifest, now=None):
     feed['verified_facts']={k:v for k,v in manifest.get('verified_facts',{}).items() if k in by_id
                             and sources.comparison_basis(by_id[k])==v.get('basis') and v.get('complete') is False
                             and instant(v['expires_at'])>now}
+    import support_notice_review
+    feed['notice_observations']={k:v for k,v in manifest.get('notice_observations',{}).items() if k in by_id and support_notice_review.valid(by_id[k],v,now)}
     return total

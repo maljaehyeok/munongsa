@@ -38,7 +38,7 @@ def article(raw,url):
     if host=='global.at.or.kr':
         node=soup.select_one('article.contentGroup')
         return re.sub(r'\s+',' ',node.get_text(' ',strip=True)) if node else ''
-    selector='.viewArea .viewBody' if urlsplit(url).hostname=='www.rda.go.kr' else '.bbs_view .bbs_con, .border_view > .exp' if urlsplit(url).hostname=='www.gochang.go.kr' else '.view-con, .bbsview-con, .bbs_view_con, .view_content, .view_cont, .boardView table.view'
+    selector='.viewArea .viewBody' if urlsplit(url).hostname=='www.rda.go.kr' else '.bbs_view .bbs_con, .border_view > .exp' if urlsplit(url).hostname=='www.gochang.go.kr' else '.bbs_view .bbs_con, .basicView .conText, .view-con, .bbsview-con, .bbs_view_con, .view_content, .view_cont, .boardView table.view'
     node=soup.select_one(selector)
     return node.get_text(' ',strip=True) if node else ''
 def source_hosts():
@@ -97,8 +97,14 @@ def _inspect_serial(rows,*,seconds=120):
                 check.update(status='checked' if status==200 else 'http_'+str(status),title_match=norm(row['title']) in norm(soup.get_text(' ',strip=True)),
                              licenses=license_types(soup),body_sha256=hashlib.sha256(raw).hexdigest(),article=article(raw,url))
                 check['metadata_title_confirmed']=links.title_check(soup,row['title'],norm)
+                check['display_title']=links.recovered_title(soup,row['title'],url,norm)
+                if check['display_title']:
+                    check['metadata_title_confirmed']=True
+                    check['title_match']=True
                 check['redirects_verified']=redirected
                 check['metadata_link_restricted']=links.restricted(check['article'])
+                import support_notice_review
+                check['observation']=support_notice_review.observe(row,soup,check['article'],datetime.now(timezone.utc))
             except Exception:check['status']='request_failed'
         result[row['notice_id']]=check
     return result
