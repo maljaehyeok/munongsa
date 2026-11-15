@@ -145,7 +145,7 @@ def local_pipeline(question):
     import rag_dialogue,rag_nlu
     original,context=rag_dialogue.decode(question)
     import rag_catalogue
-    if original.startswith(rag_catalogue.PAGE_PREFIX) or re.fullmatch(r'(?:전체|모든)\s*(?:공식|공개)?\s*(?:공고|지원사업)',original.strip()):
+    if original.startswith(rag_catalogue.PAGE_PREFIX) or re.fullmatch(r'(?:전체|모든)\s*(?:공식|공개)?\s*(?:공고|지원사업)',original.strip()) or rag_catalogue.archive_requested(original):
         listing=rag_catalogue.respond(question,corpus)
         return catalogue_response(listing,corpus) if listing else rag_dialogue.response('공개 목록이 변경됐어요. 같은 질문으로 다시 검색해 주세요.',context,'clarify',status='needs_verification')
     listing=rag_catalogue.respond(question,corpus,explicit=True)
@@ -196,6 +196,19 @@ def local_pipeline(question):
             listing['answer']='가정한 조건으로 탐색했습니다. 실제 입력 상태와 전체 신청 자격은 변경하거나 확정하지 않았습니다.\n\n'+listing['answer']
         return catalogue_response(listing,corpus)
     decorate_cards(response,corpus)
+    if response.get('kind') in ('catalogue','recommendation') and not rag_catalogue.archive_requested(original):
+        current_programs=[p for p in response['programs'] if p.get('card',{}).get('period_state')!='elapsed']
+        if len(current_programs)!=len(response['programs']):
+            if not current_programs:
+                listing=rag_catalogue.respond(routed,corpus)
+                if listing:return catalogue_response(listing,corpus)
+                response=rag_dialogue.response('현재 공개 자료에서 기간이 지나지 않은 관련 공고를 찾지 못했어요. 기간 미확인은 마감으로 처리하지 않습니다. 지난 공고도 보려면 “지난 공고”와 지역·사업명을 함께 알려주세요.',{**response.get('conversation',context),'notice_ids':[],'list_ids':[],'list_versions':[]},'catalogue',status='no_evidence')
+            else:
+                response['programs']=current_programs
+                urls={p['source_url'] for p in current_programs};response['sources']=[s for s in response.get('sources',[]) if s['url'] in urls]
+                response['answer']='기간이 지난 공고를 제외하고 현재 확인할 공고를 안내합니다. 날짜 기준 상태와 실제 접수·전체 신청 자격은 별개입니다.'
+                response['conversation']={**response.get('conversation',context),'notice_ids':[p['id'] for p in current_programs],'list_ids':[],'list_versions':[]}
+                response['followup_questions']=list(dict.fromkeys(q for p in current_programs for q in p['card'].get('questions',[])))[:2]
     if understood and understood['hypothetical'] and actual is not None:
         notice_ids=response.get('conversation',{}).get('notice_ids',context.get('notice_ids',[]))
         response['conversation']={**actual,'notice_ids':notice_ids}
@@ -237,7 +250,7 @@ def catalogue_response(response,corpus):
 def decorate_cards(response,corpus):
     """Public, hash-verified facts only. Never parse new eligibility rules here."""
     if not response['programs']:return
-    import rag_profile,rag_dialogue
+    import rag_profile,rag_dialogue,support_notice_review
     by_id={d['public']['id']:d for d in corpus['documents'].values()}
     context=response.get('conversation',{})
     def clean(value):
@@ -273,21 +286,26 @@ def decorate_cards(response,corpus):
             observed=support_notice_review.project(live,corpus['guidance_feed'].get('notice_observations',{}).get(program['id']),datetime.now(rag_answer.KST))
             if observed.get('official_observation_at'):
                 dates=observed.get('reference_application_dates',{})
-                state=support_notice_review.state(dates,datetime.now(rag_answer.KST))
+                state=support_notice_review.notice_state(observed,datetime.now(rag_answer.KST))
                 period={**period,'date_state':{'window':'within_recorded_dates','upcoming':'upcoming','elapsed':'elapsed'}.get(state,'unknown')}
                 program['application_period']={**program['application_period'],'start':dates.get('start',{}),'end':dates.get('end',{}),'description':'공식 본문에서 확인한 기재 신청기간 · 실제 접수·전체 자격은 별도 확인','actual_reception_confirmed':False}
                 preparation=observed.get('application_preparation',{})
                 program['application_entry_url']=preparation.get('entry_url')
                 program['application_entry_kind']=preparation.get('entry_kind')
+        closing=support_notice_review.closure_label(observed if live else public)
+        if closing:period={**period,'date_state':'elapsed'}
+        if period['date_state']=='elapsed':
+            program['application_period']['description']=(closing or '기재 신청기간 경과')+' · 과거 금액·조건은 현재 신청에 적용할 수 없습니다. 연장·재공고는 별도 확인하세요.'
         mismatch=comparison['label']=='조건 불일치'
         group='elapsed' if period['date_state']=='elapsed' else 'mismatch' if mismatch else 'related' if comparison['label']=='관련 가능성 있음' else 'check'
         program['card']={'group':group,'label':{'elapsed':'모집기간 경과','mismatch':'확인된 조건 불일치','related':'관련 가능성 있음','check':'추가 확인 필요'}[group],
-            'period_state':period['date_state'],'institution':clean(public.get('institution')),
+            'period_state':period['date_state'],'lifecycle_label':closing,'institution':clean(public.get('institution')),
             'facts':{'region':clean(public.get('region')),'target':clean(public.get('target')),'support':clean(public.get('support')),
                      'funding':field(document,'funding'),'method':field(document,'method'),
                      'documents':field(document,'documents_required')},
             'questions':comparison['questions'][:2]}
         if live and observed.get('official_observation_at'):
+            program['card']['lifecycle_label']=support_notice_review.closure_label(observed)
             preparation=observed.get('application_preparation',{})
             if preparation.get('method'):program['card']['facts']['method']=[preparation['method']]
             if preparation.get('documents_note'):program['card']['facts']['documents']=[preparation['documents_note']]

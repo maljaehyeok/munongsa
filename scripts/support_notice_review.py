@@ -12,6 +12,28 @@ def day(value):
     try:return datetime.strptime(value,'%Y-%m-%d').date().isoformat()
     except (ValueError,TypeError):return None
 
+def closure_label(item):
+    status=item.get('application_status') if item.get('verification_status')=='verified' else None
+    if status=='cancelled_verified':return '공식 모집 취소 확인'
+    if status=='closed_verified' or item.get('known_closed') is True:return '공식 모집 종료 확인'
+    if item.get('actual_reception_state')=='unavailable':return '접수 불가 확인'
+    return None
+
+def notice_state(item,now):
+    if closure_label(item):return 'elapsed'
+    dates=item.get('reference_application_dates') or {}
+    if not dates and isinstance(item.get('application_period'),dict):
+        dates={}
+        for key in ('start','end'):
+            try:
+                parsed=datetime.fromisoformat(item['application_period'][key])
+                if parsed.tzinfo is not None:
+                    local=parsed.astimezone(KST);dates[key]={'date':local.date().isoformat(),'time':local.time().isoformat(),'timezone':'Asia/Seoul'}
+            except (KeyError,TypeError,ValueError):pass
+    result=state(dates,now)
+    if result!='elapsed' and item.get('standing_application') is True:return 'standing'
+    return result
+
 def state(dates,now):
     today=now.astimezone(KST).date().isoformat();a=dates.get('start',{});b=dates.get('end',{})
     start,end=day(a.get('date')),day(b.get('date'))
