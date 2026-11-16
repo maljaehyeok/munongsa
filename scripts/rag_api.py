@@ -284,8 +284,8 @@ def decorate_cards(response,corpus):
         period=rag_search.recruitment_context(document,datetime.now(rag_answer.KST))
         if corpus.get('guidance_feed') and live:
             import support_notice_review
-            observed=support_notice_review.project(live,corpus['guidance_feed'].get('notice_observations',{}).get(program['id']),datetime.now(rag_answer.KST))
-            if observed.get('official_observation_at'):
+            observed=support_notice_review.project(support_notice_review.fact_project(live,corpus['guidance_feed'].get('verified_facts',{}).get(program['id']),datetime.now(rag_answer.KST)),corpus['guidance_feed'].get('notice_observations',{}).get(program['id']),datetime.now(rag_answer.KST))
+            if observed.get('official_observation_at') or observed.get('verified_period_at'):
                 dates=observed.get('reference_application_dates',{})
                 state=support_notice_review.notice_state(observed,datetime.now(rag_answer.KST))
                 period={**period,'date_state':{'window':'within_recorded_dates','upcoming':'upcoming','elapsed':'elapsed'}.get(state,'unknown')}
