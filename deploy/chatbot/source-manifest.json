@@ -4,7 +4,7 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "197ab27d0ddc0bc115bbb894dd9995964ac2283a00691f8bc34b6da24f72939b",
+    "index.html": "464abcdc4332fad398f8e1b2ecd3658920b7a2c7a9b5bef971b4dc12cd357268",
     "assets/chat-ui.js": "463df5d629bdb0a13b6ef7a62ebbea184493f3c024834894a06c8f80fafae262",
     "assets/chat-ui.css": "63cb322e967faf7807b6cade936c99a09ae5b7e8f05c9ddee44d43bd002c31c1",
     "assets/support-public.js": "53944ea230cadbb18bc0e023fb94ef46dc701469088fa5213989a2199997aaee",
@@ -14,7 +14,10 @@
     "assets/ux-first.css": "1bef8744409f8d9dd837cc8dafc3a2dae7abcddf4e0752a28ac17a071f43fd6e",
     "assets/support-review.js": "97fc140de643460d7f8892d78e938810f22116030cda6d100586b976174e91ab",
     "assets/personalization.js": "f526312e608066294be12e1754255ed64438ddb8a4c20436199d1b08e39775f8",
-    "assets/notice-review.js": "93f51b3aa746e3fd210aced1ea56024d112bb03926b01d0148b324b9dfaf34e4"
+    "assets/notice-review.js": "93f51b3aa746e3fd210aced1ea56024d112bb03926b01d0148b324b9dfaf34e4",
+    "assets/support-details.js": "874519e87d7616d8c8f7ed731feb4c77ef64b18d48a2622c7d2dad5f559d2dea",
+    "assets/user-display.js": "337dee13b642cb0295110c0ee792a29e51ad1f9fe23110b7c60ef6772fae12bc",
+    "assets/support-details.json": "c01a7e6a4dd298621bcfa22e840fa849e7b4d8b9d6d02ea58f898aa997f0b451"
   },
   "runtime": {
     "scripts/rag_search.py": "5af3afda3f53f9d36a6190dc46ac85b778d63c414f9434fed0e60d5f303ea9fc",
