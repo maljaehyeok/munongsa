@@ -93,6 +93,7 @@ def attach(feed,checks,now,plans=None):
             if all(norm(f) in norm(c.get('article','')) for f in plan.get('fragments',[])):
                 dates=plan.get('dates',{})
                 if all(not v or day(v.get('date')) for v in (dates.get('start'),dates.get('end'))):
+                    value['reviewed_article_sha']=o['article_sha']
                     value['reference_application_dates']=dates
                     value['period_location']='공식 본문의 운영자 대조 신청기간'
                     if plan.get('standing') is True:value['standing']=True
@@ -107,21 +108,69 @@ def attach(feed,checks,now,plans=None):
         result[item['id']]=value
     return result
 
-def valid(item,value,now):
+def retained(item,value,now):
+    """A checked fact survives clock expiry; its current availability does not."""
     try:
         a=datetime.fromisoformat(value['checked_at']);b=datetime.fromisoformat(value['expires_at'])
-        return value.get('schema')==SCHEMA and value.get('basis')==binding(item) and value.get('official_url')==item['url'] and a<=now<b and timedelta(0)<b-a<=timedelta(hours=26)
+        dates=value.get('reference_application_dates',{})
+        return (value.get('schema')==SCHEMA and value.get('basis')==binding(item)
+                and value.get('official_url')==item['url'] and a<=now and timedelta(0)<b-a<=timedelta(hours=26)
+                and bool(re.fullmatch('[a-f0-9]{64}',value.get('article_sha','')))
+                and isinstance(dates,dict) and all(not v or isinstance(v,dict) and day(v.get('date')) for v in (dates.get('start'),dates.get('end')))
+                and (not dates.get('start') or not dates.get('end') or dates['start']['date']<=dates['end']['date']))
     except (KeyError,TypeError,ValueError):return False
+
+def valid(item,value,now):
+    return retained(item,value,now) and not value.get('review_required')
+
+def merge_observations(feed,previous,current,checks,now):
+    """Retain history on a failed fetch; changed documents require review."""
+    out={}
+    for item in feed['notices']:
+        identity=item['id'];old=previous.get(identity);new=current.get(identity);check=checks.get(identity,{})
+        if old and not retained(item,old,now):old=None
+        reviewed=bool(new and new.get('reviewed_article_sha')==new.get('article_sha'))
+        if new and old and new.get('article_sha')!=old.get('article_sha'):
+            new={**new,'review_required':not reviewed,'previous_fact':{k:v for k,v in old.items() if k!='previous_fact'}}
+        elif new and old and new.get('article_sha')==old.get('article_sha'):
+            if not new.get('reference_application_dates') and old.get('reference_application_dates'):
+                new={**new,'reference_application_dates':old['reference_application_dates'],
+                     'facts_checked_at':old.get('facts_checked_at',old['checked_at']),
+                     **{k:old[k] for k in ('period_location','preparation','method','standing') if k in old}}
+            if old.get('review_required') and not reviewed:new['review_required']=True
+        value=new or old
+        if not value:continue
+        if check.get('status')=='checked' and (not check.get('title_match') or check.get('url')!=item['url']):
+            value={**value,'review_required':True}
+        elif not new:value={**value,'source_recheck_pending':True}
+        out[identity]=value
+    return out
 
 def project(item,value,now):
     if not value or not valid(item,value,now):return item
+    try:newer_period=datetime.fromisoformat(item['verified_period_at'])>datetime.fromisoformat(value.get('facts_checked_at',value['checked_at']))
+    except (KeyError,TypeError,ValueError):newer_period=False
     reception=value.get('actual_reception','unconfirmed')
     try:age=(now-datetime.fromisoformat(value['reception_checked_at'])).total_seconds()
     except (ValueError,KeyError,TypeError):age=float('inf')
-    if not 0<=age<86400:reception='unconfirmed'
-    return {**item,'reference_application_dates':value.get('reference_application_dates') or item.get('reference_application_dates',{}),
-            'standing_application':value.get('standing') is True,
-            'official_observation_at':value['checked_at'],'actual_reception_state':reception,
+    fresh=now<datetime.fromisoformat(value['expires_at']) and not value.get('source_recheck_pending')
+    if newer_period or not fresh or not 0<=age<86400:reception='unconfirmed'
+    return {**item,'reference_application_dates':item.get('reference_application_dates',{}) if newer_period else value.get('reference_application_dates') or item.get('reference_application_dates',{}),
+            'standing_application':fresh and value.get('standing') is True,
+            'official_observation_at':value.get('facts_checked_at',value['checked_at']),'actual_reception_state':reception,
             'application_method':value.get('method') or item.get('application_method'),
             'application_preparation':value.get('preparation',{}),
             'published_at':value.get('published_at') or item.get('published_at')}
+
+def fact_project(item,value,now):
+    """Historical reviewed fields are not a renewed qualification/reception check."""
+    try:
+        basis={k:item.get(k) for k in ('id','title','url','target','region','reference_application_dates','application_period','eligibility')}
+        fields=value['fields'];evidence=value['evidence']
+        if (value.get('review_required') or value.get('complete') is not False or value.get('basis')!=basis
+            or datetime.fromisoformat(value['checked_at'])>now or evidence.get('url')!=item['url'] or evidence.get('fact_confirmed') is not True
+            or not isinstance(fields,dict) or set(fields)-{'reference_application_dates','application_method','target','support','geographic_scope','scope_note'}):return item
+        dates=fields.get('reference_application_dates',{})
+        if not all(not v or day(v.get('date')) for v in (dates.get('start'),dates.get('end'))):return item
+        return {**item,**fields,'verified_facts_at':value['checked_at'],**({'verified_period_at':value['checked_at']} if dates else {})}
+    except (KeyError,TypeError,ValueError,AttributeError):return item

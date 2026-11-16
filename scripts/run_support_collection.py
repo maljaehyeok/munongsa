@@ -7,6 +7,7 @@ import os
 import sqlite3
 import sys
 import uuid
+from datetime import datetime, timezone
 from contextlib import closing
 from pathlib import Path
 
@@ -224,7 +225,9 @@ def execute(state, output, rights_file, registry, groups=None, live=False, expor
                 except Exception as error:
                     ingestion.atomic(state/'logs'/('guidance-failed-'+run_id+'.json'),
                                     {'error': type(error).__name__, 'unsafe_fallback': False})
-            stats = export_public(state, output, rights_file, now)
+            # A collection run may take minutes: do not reject its newer observations.
+            export_now=max(now,datetime.now(timezone.utc)) if live else now
+            stats = export_public(state, output, rights_file, export_now)
             failed = any(r['status'] == 'failed' for r in reports)
             result = {'status': 'partial_failure' if failed else 'completed', 'exit_code': 1 if failed else 0,
                 'run_id': run_id, 'counts': counts, 'sources': reports, 'publication': stats,

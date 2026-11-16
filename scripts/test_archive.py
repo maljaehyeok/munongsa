@@ -39,7 +39,7 @@ class ArchiveTests(unittest.TestCase):
         item['verification_status']='basics_only';self.assertEqual(review.notice_state(item,self.now),'unknown')
     def test_current_extension_over_old_dates(self):
         observation={'schema':review.SCHEMA,'basis':review.binding(self.past),'official_url':self.past['url'],'checked_at':self.now.isoformat(),'expires_at':(self.now+timedelta(hours=1)).isoformat(),
-            'reference_application_dates':{'start':{'date':'2020-01-01'},'end':{'date':'2050-01-01'}},'reception_checked_at':self.now.isoformat(),'actual_reception':'operator_notice'}
+            'article_sha':'a'*64,'reference_application_dates':{'start':{'date':'2020-01-01'},'end':{'date':'2050-01-01'}},'reception_checked_at':self.now.isoformat(),'actual_reception':'operator_notice'}
         self.assertEqual(review.notice_state(review.project(self.past,observation,self.now),self.now),'window')
         observation['basis']['title']='다른 사업';self.assertEqual(review.notice_state(review.project(self.past,observation,self.now),self.now),'elapsed')
     def test_paging_stays_in_archive_scope(self):

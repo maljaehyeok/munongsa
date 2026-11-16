@@ -27,7 +27,7 @@ def verified_conditions(item,feed,now):
         value=feed.get(key,{}).get(item['id'],{})
         try:
             conditions=value.get('conditions',[])
-            if value.get('basis')!=basis or value.get('complete') is not False or not datetime.fromisoformat(value['checked_at'])<=now<datetime.fromisoformat(value['expires_at']):continue
+            if value.get('review_required') or value.get('basis')!=basis or value.get('complete') is not False or not datetime.fromisoformat(value['checked_at'])<=now<datetime.fromisoformat(value['expires_at']):continue
             if conditions and all(c.get('presence')=='specified' and c.get('status')=='verified' and c.get('evidence',{}).get('fact_confirmed') is True and c['evidence'].get('url')==item['url'] and c['evidence'].get('location') for c in conditions):return conditions
         except (KeyError,TypeError,ValueError):continue
     return []
@@ -41,7 +41,7 @@ def search_text(item,feed,now):
         for field in ('region','target'):
             value=item.get(field);evidence=item.get('evidence',{}).get(field,{})
             if isinstance(value,str) and len(value)<=1000 and evidence.get('url')==item['url'] and evidence.get('location'):values.append(value)
-    observed=review.project(item,feed.get('notice_observations',{}).get(item['id']),now)
+    observed=review.project(review.fact_project(item,feed.get('verified_facts',{}).get(item['id']),now),feed.get('notice_observations',{}).get(item['id']),now)
     # Office locality helps discovery, never supplies a residence/farm requirement.
     office=observed.get('application_preparation',{}).get('office_note')
     if isinstance(office,str) and len(office)<=100:values.append(office)
@@ -98,7 +98,7 @@ def matches(question,feed,context=None,now=None):
     for raw in records(feed,now):
         title=rag_dialogue.normalized(raw['title']);hay=search_text(raw,feed,now);nt=re.sub(r'[^0-9a-z가-힣]','',title.lower())
         exact=len(nt)>=6 and nt in compact
-        shown=review.project(raw,feed.get('notice_observations',{}).get(raw['id']),now)
+        shown=review.project(review.fact_project(raw,feed.get('verified_facts',{}).get(raw['id']),now),feed.get('notice_observations',{}).get(raw['id']),now)
         past=review.notice_state(shown,now)=='elapsed'
         if not exact and past!=archive:continue
         if not exact:
@@ -111,7 +111,7 @@ def matches(question,feed,context=None,now=None):
         ranked.append((100 if exact else sum(v in hay for v in terms)+bool(area and area in hay),raw))
     def order(pair):
         score,item=pair
-        shown=review.project(item,feed.get('notice_observations',{}).get(item['id']),now)
+        shown=review.project(review.fact_project(item,feed.get('verified_facts',{}).get(item['id']),now),feed.get('notice_observations',{}).get(item['id']),now)
         period=review.notice_state(shown,now)
         compared=comparison(item,feed,context,now)
         mismatch=bool(compared and compared['label']=='조건 불일치')
@@ -125,7 +125,7 @@ def comparison(item,feed,context,now):
     candidates=[feed.get('verified_comparisons',{}).get(item['id']),feed.get('verified_facts',{}).get(item['id'])]
     for annotation in candidates:
         try:
-            if not annotation or annotation.get('complete') is not False or annotation.get('basis')!=basis or datetime.fromisoformat(annotation['expires_at'])<=now:continue
+            if not annotation or annotation.get('review_required') or annotation.get('complete') is not False or annotation.get('basis')!=basis or datetime.fromisoformat(annotation['expires_at'])<=now:continue
             values=annotation.get('conditions',[])
             if not values or not all(c.get('status')=='verified' and c.get('presence')=='specified' and c.get('evidence',{}).get('fact_confirmed') is True and c['evidence'].get('url')==item['url'] and c['evidence'].get('location') for c in values):continue
             payload=item.get('eligibility',{});conditions=list(payload.get('conditions',[]))+values
@@ -138,7 +138,7 @@ def comparison(item,feed,context,now):
     return None
 
 def program(item,feed,now,context=None):
-    shown=review.project(item,feed.get('notice_observations',{}).get(item['id']),now)
+    shown=review.project(review.fact_project(item,feed.get('verified_facts',{}).get(item['id']),now),feed.get('notice_observations',{}).get(item['id']),now)
     dates=shown.get('reference_application_dates',{})
     state=review.notice_state(shown,now)
     preparation=shown.get('application_preparation',{})

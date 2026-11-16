@@ -203,6 +203,11 @@ def refresh(db, state, *, now=None, portal=None, link_check=None, source_checks=
         candidates.sort(key=lambda r:(r['notice_id'] not in planned,r['source_id'] not in preferred))
         source_checks=sources.inspect(candidates)
     sources.apply_decisions(source_checks,decisions)
+    # Source observations are stamped after network I/O, never at run start.
+    observed=[instant(c['observation']['checked_at']) for c in source_checks.values() if c.get('observation',{}).get('checked_at')]
+    if observed:now=max(now,max(observed))
+    previous_path=state/'official-guidance.json'
+    previous=json.loads(previous_path.read_text('utf-8')) if previous_path.exists() else {}
     result = select(all_rows, portal, link_check, now, source_checks)
     rights=json.loads((state/'publication-rights.json').read_text('utf-8')) if (state/'publication-rights.json').exists() else {}
     strict,_=public.export(db,rights,now)
@@ -218,6 +223,13 @@ def refresh(db, state, *, now=None, portal=None, link_check=None, source_checks=
     review_path=state/'notice-review-plans.json'
     review_plans=json.loads(review_path.read_text('utf-8')) if review_path.exists() else {}
     result['notice_observations']=support_notice_review.attach(strict,source_checks,now,review_plans)
+    result['notice_observations']=support_notice_review.merge_observations(strict,previous.get('notice_observations',{}),result['notice_observations'],source_checks,now)
+    current_items={n['id']:n for n in strict['notices']}
+    for key in ('verified_facts','verified_comparisons'):
+        for identity,value in previous.get(key,{}).items():
+            item=current_items.get(identity)
+            if identity not in result[key] and item and sources.comparison_basis(item)==value.get('basis'):
+                result[key][identity]={**value,'review_required':True}
     ingestion.atomic(state/'official-guidance.json', result)
     ingestion.atomic(state/'logs'/('guidance-'+hashlib.sha256(result['generated_at'].encode()).hexdigest()[:16]+'.json'), result)
     return result
@@ -226,9 +238,13 @@ def refresh(db, state, *, now=None, portal=None, link_check=None, source_checks=
 def append(db, feed, manifest, now=None):
     """Hash/state/expiry rechecked on every export; revoked records cannot inherit."""
     now = now or datetime.now(timezone.utc)
-    if (manifest.get('schema') != SCHEMA or manifest.get('policy') != POLICY
-            or not instant(manifest['generated_at']) <= now < instant(manifest['expires_at'])
+    if manifest.get('schema') != SCHEMA or manifest.get('policy') != POLICY:
+        return 0
+    if (not instant(manifest['generated_at']) <= now < instant(manifest['expires_at'])
             or instant(manifest['expires_at'])-instant(manifest['generated_at']) > TTL):
+        # No expired publication grant is renewed. Existing approved records can
+        # still carry their bound history; active comparisons keep their own TTL.
+        annotations(feed,manifest,now)
         return 0
     seen = {identity(n['url']) for n in feed['notices']}
     ids = {n['id'] for n in feed['notices']}
@@ -284,13 +300,16 @@ def append(db, feed, manifest, now=None):
             ids.add(item['id']); seen.add(key); total += 1
         except (ValueError, TypeError, KeyError, monitor.MonitorError):
             continue
+    annotations(feed,manifest,now)
+    return total
+
+def annotations(feed,manifest,now):
     by_id={n['id']:n for n in feed['notices']}
     import support_guidance_sources as sources
-    feed['verified_comparisons']={k:v for k,v in manifest.get('verified_comparisons',{}).items() if k in by_id and sources.comparison_basis(by_id[k])==v['basis'] and v.get('complete') is False and instant(v['expires_at'])>now}
+    feed['verified_comparisons']={k:v for k,v in manifest.get('verified_comparisons',{}).items() if k in by_id and sources.comparison_basis(by_id[k])==v['basis'] and v.get('complete') is False and instant(v['checked_at'])<=now}
     feed['source_review']={k:v for k,v in manifest.get('source_review',{}).items() if k in by_id}
     feed['verified_facts']={k:v for k,v in manifest.get('verified_facts',{}).items() if k in by_id
                             and sources.comparison_basis(by_id[k])==v.get('basis') and v.get('complete') is False
-                            and instant(v['expires_at'])>now}
+                            and instant(v['checked_at'])<=now}
     import support_notice_review
-    feed['notice_observations']={k:v for k,v in manifest.get('notice_observations',{}).items() if k in by_id and support_notice_review.valid(by_id[k],v,now)}
-    return total
+    feed['notice_observations']={k:v for k,v in manifest.get('notice_observations',{}).items() if k in by_id and support_notice_review.retained(by_id[k],v,now)}

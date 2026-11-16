@@ -5,7 +5,7 @@
  const canonical=v=>Array.isArray(v)?'['+v.map(canonical).join(',')+']':v&&typeof v==='object'?'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}':JSON.stringify(v);
  function sourceConditions(item,annotation,now){
   const basis=Object.fromEntries(['id','title','url','target','region','reference_application_dates','application_period','eligibility'].map(k=>[k,item[k]??null]));
-  if(!annotation||annotation.complete!==false||Date.parse(annotation.expires_at)<=now||!Number.isFinite(Date.parse(annotation.expires_at))||canonical(annotation.basis)!==canonical(basis)||!['approved','approved_reference','official_guidance'].includes(item.publication))return null;
+  if(!annotation||annotation.review_required||annotation.complete!==false||Date.parse(annotation.expires_at)<=now||!Number.isFinite(Date.parse(annotation.expires_at))||canonical(annotation.basis)!==canonical(basis)||!['approved','approved_reference','official_guidance'].includes(item.publication))return null;
   const allowed=['farm_registration','residence','business_location','crop','scale','applicant'];
   if(!Array.isArray(annotation.conditions)||!annotation.conditions.length||!annotation.conditions.every(c=>allowed.includes(c.kind)&&c.status==='verified'&&c.presence==='specified'&&c.evidence?.fact_confirmed===true&&c.evidence.url===item.url&&c.evidence.location))return null;
   const original=item.eligibility||{},conditions=[...(original.conditions||[]),...annotation.conditions];
@@ -14,11 +14,11 @@
  }
  function sourceFacts(item,annotation,now){
   const basis=Object.fromEntries(['id','title','url','target','region','reference_application_dates','application_period','eligibility'].map(k=>[k,item[k]??null]));
-  if(!annotation||annotation.complete!==false||!Number.isFinite(Date.parse(annotation.expires_at))||Date.parse(annotation.expires_at)<=now||canonical(annotation.basis)!==canonical(basis)||annotation.evidence?.url!==item.url)return item;
+  if(!annotation||annotation.review_required||annotation.complete!==false||!Number.isFinite(Date.parse(annotation.checked_at))||Date.parse(annotation.checked_at)>now||canonical(annotation.basis)!==canonical(basis)||annotation.evidence?.url!==item.url||annotation.evidence.fact_confirmed!==true)return item;
   const fields=annotation.fields||{},allowed=['reference_application_dates','application_method','target','support','geographic_scope','scope_note'];
   if(Object.keys(fields).some(k=>!allowed.includes(k)))return item;
   const r=annotation.reception||{},age=now-Date.parse(r.checked_at),reception=age>=0&&age<86400000&&r.status==='open_notice_verified'?r:null;
-  return {...item,...fields,last_checked_at:annotation.checked_at,verified_facts_at:annotation.checked_at,verified_reception:reception,
+  return {...item,...fields,...(Object.keys(fields.reference_application_dates||{}).length?{verified_period_at:annotation.checked_at}:{}),last_checked_at:annotation.checked_at,verified_facts_at:annotation.checked_at,verified_reception:reception,
     facts_unknown:Array.isArray(annotation.unknown)?annotation.unknown:[],eligibility_complete:false};
  }
  function project(item){
