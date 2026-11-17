@@ -49,6 +49,17 @@ def build(plan, reviewer, reference, approved=False):
     return {'schema': 'munongsa-support-details-v1', 'preview': not approved, 'records': records}
 
 
+def merge_append(old, addition):
+    """Preserve existing records and top-level link history; never replace an ID."""
+    existing={r['basis']['id'] for r in old['records']}
+    if existing & {r['basis']['id'] for r in addition['records']}:
+        raise ValueError('append only: existing reviewed notices cannot be replaced')
+    merged=copy.deepcopy(old)
+    merged.update(copy.deepcopy(addition))
+    merged['records']=copy.deepcopy(old['records'])+copy.deepcopy(addition['records'])
+    return merged
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--plan', type=Path, required=True)
@@ -80,7 +91,7 @@ def main():
         p.error('append only: existing reviewed notices cannot be replaced')
     if args.approve and old_records and args.preserve_sha256 != hashlib.sha256(old_raw).hexdigest():
         p.error('exact preservation hash of existing approved descriptions required')
-    doc['records'] = old_records + doc['records']
+    doc = merge_append(old, doc)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + '\n', 'utf-8')
     print(json.dumps({'approved': args.approve, 'count': len(doc['records']), 'plan_sha256': digest}))

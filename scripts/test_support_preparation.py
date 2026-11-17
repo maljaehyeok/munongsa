@@ -41,4 +41,18 @@ class PreparationTests(unittest.TestCase):
         with patch.object(rag_search,'read_json',return_value=preview),self.assertRaises(ValueError):rag_search.load_corpus()
         self.assertEqual(rag_catalogue.records({'schema_version':'munongsa-support-public-v1','local_review_only':True,'notices':[]}),[])
 
+    def test_append_preserves_existing_records_and_link_history(self):
+        old={'schema':'munongsa-support-details-v1','preview':False,'records':[{'basis':{'id':'old'},'fields':{'summary':'unchanged'}}],
+             'link_reviews':[{'basis':{'id':'old'},'state':'official_detail'}],'operator_metadata':{'preserve':True}}
+        addition={'schema':old['schema'],'preview':True,'records':[{'basis':{'id':'new'}}]}
+        merged=review.merge_append(old,addition)
+        self.assertEqual(merged['link_reviews'],old['link_reviews'])
+        self.assertEqual(merged['operator_metadata'],old['operator_metadata'])
+        self.assertEqual(merged['records'][0],old['records'][0])
+        self.assertTrue(merged['preview']);self.assertEqual(len(old['records']),1)
+
+    def test_append_still_rejects_existing_notice_replacement(self):
+        old={'records':[{'basis':{'id':'same'}}]}
+        with self.assertRaises(ValueError):review.merge_append(old,{'records':[{'basis':{'id':'same'}}]})
+
 if __name__=='__main__':unittest.main()
