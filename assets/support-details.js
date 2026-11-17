@@ -22,6 +22,15 @@
    const approvedFields=Object.fromEntries(Object.entries(r.fields).filter(([k])=>r.rights.public_fields.includes(k)&&fieldApproved(r,k,preview)));
    return Object.keys(approvedFields).length?{...r,fields:approvedFields}:null;
   }).filter(Boolean);
+  if(Array.isArray(data.detail_supplements))for(const s of data.detail_supplements){
+   const index=records.findIndex(r=>r.basis.id===s?.basis?.id);if(index<0)continue;
+   const base=records[index];
+   if(data.detail_supplements.filter(x=>x?.basis?.id===s.basis.id).length!==1||canonical(base)!==canonical(s.base_record)||canonical(base.basis)!==canonical(s.basis))continue;
+   if(!s.approval?.reviewer||!s.approval.reference||!s.approval.checked_at||!(s.approval.state==='approved'||preview&&s.approval.state==='preview')||!factScope(s)||!s.fields)continue;
+   const names=Object.keys(s.fields);if(names.some(k=>k in base.fields||!fields.includes(k)||!validField(s.fields[k])))continue;
+   const approvedFields=Object.fromEntries(Object.entries(s.fields).filter(([k])=>s.rights.public_fields.includes(k)&&fieldApproved(s,k,preview)));
+   records[index]={...base,fields:{...base.fields,...approvedFields}};
+  }
   if(Array.isArray(data.link_reviews))linkReviews=data.link_reviews.filter(r=>r.schema==='munongsa-official-link-review-v1'&&r.basis&&['official_detail','title_or_detail_unconfirmed','access_restricted','access_policy_unconfirmed','not_found','request_error','login_only'].includes(r.state));
  }
  function validField(f){return f?.evidence?.url?.startsWith('https://')&&f.evidence.location&&f.evidence.checked_at&&(typeof f.value==='string'||Array.isArray(f.value)&&f.value.every(x=>typeof x==='string'))}

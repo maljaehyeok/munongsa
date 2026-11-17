@@ -32,4 +32,13 @@ prod.install({schema:data.schema,preview:false,records:[legacy]});assert(prod.ge
 const existing=JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/support-details.json'),'utf8'));
 prod.install(existing);assert.equal(existing.records.length,11);
 for(const r of existing.records){const b=r.basis;const n={id:b.id,title:b.title,url:b.url,target:b.target,region:b.region,reference_application_dates:b.dates,application_period:b.period,eligibility:b.eligibility,publication:'approved_reference',verification_status:'verified',rights:{public_display:'allowed'}};assert(prod.get(n),b.id);}
-console.log(JSON.stringify({passed:true,cases:20,preview_blocked_on_production:true,unknowns_visible:true,text_escaped:true,mixed_feed_blocked:true,field_approval_enforced:true,legacy_records:11}));
+const supplement={...structuredClone(approved),fields:{contact:{value:'SYNTHETIC-NEW-CONTACT',evidence}},base_record:structuredClone(legacy)};
+supplement.rights.public_fields=['contact'];supplement.field_approvals={contact:{...supplement.approval}};
+const legacyNotice={...item,publication:'approved_reference',verification_status:'verified'};
+const installSupplement=(base,supplements)=>prod.install({schema:data.schema,preview:false,records:[base],detail_supplements:supplements});
+installSupplement(legacy,[supplement]);assert(prod.get(legacyNotice).fields.contact);assert.equal(prod.get(legacyNotice).fields.target.value,legacy.fields.target.value);assert.deepEqual(prod.get(legacyNotice).approval,legacy.approval);assert(!legacy.fields.contact);
+const pendingSupplement=structuredClone(supplement);pendingSupplement.field_approvals.contact.state='pending';installSupplement(legacy,[pendingSupplement]);assert(!prod.get(legacyNotice).fields.contact);
+const changedBase=structuredClone(legacy);changedBase.approval.reference='changed';installSupplement(changedBase,[supplement]);assert(!prod.get(legacyNotice).fields.contact);
+const replacement=structuredClone(supplement);replacement.fields={target:{value:'BAD-REPLACEMENT',evidence}};replacement.rights.public_fields=['target'];replacement.field_approvals={target:{...replacement.approval}};installSupplement(legacy,[replacement]);assert.equal(prod.get(legacyNotice).fields.target.value,legacy.fields.target.value);
+installSupplement(legacy,[supplement,structuredClone(supplement)]);assert(!prod.get(legacyNotice).fields.contact);
+console.log(JSON.stringify({passed:true,cases:26,preview_blocked_on_production:true,unknowns_visible:true,text_escaped:true,mixed_feed_blocked:true,field_approval_enforced:true,legacy_records:11,supplement_preserves_original:true}));

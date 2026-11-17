@@ -4,7 +4,7 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "3ee5b673918b1215d9e0b5333d85342a3131f75827500c7928ad923791ada3b8",
+    "index.html": "23d3f16bf15a228b73c45e3363a8375d360e3e42b1cea48e65d32083512bea2e",
     "assets/chat-ui.js": "463df5d629bdb0a13b6ef7a62ebbea184493f3c024834894a06c8f80fafae262",
     "assets/chat-ui.css": "63cb322e967faf7807b6cade936c99a09ae5b7e8f05c9ddee44d43bd002c31c1",
     "assets/support-public.js": "2f7a35ec08ce8816ca7c7603c9625a260b5b6ec3d95b95abf44b48e9d695d5b9",
@@ -15,7 +15,7 @@
     "assets/support-review.js": "97fc140de643460d7f8892d78e938810f22116030cda6d100586b976174e91ab",
     "assets/personalization.js": "ad998af03d1dd9054567d06295102c2cb66dd1fb9111c934c62ca2fe7d390444",
     "assets/notice-review.js": "e7266cd2cec28f4e64d4c44526cd01c193ec2715c64f5b7f49f1fcd928ee4261",
-    "assets/support-details.js": "fe80e6ef42607fbad07279c7ccddaf37a17fb999077045afdd1b3176c3ec7ce7",
+    "assets/support-details.js": "60f4cdf757b62ede55e6175e2631d1c367d0242a6449484990ebf110f22734dc",
     "assets/user-display.js": "ccb9a05d79cb3a1ff6f770614c2758b4e5de95fd303f595bf072647a57eae606",
     "assets/support-details.json": "c01a7e6a4dd298621bcfa22e840fa849e7b4d8b9d6d02ea58f898aa997f0b451"
   },
