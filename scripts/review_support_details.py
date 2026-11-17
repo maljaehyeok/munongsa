@@ -12,7 +12,8 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 FIELDS = {'summary', 'funding', 'conditions', 'method', 'office', 'documents_required',
-          'documents_conditional', 'documents_bonus', 'contact', 'warnings', 'unconfirmed'}
+          'documents_conditional', 'documents_bonus', 'contact', 'warnings', 'unconfirmed',
+          'target', 'region', 'age', 'experience', 'period', 'subsidy', 'self_payment', 'documents_listed'}
 ROOT = Path(__file__).resolve().parents[1]
 
 

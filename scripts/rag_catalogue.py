@@ -60,7 +60,7 @@ def safe_url(value):
 def records(feed,now=None):
     from urllib.parse import urlsplit
     now=now or datetime.now(timezone.utc)
-    if not isinstance(feed,dict) or feed.get('schema_version')!='munongsa-support-public-v1':return []
+    if not isinstance(feed,dict) or feed.get('local_review_only') is True or feed.get('schema_version')!='munongsa-support-public-v1':return []
     values=feed.get('notices',[])
     if not isinstance(values,list) or len(values)>2000:return []
     ids=[v.get('id') for v in values if isinstance(v,dict)]
