@@ -15,6 +15,8 @@ FIELDS = {'summary', 'funding', 'conditions', 'method', 'office', 'documents_req
           'documents_conditional', 'documents_bonus', 'contact', 'warnings', 'unconfirmed',
           'target', 'region', 'age', 'experience', 'period', 'subsidy', 'self_payment', 'documents_listed'}
 ROOT = Path(__file__).resolve().parents[1]
+FACT_SCOPE = 'reviewed_facts_v1'
+FACT_FIELDS = {'summary','funding','target','period','subsidy','self_payment','method','office','documents_listed','contact','unconfirmed'}
 
 
 def validate(plan):
@@ -30,6 +32,15 @@ def validate(plan):
                         'www.buan.go.kr', 'www.jeonbuk.go.kr', 'www.jeonju.go.kr', 'www.oads.or.kr'}
         assert r['rights']['facts_only'] is True and r['rights']['policy_url']
         assert r['fields'] and set(r['fields']) <= FIELDS
+        if r['rights'].get('display_scope') == FACT_SCOPE:
+            rights=r['rights'];names=rights.get('public_fields',[])
+            assert names and len(names)==len(set(names)) and set(names)==set(r['fields']) <= FACT_FIELDS
+            assert rights.get('use_basis',{}).get('kind')=='independent_facts'
+            assert rights.get('body_redistribution') is False and rights.get('attachment_redistribution') is False
+            assert rights.get('eligibility_approval') is False and rights.get('audience')=='detail_display_only'
+            assert rights['use_basis'].get('urls')
+            for url in rights['use_basis']['urls']:
+                u=urlsplit(url);assert u.scheme=='https' and u.hostname and not u.username and not u.password
         for f in r['fields'].values():
             value, e = f['value'], f['evidence']
             assert (isinstance(value, str) and value.strip()) or (
@@ -46,6 +57,8 @@ def build(plan, reviewer, reference, approved=False):
     for r in records:
         r['approval'] = {'state': 'approved' if approved else 'preview', 'reviewer': reviewer,
                          'reference': reference, 'checked_at': stamp}
+        if r['rights'].get('display_scope') == FACT_SCOPE:
+            r['field_approvals']={name:copy.deepcopy(r['approval']) for name in r['rights']['public_fields']}
     return {'schema': 'munongsa-support-details-v1', 'preview': not approved, 'records': records}
 
 

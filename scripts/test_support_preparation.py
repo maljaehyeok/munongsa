@@ -55,4 +55,37 @@ class PreparationTests(unittest.TestCase):
         old={'records':[{'basis':{'id':'same'}}]}
         with self.assertRaises(ValueError):review.merge_append(old,{'records':[{'basis':{'id':'same'}}]})
 
+    def factual_record(self):
+        r=preparation.extract(self.basis,self.html('지원내용 : 가상 종자 지원'),self.stamp)
+        r['fields']={'summary':r['fields']['summary']}
+        r['rights'].update(display_scope=review.FACT_SCOPE,public_fields=['summary'],audience='detail_display_only',
+            eligibility_approval=False,body_redistribution=False,attachment_redistribution=False,
+            use_basis={'kind':'independent_facts','urls':['https://www.law.go.kr/LSW/precInfoP.do?precSeq=197742']})
+        return r
+
+    def test_field_approval_is_created_only_when_explicit_build_requests_it(self):
+        plan={'schema':'munongsa-support-details-plan-v1','records':[self.factual_record()]}
+        draft=review.build(plan,'synthetic','test')
+        self.assertEqual(draft['records'][0]['field_approvals']['summary']['state'],'preview')
+        approved=review.build(plan,'synthetic','test',approved=True)
+        self.assertEqual(approved['records'][0]['field_approvals']['summary'],approved['records'][0]['approval'])
+        self.assertNotIn('approval',plan['records'][0])
+
+    def test_fact_scope_rejects_unlisted_or_eligibility_fields(self):
+        r=self.factual_record();r['rights']['public_fields']=[]
+        with self.assertRaises(AssertionError):review.validate({'schema':'munongsa-support-details-plan-v1','records':[r]})
+        r=self.factual_record();r['fields']['conditions']=r['fields'].pop('summary');r['rights']['public_fields']=['conditions']
+        with self.assertRaises(AssertionError):review.validate({'schema':'munongsa-support-details-plan-v1','records':[r]})
+
+    def test_display_facts_cannot_become_rag_evidence(self):
+        import rag_sync
+        r=self.factual_record()
+        with self.assertRaisesRegex(rag_sync.SyncError,'display_only_not_rag_approval'):
+            rag_sync.validate_record(r,{},None)
+        doc=review.build({'schema':'munongsa-support-details-plan-v1','records':[r]},'synthetic','test',approved=True)
+        feed={'schema_version':'munongsa-support-public-v1','notices':[{'id':r['basis']['id']}]}
+        with patch.object(rag_search,'read_json',side_effect=[doc,feed]):
+            corpus=rag_search.load_corpus(specs_override={'test':{'id':r['basis']['id']}},aliases_override={})
+        self.assertEqual(corpus['documents'],{});self.assertEqual(len(corpus['excluded']),1)
+
 if __name__=='__main__':unittest.main()

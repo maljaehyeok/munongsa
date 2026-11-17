@@ -17,4 +17,19 @@ const notice={...item,id:'NOTICE-local-test',local_review_only:true,recommendati
 for(const [hostname,search,expected] of [['munongsa.duckdns.org','?support-details-preview=1',0],['127.0.0.1','',0],['127.0.0.1','?support-details-preview=1',1]]){
  const c={URL,URLSearchParams,location:{hostname,search}};vm.runInNewContext(publicCode,c);const r=c.MunongsaSupport.explore({schema_version:'munongsa-support-public-v1',notices:[notice]},{});assert.equal(r.references.length,expected);
 }
-console.log(JSON.stringify({passed:true,cases:10,preview_blocked_on_production:true,unknowns_visible:true,text_escaped:true,mixed_feed_blocked:true}));
+const prod=api('munongsa.duckdns.org','');
+const guidance={...item,recommendation_eligible:false,eligibility_complete:false};
+const approved={...record,approval:{...record.approval,state:'approved'},fields:{summary:{value:'Approved synthetic support',evidence},funding:{value:'UNAPPROVED-AMOUNT',evidence}},rights:{facts_only:true,display_scope:'reviewed_facts_v1',public_fields:['summary','funding'],audience:'detail_display_only',eligibility_approval:false,body_redistribution:false,attachment_redistribution:false,use_basis:{kind:'independent_facts',urls:['https://www.law.go.kr/']}}};
+approved.field_approvals={summary:{...approved.approval},funding:{...approved.approval,state:'pending'}};
+prod.install({schema:data.schema,preview:false,records:[approved]});
+assert(prod.get(guidance));assert.deepEqual(Object.keys(prod.get(guidance).fields),['summary']);
+assert(!prod.detail(guidance,escape,x=>x).includes('UNAPPROVED-AMOUNT'));
+assert.equal(prod.get({...guidance,title:'Changed notice'}),null);assert.equal(prod.get({...guidance,rights:{public_display:'blocked'}}),null);
+const noFields=structuredClone(approved);delete noFields.field_approvals;prod.install({schema:data.schema,preview:false,records:[noFields]});assert.equal(prod.get(guidance),null);
+prod.install({schema:data.schema,preview:true,records:[approved]});assert.equal(prod.get(guidance),null);
+const legacy={...record,approval:{...record.approval,state:'approved'}};
+prod.install({schema:data.schema,preview:false,records:[legacy]});assert(prod.get({...item,publication:'approved',verification_status:'verified'}));assert.equal(prod.get(guidance),null);
+const existing=JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/support-details.json'),'utf8'));
+prod.install(existing);assert.equal(existing.records.length,11);
+for(const r of existing.records){const b=r.basis;const n={id:b.id,title:b.title,url:b.url,target:b.target,region:b.region,reference_application_dates:b.dates,application_period:b.period,eligibility:b.eligibility,publication:'approved_reference',verification_status:'verified',rights:{public_display:'allowed'}};assert(prod.get(n),b.id);}
+console.log(JSON.stringify({passed:true,cases:20,preview_blocked_on_production:true,unknowns_visible:true,text_escaped:true,mixed_feed_blocked:true,field_approval_enforced:true,legacy_records:11}));

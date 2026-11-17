@@ -238,6 +238,8 @@ def minimal_summary(item, binding, now):
 
 
 def validate_record(record, item, now):
+    if record.get('rights',{}).get('audience')=='detail_display_only':
+        raise SyncError('display_only_not_rag_approval')
     if record.get('basis') != search.basis(item):
         raise SyncError('detailed_basis_changed')
     approval = record.get('approval', {})

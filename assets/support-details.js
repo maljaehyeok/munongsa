@@ -16,13 +16,22 @@
   if(data?.schema!=='munongsa-support-details-v1'||!Array.isArray(data.records)||data.preview&&!preview)return;
   localPreview=preview;
   records=data.records.filter(r=>(r.approval?.state==='approved'||preview&&r.approval?.state==='preview')&&r.approval?.reviewer&&r.approval?.reference&&r.approval?.checked_at&&r.rights?.facts_only===true&&r.basis&&r.fields&&Object.keys(r.fields).every(k=>fields.includes(k)&&validField(r.fields[k])));
+  records=records.map(r=>{
+   if(!r.rights.display_scope)return r;
+   if(!factScope(r))return null;
+   const approvedFields=Object.fromEntries(Object.entries(r.fields).filter(([k])=>r.rights.public_fields.includes(k)&&fieldApproved(r,k,preview)));
+   return Object.keys(approvedFields).length?{...r,fields:approvedFields}:null;
+  }).filter(Boolean);
   if(Array.isArray(data.link_reviews))linkReviews=data.link_reviews.filter(r=>r.schema==='munongsa-official-link-review-v1'&&r.basis&&['official_detail','title_or_detail_unconfirmed','access_restricted','access_policy_unconfirmed','not_found','request_error','login_only'].includes(r.state));
  }
  function validField(f){return f?.evidence?.url?.startsWith('https://')&&f.evidence.location&&f.evidence.checked_at&&(typeof f.value==='string'||Array.isArray(f.value)&&f.value.every(x=>typeof x==='string'))}
+ function factScope(r){const x=r.rights;return x.display_scope==='reviewed_facts_v1'&&x.audience==='detail_display_only'&&x.eligibility_approval===false&&x.body_redistribution===false&&x.attachment_redistribution===false&&x.use_basis?.kind==='independent_facts'&&Array.isArray(x.use_basis.urls)&&x.use_basis.urls.length>0&&x.use_basis.urls.every(v=>typeof v==='string'&&v.startsWith('https://'))&&Array.isArray(x.public_fields)&&x.public_fields.length>0&&new Set(x.public_fields).size===x.public_fields.length&&x.public_fields.every(k=>['summary','funding','target','period','subsidy','self_payment','method','office','documents_listed','contact','unconfirmed'].includes(k))}
+ function fieldApproved(r,k,preview){const a=r.field_approvals?.[k],b=r.approval;return a&&(a.state==='approved'||preview&&a.state==='preview')&&a.state===b.state&&a.reviewer===b.reviewer&&a.reference===b.reference&&a.checked_at===b.checked_at}
  function get(item){
   if(item?.local_review_only===true&&!localPreview)return null;
   const r=records.find(r=>r.basis.id===item.id&&canonical(r.basis)===canonical(basis(item)));
-  if(!(localPreview&&r?.approval?.state==='preview')&&(!['approved','approved_reference'].includes(item.publication)||item.verification_status!=='verified'||item.rights?.public_display!=='allowed'))return null;
+  const fieldGuidance=item.publication==='official_guidance'&&item.verification_status==='basics_only'&&item.recommendation_eligible===false&&item.eligibility_complete===false&&r?.approval?.state==='approved'&&factScope(r);
+  if(!(localPreview&&r?.approval?.state==='preview')&&(!fieldGuidance&&(!['approved','approved_reference'].includes(item.publication)||item.verification_status!=='verified')||item.rights?.public_display!=='allowed'))return null;
   return r||null;
  }
  function linkReview(item,now=Date.now()){

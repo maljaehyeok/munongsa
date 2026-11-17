@@ -241,6 +241,8 @@ def load_corpus(root=ROOT, snapshot=SNAPSHOT, *, expanded=False, specs_override=
             if len(records) != 1 or len(notices) != 1:
                 raise ValueError('승인 자료가 없거나 같은 ID가 중복됐습니다.')
             record, item = records[0], notices[0]
+            if record.get('rights',{}).get('audience')=='detail_display_only':
+                raise ValueError('화면 표시 전용 자료는 상담 승인 근거로 사용하지 않습니다.')
             approval = record.get('approval', {})
             if (approval.get('state') != 'approved' or not all(approval.get(k) for k in ('reviewer', 'reference', 'checked_at'))
                     or record.get('rights', {}).get('facts_only') is not True):
