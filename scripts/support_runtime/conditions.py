@@ -68,6 +68,10 @@ def payload_for(facts,base):
     if isinstance(text,str):
         complex_clause=bool(re.search(r'또는|제외|다만|모임체|대표|미등록',text))
         personal=bool(re.search(r'농업인|농가',text)) and not re.search(r'법인|기업|농협|조합|기관|단체',text)
+        # Registration can apply to both individuals and corporations. Do not
+        # require a personal-only target, or infer it from the institution/region.
+        if not complex_clause and re.search(r'농업경영정보를\s*등록한\s*농업경영체',text):
+            add('text_registration','farm_registration',{'registered':True},target)
         if personal and not complex_clause:add('text_applicant','applicant',{'one_of':['individual_farmer']},target)
         if personal and not complex_clause:
             for city in CITIES:

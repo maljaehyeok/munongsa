@@ -11,6 +11,22 @@ from . import boards, periods, enrichment
 BOARD='https://www.rda.go.kr/young/custom.do'
 
 
+def balanced_candidates(items, known=None, kind='rda_young'):
+    """Keep source identities; rotate regions without inventing eligibility."""
+    buckets={}
+    for row in items:
+        buckets.setdefault(row.get('list_region') or 'unknown', []).append(row)
+    for bucket in buckets.values():
+        bucket.sort(key=lambda r: ((kind,r['original_id']) in (known or {}),
+                                   r.get('list_deadline') or '9999-12-31', r['original_id']))
+    result=[]
+    while buckets:
+        for region in list(buckets):
+            result.append(buckets[region].pop(0))
+            if not buckets[region]:del buckets[region]
+    return result
+
+
 def list_url(page=1):
     # These fields and values are present in the official form and its script.
     return BOARD+'?'+urlencode({'search_ingState':'진행중','search_category':'자금,창업,주거,일자리,농지,네트워크,컨설팅,판로',
@@ -68,16 +84,18 @@ def collect(source,now,known=None,detail_policy=None):
             try:body=t.get(list_url(page))
             except Exception as error:
                 group['errors'].append({'stage':'additional_list_page','error':boards.error_name(error)});break
+            added=0
             for row in rows(body):
-                if row['original_id'] not in seen_ids:listed.append(row);seen_ids.add(row['original_id'])
+                if row['original_id'] not in seen_ids:listed.append(row);seen_ids.add(row['original_id']);added+=1
+            if not added:break
         items=[row for row in listed if boards.classify(row)!='excluded']
         group.update(list_count=len(listed),list_rows=items,candidate_count=len(items),scope_excluded_count=len(listed)-len(items),state='연결 성공')
         group['attempts'].append({'url':list_url(),'purpose':'공식 진행중·사업 필터 및 마감일 정렬; 게시일 제한 없음'})
-        # Prefer Jeonbuk, then other regions. Keep distinct source IDs as such.
-        items.sort(key=lambda r:((source['kind'],r['original_id']) in (known or {}),'전북' not in r['list_region'],'청년농' not in r['title'],r['title']))
+        items=balanced_candidates(items,known,source['kind'])
         unique=[];seen=set()
         for row in items:
-            signature=(row['title'],row['list_region'],row['list_deadline'])
+            # Same title/date can be separate rounds or separate official notices.
+            signature=row['original_id']
             if signature in seen:
                 group.setdefault('duplicate_candidates',[]).append(row);continue
             seen.add(signature);unique.append(row)
