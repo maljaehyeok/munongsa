@@ -77,9 +77,19 @@ def payload_for(facts,base):
             and place.get('location_basis') in ('residence','farm_land','business_office')):
         add('explicit_location',place['kind'],{'regions':place['regions'],
             'location_basis':place['location_basis']},location)
+    # Preserve an explicit joint residence AND farmland requirement. The
+    # remaining UNKNOWN clause still prevents a complete eligibility decision.
+    locations=facts.get('location_requirements',{});places=locations.get('value',[])
+    if isinstance(places,list) and len(places)<=4:
+        for i,place in enumerate(places):
+            if (isinstance(place,dict) and place.get('kind') in ('residence','business_location')
+                    and isinstance(place.get('regions'),list) and place['regions']
+                    and place.get('location_basis') in ('residence','farm_land','business_office')):
+                add('explicit_joint_location_'+str(i),place['kind'],{'regions':place['regions'],
+                    'location_basis':place['location_basis']},locations)
     target=facts.get('target_description',{});text=target.get('value','')
     if isinstance(text,str):
-        complex_clause=bool(re.search(r'또는|제외|다만|모임체|대표|미등록',text))
+        complex_clause=bool(re.search(r'또는|제외|다만|모임체|대표|미등록|예외|예비|예정|등록.*(?:무관|불필요|필요하지|않|없어도|필수.*아님)',text))
         personal=bool(re.search(r'농업인|농가',text)) and not re.search(r'법인|기업|농협|조합|기관|단체',text)
         # Registration can apply to both individuals and corporations. Do not
         # require a personal-only target, or infer it from the institution/region.
@@ -94,7 +104,7 @@ def payload_for(facts,base):
                 add('text_registration','farm_registration',{'registered':True},target)
         # Age words without a reference date are displayable, never decidable.
         age=re.search(r'만\s*(\d{1,2})\s*[~∼～]\s*(\d{1,2})\s*세',text)
-        if age:add('text_age','age',{'min':int(age[1]),'max':int(age[2]),'min_inclusive':True,'max_inclusive':True,'basis_date':'unknown','age_basis':'international'},target)
+        if age and not complex_clause:add('text_age','age',{'min':int(age[1]),'max':int(age[2]),'min_inclusive':True,'max_inclusive':True,'basis_date':'unknown','age_basis':'international'},target)
     if added:
         base['logic']={'op':'AND','children':[base.get('logic',{'op':'UNKNOWN','children':[]}),*added]}
     base['conditions']=conditions

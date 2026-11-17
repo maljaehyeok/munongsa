@@ -19,13 +19,17 @@ def key_for(provider,environ=None):
     if not re.fullmatch(r'[!-~]{1,2048}',value):raise ApiError('invalid_key')
     return value
 
-def prepare_request(provider,limit=50,page=1,environ=None):
+REGION_TAGS=('서울','부산','대구','인천','전남광주','대전','울산','세종','경기','강원','충북','충남','전북','경북','경남','제주')
+
+def prepare_request(provider,limit=50,page=1,environ=None,region=None):
     if provider not in KEYS or type(limit) is not int or not 1<=limit<=50 or type(page) is not int or not 1<=page<=3:raise ApiError('invalid_parameters')
+    if region is not None and (provider!='bizinfo' or region not in REGION_TAGS):raise ApiError('invalid_parameters')
     key=key_for(provider,environ)
     if provider=='bizinfo':
         params={'crtfcKey':key,'dataType':'json','searchCnt':str(limit),'pageUnit':str(limit),'pageIndex':str(page)};endpoint=biz.ENDPOINT
     else:
         params={'serviceKey':key,'dataType':'json','pageNo':str(page),'numOfRows':str(limit)};endpoint=PORTAL
+    if region is not None:params['hashtags']=region
     return urllib.request.Request(endpoint+'?'+urllib.parse.urlencode(params),headers={'User-Agent':biz.monitor.USER_AGENT,'Accept':'application/json'})
 
 def parse_response(raw,provider,limit=50):
@@ -52,8 +56,8 @@ def parse_response(raw,provider,limit=50):
     except ApiError:raise
     except Exception:raise ApiError('schema_error') from None
 
-def fetch(provider,limit=50,page=1,environ=None,transport=None):
-    secret=key_for(provider,environ);request=prepare_request(provider,limit,page,environ)
+def fetch(provider,limit=50,page=1,environ=None,transport=None,region=None):
+    secret=key_for(provider,environ);request=prepare_request(provider,limit,page,environ,region)
     try:raw,status,_=(transport or biz.probe_transport)(request,timeout=12)
     except Exception:raise ApiError('transport_error') from None
     finally:del request
@@ -93,8 +97,13 @@ def entry(row,kind='bizinfo'):
             if value:
                 add(name,{'date':value,'time':'unknown','timezone':'Asia/Seoul'},'공식 API 신청기간; 실제 접수 여부 미확인')
                 facts[name]['evidence']['quote']=fields.get('application_period','')[:180]
+    from support_runtime.api_core import overview
+    facts.update(overview(row.get('description',''),url))
+    from support_runtime import periods
+    period_parse=periods.extract(['신청기간 : '+fields.get('application_period','')],url)
     meta={k:v for k,v in row.items() if k!='description'}
     return {'kind':kind,'metadata':meta,'facts':facts,'status':'partial','checked_at':biz.monitor.utc_now(),
+      'period_parse':period_parse,'recruitment':periods.assess(facts,period_parse,checked_at=biz.monitor.utc_now()),
       'detail_fetched':False,'api_response_fetched':True,'automatic_approval':False,
       'unknown_fields':['세부 자격조건','실제 접수 가능 여부','최신 변경·조기마감 여부']}
 
@@ -125,3 +134,34 @@ def collect(source,environ=None,fetcher=None):
     group['analyses']=[entry(r,source['kind']) for r in merged if r['original_id'] not in conflicts and agricultural(r)]
     group['candidate_count']=len(group['analyses']);group['state']='부분 실패' if group['errors'] else '연결 성공'
     return group
+
+
+def collect_regions(source,regions,environ=None,fetcher=None):
+    """Explicit, bounded local pilot; never enabled by the daily collector.
+
+    Documented region hashtags choose discovery samples, not user eligibility.
+    Existing authenticated transport, error redaction and PBLN merge are reused.
+    """
+    if (not isinstance(regions,list) or not 1<=len(regions)<=3
+            or len(set(regions))!=len(regions) or any(r not in REGION_TAGS for r in regions)):
+        raise ApiError('invalid_parameters')
+    rows=[];checks=[]
+    for region in regions:
+        try:
+            key_for('bizinfo',environ)
+            if checks:time.sleep(2)
+            batch,info=(fetcher or fetch)('bizinfo',min(int(source.get('max_items',50)),50),1,
+                environ=environ,region=region)
+            for row in batch:
+                row=dict(row,list_region=region,region_basis='official_api_discovery_tag_only')
+                rows.append(row)
+            checks.append({'region':region,'status':'success','records':len(batch),**info})
+        except ApiError as error:
+            checks.append({'region':region,'status':'failed','error':error.code})
+            if error.code in ('missing_key','invalid_key','authentication_failed','permission_denied','quota_exceeded'):break
+        except Exception:checks.append({'region':region,'status':'failed','error':'transport_error'})
+    merged,duplicates,conflicts=merge(rows)
+    return {'kind':source['kind'],'analyses':[entry(r,source['kind']) for r in merged
+        if r['original_id'] not in conflicts and agricultural(r)],'list_count':len(merged),
+        'duplicate_count':len(duplicates),'conflicting_count':len(conflicts),'regional_queries':checks,
+        'automatic_approval':False,'state':'연결 성공' if all(c['status']=='success' for c in checks) else '부분 실패'}

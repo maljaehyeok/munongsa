@@ -44,6 +44,9 @@ def basic_release_review(result, checks):
 def identity(url):
     p = urlsplit(url)
     pairs = dict(parse_qsl(p.query))
+    from support_runtime.source_quality import notice_key
+    biz_key=notice_key(url)
+    if isinstance(biz_key,tuple):return biz_key
     if 'proj_id' in pairs and 'proj_detail_id' in pairs:
         return (p.hostname, p.path, 'project', pairs['proj_id'], pairs['proj_detail_id'])
     if 'nttNo' in pairs:
@@ -113,7 +116,7 @@ def prepare(groups, baseline, inventory=None):
                 missing.append('possible_duplicate_requires_review')
             if len(row['title']) > 150:
                 missing.append('independent_official_title_required')
-            if re.search(r'정정|연장|취소|재공고', row['title']):
+            if re.search(r'정정|연장|취소|재공고|변경', row['title']):
                 missing.append('amended_notice_requires_version_review')
             missing.extend(['publication_rights',
                             'complete_eligibility', 'current_application_acceptance'])
