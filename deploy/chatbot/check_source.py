@@ -59,7 +59,7 @@ def main():
         for name, expected in manifest['web'].items():
             require(stage_host_release.digest(ROOT/name) == expected)
         for name, expected in manifest['runtime'].items():
-            source = ROOT/name if Path(name).name.startswith('rag_') else ROOT/'deploy/chatbot'/Path(name).name
+            source = stage_host_release.source_path(name)
             require(stage_host_release.digest(source) == expected)
     check('reviewed_source_and_private_release_hashes', hashes)
     values = dict(RELEASE_DIR='/opt/example-release', VENV_DIR='/opt/example-venv',

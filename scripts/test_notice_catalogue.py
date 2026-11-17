@@ -18,10 +18,18 @@ class NoticeReviewTests(unittest.TestCase):
     def test_conflicting_dates_blocked(self):
         text='신청기간 2026-11-01 ~ 2026-12-01 신청기간 2026-10-01 ~ 2026-10-05'
         self.assertFalse(review.observe({'original_url':self.item['url']},BeautifulSoup('', 'html.parser'),text,self.now)['reference_application_dates'])
-    def test_version_and_expiry(self):
+    def test_version_binding_and_durable_history(self):
         o=review.observe({'original_url':self.item['url']},BeautifulSoup('', 'html.parser'),'신청기간 2026-11-01 ~ 2026-12-01',self.now);o['basis']=review.binding(self.item)
         self.assertTrue(review.valid(self.item,o,self.now));self.assertFalse(review.valid({**self.item,'title':'변경'},o,self.now))
-        self.assertFalse(review.valid(self.item,o,self.now+timedelta(days=2)))
+        o.update(actual_reception='operator_notice',reception_checked_at=self.now.isoformat())
+        for hours in (0,26,48,72):
+            with self.subTest(hours=hours):
+                at=self.now+timedelta(hours=hours)
+                self.assertTrue(review.valid(self.item,o,at))
+                shown=review.project(self.item,o,at)
+                self.assertEqual(shown['reference_application_dates'],o['reference_application_dates'])
+                self.assertEqual(shown['official_observation_at'],o['checked_at'])
+                self.assertEqual(shown['actual_reception_state'],'unconfirmed' if hours else 'operator_notice')
     def test_reception_not_confirmed(self):
         o=review.observe({'original_url':self.item['url']},BeautifulSoup('', 'html.parser'),'신청기간 2026-11-01 ~ 2026-12-01 신청방법 방문신청',self.now)
         self.assertNotEqual(o['actual_reception'],'confirmed')
