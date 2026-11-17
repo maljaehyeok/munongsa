@@ -10,6 +10,25 @@ from . import boards,periods
 
 HOST='global.at.or.kr'
 BOARD='https://'+HOST+'/'
+LIST=BOARD+'front/bizReq/brList.do?_mtype=B&_dept1=3'
+
+
+def board_rows(raw):
+    """Official public list; intentionally excludes staff names and contacts."""
+    output={}
+    for tr in BeautifulSoup(raw,'html.parser').select('table.boardList tbody tr'):
+        category=tr.select_one('td.category');a=tr.select_one('td.subject a[href]')
+        if not a or category is None or category.get_text(strip=True)=='수산물':continue
+        match=re.fullmatch(r"Javascript:goViewPage\('(\d{1,9})','(\d{1,9})'\);?",a['href'],re.I)
+        if not match:continue
+        title=boards.clean(a.get_text(' ',strip=True));stamp=tr.select_one('td.date2')
+        if not title:continue
+        ident='project:'+match[1]+':'+match[2]
+        output[ident]={'original_id':ident,'title':title,'published_at':None,
+            'original_url':BOARD+'front/bizReq/brView.do?'+urlencode({'proj_id':match[1],'proj_detail_id':match[2]}),
+            'list_period':boards.clean(stamp.get_text(' ',strip=True)) if stamp else '',
+            'title_may_be_truncated':title.endswith(('...','…'))}
+    return list(output.values())
 
 def rows(raw):
     output={}
@@ -38,13 +57,22 @@ def collect(source,now,known=None,detail_policy=None):
         if source.get('official_hosts')!=[HOST] or source['board_url']!=BOARD:raise ValueError('unexpected_source')
         policy=t.get(BOARD+'robots.txt',True)
         if re.search(br'<(?:html|script|!doctype)',policy,re.I):raise boards.Blocked('robots policy unreadable')
-        found=rows(t.get(BOARD))
+        listing=source.get('discovery_url',BOARD)
+        if listing not in (BOARD,LIST):raise ValueError('unexpected_listing')
+        found=(board_rows if listing==LIST else rows)(t.get(listing))
+        if listing==LIST:
+            seen={r['original_id'] for r in found}
+            for page in range(2,min(int(source.get('max_pages',1)),2)+1):
+                more=board_rows(t.get(LIST+'&page='+str(page)))
+                added=[r for r in more if r['original_id'] not in seen]
+                if not added:break
+                found.extend(added);seen.update(r['original_id'] for r in added)
         duplicates=set(source.get('existing_official_ids',[]))
         items=[r for r in found if r['original_id'] not in duplicates]
         group.update(list_count=len(found),candidate_count=len(items),
           duplicate_skips=[r['original_id'] for r in found if r['original_id'] in duplicates])
-        for row in items[:min(int(source.get('max_items',8)),8)]:
-            proof={'url':BOARD,'location':'공식 첫 화면 모집공고 카드; 상세 공고 검증 아님','quote':row['list_period']}
+        for row in items[:min(int(source.get('max_items',8)),20 if listing==LIST else 8)]:
+            proof={'url':listing,'location':'공식 모집 목록; 상세 공고 검증 아님','quote':row['list_period']}
             facts={'official_document_kind':{'value':'recruitment_listing','evidence':{**proof,'quote':row['title']}}}
             match=re.fullmatch(r'(20\d{2}-\d{2}-\d{2})\s*~\s*(20\d{2}-\d{2}-\d{2})',row['list_period'])
             if match:

@@ -84,8 +84,11 @@ def analyse(entry,t,now):
 
 
 def search_source(source,now,known=None,refresh_details=False,detail_policy=None,fact_enricher=None):
-    if source.get('adapter')=='at-official-listing-v1':
+    if source.get('adapter') in ('at-official-listing-v1','at-official-listing-v2'):
         from .at_export import collect
+        return collect(source,now,known,detail_policy)
+    if source.get('adapter')=='hongcheon-agri-v1':
+        from .regional import collect
         return collect(source,now,known,detail_policy)
     if source.get('adapter')=='academy-official-atom-v1':
         from .academy import collect

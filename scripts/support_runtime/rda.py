@@ -27,10 +27,12 @@ def balanced_candidates(items, known=None, kind='rda_young'):
     return result
 
 
-def list_url(page=1):
+def list_url(page=1,unfiltered=False):
     # These fields and values are present in the official form and its script.
-    return BOARD+'?'+urlencode({'search_ingState':'진행중','search_category':'자금,창업,주거,일자리,농지,네트워크,컨설팅,판로',
-        'search_sort':'applEdDt','cp':str(page)})
+    fields={'search_ingState':'진행중','search_sort':'applEdDt','cp':str(page)}
+    # Preserve legacy coverage, supplement it without a category restriction.
+    if not unfiltered:fields['search_category']='자금,창업,주거,일자리,농지,네트워크,컨설팅,판로'
+    return BOARD+'?'+urlencode(fields)
 
 
 def rows(body):
@@ -46,7 +48,8 @@ def rows(body):
                 'original_url':urljoin(BOARD,'/young/custom/policy/view.do')+'?'+urlencode({'sId':ident,'cp':'1'}),
                 # This table's final date is a deadline, NOT a publication date.
                 'published_at':None,'list_deadline':stamp[0] if stamp else None,
-                'list_region':cells[2] if len(cells)>2 else 'unknown','source_status':'진행중',
+                'list_region':cells[2] if len(cells)>2 else 'unknown','source_status':cells[0] if cells else 'unknown',
+                'document_type':cells[1] if len(cells)>1 else 'unknown',
                 'board_category':'공식 사업 안내','department':'unknown','list_excerpt':''}
     return list(found.values())
 
@@ -88,7 +91,15 @@ def collect(source,now,known=None,detail_policy=None):
             for row in rows(body):
                 if row['original_id'] not in seen_ids:listed.append(row);seen_ids.add(row['original_id']);added+=1
             if not added:break
-        items=[row for row in listed if boards.classify(row)!='excluded']
+        if source.get('include_unfiltered'):
+            for page in range(1,3):
+                try:more=rows(t.get(list_url(page,unfiltered=True)))
+                except Exception as error:
+                    group['errors'].append({'stage':'supplemental_list','error':boards.error_name(error)});break
+                added=[row for row in more if row['original_id'] not in seen_ids]
+                listed.extend(added);seen_ids.update(row['original_id'] for row in added)
+                if len(more)<10:break
+        items=[row for row in listed if row.get('document_type')!='교육' and boards.classify(row)=='agriculture_support']
         group.update(list_count=len(listed),list_rows=items,candidate_count=len(items),scope_excluded_count=len(listed)-len(items),state='연결 성공')
         group['attempts'].append({'url':list_url(),'purpose':'공식 진행중·사업 필터 및 마감일 정렬; 게시일 제한 없음'})
         items=balanced_candidates(items,known,source['kind'])

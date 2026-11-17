@@ -2,7 +2,7 @@
 import unittest
 from unittest.mock import patch
 
-from collect_national_candidates import identity, prepare
+from collect_national_candidates import identity, prepare, basic_release_review
 from support_runtime import rda
 
 
@@ -46,6 +46,22 @@ class NationalTests(unittest.TestCase):
         rows = [row(1), row(2)]
         self.assertEqual(rda.balanced_candidates(rows, {('rda_young', 'policy:1'): {}})[0]['original_id'], 'policy:2')
 
+    def test_optional_rda_query_failure_preserves_legacy_results(self):
+        from support_runtime import discovery,periods
+        class T:
+            host='www.rda.go.kr';count=0
+            def get(self,url,robots=False):
+                self.count+=1
+                if not robots and 'search_category' not in url:raise ValueError('fixture')
+                return b'fixture'
+        source={'kind':'rda_young','city':'unknown','max_pages':1,'detail_limit':1,'include_unfiltered':True}
+        with patch.object(discovery,'Transport',return_value=T()), \
+             patch.object(rda,'rows',return_value=[row(1)]), \
+             patch.object(discovery,'analyse',side_effect=lambda e,*_:dict(e,facts={},recruitment={})):
+            result=rda.collect(source,periods.as_of())
+        self.assertEqual(len(result['analyses']),1)
+        self.assertEqual(result['errors'][0]['stage'],'supplemental_list')
+
     def test_url_identity_ignores_only_nonidentity_controls(self):
         a = row(1)['original_url']
         self.assertEqual(identity(a), identity(a.replace('cp=1', 'cp=3')))
@@ -54,7 +70,8 @@ class NationalTests(unittest.TestCase):
     def test_public_and_run_duplicates_excluded(self):
         result = prepare([group(row(1), row(2), row(2))], {'notices': [
             {'url': row(1)['original_url'], 'title': row(1)['title']}]})
-        self.assertEqual(result['summary']['duplicates_excluded'], 2)
+        self.assertEqual(result['summary']['duplicates_excluded'], 1)
+        self.assertEqual(result['summary']['repeated_records_in_results'], 1)
         self.assertEqual(len(result['candidates']), 1)
 
     def test_same_title_different_notice_not_silently_deleted(self):
@@ -113,6 +130,63 @@ class NationalTests(unittest.TestCase):
             'evidence': {'url': row(1)['original_url'], 'location': '본문', 'quote': '등록 또는 미등록'}}}
         item = prepare([g], {'notices': []})['candidates'][0]
         self.assertFalse(any(c['kind'] == 'farm_registration' for c in item['eligibility_candidate']['conditions']))
+
+    def test_private_operating_record_is_not_new(self):
+        r = row(1)
+        result = prepare([group(r)], {'notices': []}, {'notices': [{'original_url': r['original_url']}]})
+        self.assertTrue(result['summary']['operating_private_db_compared'])
+        self.assertEqual(result['summary']['new_after_operating_dedup'], 0)
+
+    def test_project_identity_preserves_round_and_ignores_ui_query(self):
+        base='https://global.at.or.kr/front/bizReq/brView.do?proj_id=42&proj_detail_id=0'
+        self.assertEqual(identity(base),identity(base+'&_mtype=B'))
+        self.assertNotEqual(identity(base),identity(base.replace('proj_detail_id=0','proj_detail_id=1')))
+
+    def test_rda_no_fixed_category_vocabulary(self):
+        self.assertNotIn('search_category',rda.list_url(unfiltered=True))
+        self.assertIn('search_category',rda.list_url())
+
+    def test_listing_facts_cannot_become_eligibility_proof(self):
+        from support_runtime import at_export
+        g={'kind':'at_export','analyses':[{'metadata':{'original_id':'project:42:0',
+            'title':'가상 농식품 지원사업 모집',
+            'original_url':'https://global.at.or.kr/front/bizReq/brView.do?proj_id=42&proj_detail_id=0'},
+            'facts':{'target_description':{'value':'농업경영정보를 등록한 농업경영체',
+                'evidence':{'url':at_export.LIST,'quote':'가상 목록 문구','location':'목록'}}}}]}
+        n=prepare([g],{'notices':[]})['candidates'][0]
+        self.assertEqual(n['facts'],{})
+        self.assertIn('target_description',n['listing_facts'])
+        self.assertTrue(all(c['presence']=='unknown' for c in n['eligibility_candidate']['conditions']))
+
+    def test_basic_review_requires_db_and_does_not_approve_details(self):
+        r=row(1);check={'status':'checked','url':r['original_url'],'title_match':True,
+            'metadata_title_confirmed':True,'metadata_link_restricted':False,
+            'minimal_display_policy':{'id':'official-notice-name-link-v1','scope':'title_institution_link_only',
+                                     'body_redistribution':False,'eligibility_approval':False}}
+        result=prepare([group(r)],{'notices':[]},{'notices':[]})
+        basic_release_review(result,{r['original_id']:check})
+        review=result['candidates'][0]['basic_release_review']
+        self.assertEqual(review['status'],'candidate');self.assertFalse(review['approved'])
+        self.assertNotIn('facts',review['allowed_fields'])
+        self.assertFalse(result['candidates'][0]['recommendation_eligible'])
+        result=prepare([group(r)],{'notices':[]})
+        self.assertEqual(basic_release_review(result,{r['original_id']:check})['summary']['basic_approval_candidates'],0)
+
+    def test_unconfirmed_title_or_policy_stays_held(self):
+        result=prepare([group(row(1))],{'notices':[]},{'notices':[]})
+        self.assertEqual(basic_release_review(result,{})['summary']['release_held'],1)
+
+    def test_same_title_other_operating_url_requires_review(self):
+        r=row(1)
+        result=prepare([group(r)],{'notices':[]},{'notices':[{'original_url':row(2)['original_url'],'title':r['title']}]})
+        self.assertEqual(len(result['candidates']),1)  # no title-only automatic merge
+        self.assertIn('possible_duplicate_requires_review',result['candidates'][0]['unknown_fields'])
+
+    def test_candidate_payload_passes_existing_registration_schema(self):
+        import support_eligibility
+        r=row(1);n=prepare([group(r)],{'notices':[]})['candidates'][0]
+        support_eligibility.check_payload(n['eligibility_candidate'],{'original_url':r['original_url']})
+        self.assertTrue(n['condition_schema_valid'])
 
 
 if __name__ == '__main__':

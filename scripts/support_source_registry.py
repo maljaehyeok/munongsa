@@ -2,7 +2,7 @@
 import json
 import re
 from datetime import date
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, parse_qs, parse_qsl, urlencode
 
 import support_monitor as monitor
 
@@ -34,10 +34,18 @@ def url(value):
     if not isinstance(value, str):
         fail("URL must be a string")
     parts = urlsplit(value)
+    query = parts.query
+    # This official board uses key=1709 as a public menu number, not a secret.
+    # Keep the exception exact; credential-like parameters remain forbidden.
+    if (parts.hostname == 'www.hongcheon.go.kr'
+            and parts.path in ('/www/selectBbsNttList.do', '/www/selectBbsNttView.do')
+            and parse_qs(query).get('bbsNo') == ['140']
+            and parse_qs(query).get('key') == ['1709']):
+        query = urlencode([(k,v) for k,v in parse_qsl(query,keep_blank_values=True) if k != 'key'])
     # Administrative metadata must never become a credential storage channel.
     if (parts.scheme != "https" or not parts.hostname or parts.username or parts.password
             or parts.port not in (None, 443) or parts.fragment
-            or re.search(r"(?:key|token|secret|password|auth|crtfc|session)", parts.query, re.I)):
+            or re.search(r"(?:key|token|secret|password|auth|crtfc|session)", query, re.I)):
         fail("use a public HTTPS URL without credentials, secrets or session parameters")
     return value
 

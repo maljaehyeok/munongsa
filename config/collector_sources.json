@@ -338,7 +338,8 @@
       "detail_limit": 20,
       "reuse_policy": "unknown",
       "notes": "비공개 사실정보 시험; 공개·추천 승인 없음",
-      "max_pages": 3
+      "max_pages": 3,
+      "include_unfiltered": true
     },
     {
       "kind": "koat",
@@ -436,13 +437,13 @@
       "city": "nationwide; eligibility unverified",
       "board_url": "https://global.at.or.kr/",
       "method": "html",
-      "adapter": "at-official-listing-v1",
+      "adapter": "at-official-listing-v2",
       "enabled": true,
       "official_hosts": [
         "global.at.or.kr"
       ],
       "minimum_interval_hours": 24,
-      "max_items": 8,
+      "max_items": 20,
       "policy_url": "https://global.at.or.kr/robots.txt",
       "policy_checked_at": "2026-11-14",
       "reuse_policy": "unknown",
@@ -452,7 +453,27 @@
         "project:8173:0",
         "project:8210:0",
         "project:8232:0"
-      ]
+      ],
+      "discovery_url": "https://global.at.or.kr/front/bizReq/brList.do?_mtype=B&_dept1=3",
+      "max_pages": 2
+    },
+    {
+      "kind": "hongcheon",
+      "source_id": "hongcheon-agri-official",
+      "institution": "홍천군청",
+      "city": "강원 홍천",
+      "board_url": "https://www.hongcheon.go.kr/www/selectBbsNttList.do?bbsNo=140&key=1709",
+      "official_hosts": [
+        "www.hongcheon.go.kr"
+      ],
+      "method": "html",
+      "adapter": "hongcheon-agri-v1",
+      "enabled": true,
+      "minimum_interval_hours": 24,
+      "max_items": 10,
+      "detail_limit": 3,
+      "reuse_policy": "unknown",
+      "notes": "Private fact candidates only. No automatic approval/publication or attachments. Board region is not eligibility."
     }
   ]
 }

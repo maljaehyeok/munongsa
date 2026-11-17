@@ -5,7 +5,7 @@ No trial data, automatic approval or publication side effects.
 import re
 
 def extra_facts(lines,url):
-    rules={'target_description':r'(?:사업대상|지원대상|신청대상)',
+    rules={'target_description':r'(?:사업대상자?|지원대상|신청대상)',
            'support_description':r'(?:사업내용|지원내용|지원내역|지원단가|지원금액)',
            'budget_total':r'(?:사업비|총사업비)',
            'application_method':r'(?:신청방법|접수방법|신청장소|접수장소|접수처|신청접수처)',

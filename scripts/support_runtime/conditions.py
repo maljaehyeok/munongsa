@@ -64,6 +64,9 @@ def payload_for(facts,base):
         if not proof or any(c['kind']==kind and c['presence']=='specified' for c in conditions):return
         c={'condition_id':name,'kind':kind,'presence':'specified','value':value,'evidence':proof,'status':'candidate'}
         conditions.append(c);added.append({'condition_id':name})
+    registration=facts.get('farm_registration_required',{})
+    if registration.get('value') is True:
+        add('explicit_registration','farm_registration',{'registered':True},registration)
     target=facts.get('target_description',{});text=target.get('value','')
     if isinstance(text,str):
         complex_clause=bool(re.search(r'또는|제외|다만|모임체|대표|미등록',text))

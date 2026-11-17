@@ -53,6 +53,7 @@ def lock(path):
 
 def identity(link):
     p=urlsplit(link);q=parse_qs(p.query)
+    if q.get('nttNo'):return p.hostname,q.get('bbsNo',[''])[0],'nttNo',q['nttNo'][0]
     for key in ('dataSid','dataUid','postUid','nttId','articleId'):
         if q.get(key):return p.hostname,q.get('boardId',q.get('boardUid',['']))[0],key,q[key][0]
     return conditions.identity_url(link)

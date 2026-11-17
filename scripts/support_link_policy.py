@@ -38,7 +38,7 @@ def allowed(row,check):
 def title_check(soup,title,normalizer):
     wanted=normalizer(title)
     # Do not accept a title just because it appears in menus or related notices.
-    candidates=soup.select('h4.title, .viewArea h4, .view_tit, .bbs_view h4, .border_view h4, .view-con h4, h4, .bbs-subject, .bo_v_title, .artclTitle, .artclViewTitle, .view-title, .view_top > dl > dt')
+    candidates=soup.select('h4.title, .viewArea h4, .view_tit, .bbs_view h4, .border_view h4, .view-con h4, h4, .bbs-subject, .bo_v_title, .artclTitle, .artclViewTitle, .view-title, .view_top > dl > dt, .p-table__subject_text')
     return bool(wanted) and any(normalizer(n.get_text(' ',strip=True))==wanted for n in candidates)
 
 def recovered_title(soup,stored,url,normalizer):
