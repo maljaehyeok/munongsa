@@ -58,6 +58,7 @@ def analyse(entry,t,now):
         result['recruitment']['fetch_status']='failed';return result
     try:
         result=w.extract(body,row['original_url']);lines=content_lines(body,result)
+        if getattr(t,'line_cache',None):t.line_cache(row['original_url'],lines,checked)
         import html
         normalized=[re.sub(r'^\s*[가-하][.．)]\s*','',x) for x in lines]
         wrapped='<div class="basicView"><div class="conText">'+''.join('<p>'+html.escape(x)+'</p>' for x in normalized)+'</div></div>'
@@ -69,7 +70,9 @@ def analyse(entry,t,now):
         result.update({k:v for k,v in repaired.items() if k!='content_selector'})
         if getattr(t,'fact_enricher',None):result['facts'].update(t.fact_enricher(lines,row['original_url']))
         result['facts'].update(periods.notice_context(row['title'],row['original_url']))
-        parsed=periods.extract(lines,row['original_url']);period=parsed.get('period') or {}
+        from .core_facts import period_input
+        period_lines=period_input(lines)
+        parsed=periods.extract(period_lines or lines,row['original_url']);period=parsed.get('period') or {}
         if parsed.get('period'):
             for key,part in [('application_start','start'),('application_deadline','end')]:
                 if period.get(part):result['facts'][key]={'value':period[part],'evidence':period['evidence']}

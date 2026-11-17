@@ -25,6 +25,8 @@ def extra_facts(lines,url):
         if found:
             result[key]={'value':' / '.join(dict.fromkeys(x[0] for x in found))[:350],
                 'evidence':{'url':url,'location':'공식 상세의 명시된 항목명','quote':' / '.join(dict.fromkeys(x[1] for x in found))[:420]}}
+    from .core_facts import extract
+    result.update(extract(lines,url))
     return result
 
 

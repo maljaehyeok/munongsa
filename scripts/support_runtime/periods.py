@@ -74,7 +74,7 @@ def extract(lines,source_url):
         # A project year or publication year is never an application-year default.
         line=re.sub(r"['’‘](\d{2})(?=\s*[.년/\-])",lambda m:'20'+m[1],line)
         if re.search(r'(?:현재|지금)\s*(?:신청|접수|모집)\s*중',line):open_signals.append(line[:180])
-        if re.search(r'(?:신청|접수|모집)\s*(?:이\s*)?(?:마감되었습니다|종료되었습니다|조기\s*마감|마감\s*완료)',line):closed_signals.append(line[:180])
+        if re.search(r'(?:신청|접수|모집)\s*(?:[이가]\s*)?(?:마감되었습니다|종료되었습니다|조기\s*마감|마감\s*완료)',line):closed_signals.append(line[:180])
         relevant=bool(re.search(r'(?:신\s*청|접\s*수|모\s*집)\s*(?:공고\s*(?:및|·)\s*접수|기\s*간|기\s*한|마\s*감|일\s*시|공고\s*및\s*접수|[:：])',line))
         if not relevant:continue
         # YY.MM.DD is a complete abbreviated date, not a missing-year MM.DD.

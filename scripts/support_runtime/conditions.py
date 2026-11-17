@@ -67,6 +67,16 @@ def payload_for(facts,base):
     registration=facts.get('farm_registration_required',{})
     if registration.get('value') is True:
         add('explicit_registration','farm_registration',{'registered':True},registration)
+    applicants=facts.get('applicant_types',{})
+    if (isinstance(applicants.get('value'),list) and applicants['value']
+            and set(applicants['value']) <= {'individual_farmer','agricultural_business','institution_group'}):
+        add('explicit_applicant','applicant',{'one_of':applicants['value']},applicants)
+    location=facts.get('location_requirement',{});place=location.get('value',{})
+    if (isinstance(place,dict) and place.get('kind') in ('residence','business_location')
+            and isinstance(place.get('regions'),list) and place['regions']
+            and place.get('location_basis') in ('residence','farm_land','business_office')):
+        add('explicit_location',place['kind'],{'regions':place['regions'],
+            'location_basis':place['location_basis']},location)
     target=facts.get('target_description',{});text=target.get('value','')
     if isinstance(text,str):
         complex_clause=bool(re.search(r'또는|제외|다만|모임체|대표|미등록',text))
