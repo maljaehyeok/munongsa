@@ -20,7 +20,7 @@ ALIASES = {
 }
 LABELS = '|'.join(sorted(set(sum((list(v) for v in ALIASES.values()),[])) |
     {'사업명','신청기간','신청기한','접수기간','지원조건','지원기간','지원기준','문의사항','유의사항','주의사항'},key=len,reverse=True))
-BOUNDARY = re.compile(r'\s*(?:[▪□○※]|[가-힣]\.\s*(?='+LABELS+r')|(?<![가-힣])(?='+LABELS+r'\s*[:：]))')
+BOUNDARY = re.compile(r'\s*(?:[▪□○]|(?<![(（])※|[가-힣]\.\s*(?=(?:'+LABELS+r'))|\d+\.\s*(?=(?:'+LABELS+r'))|(?<![가-힣])(?=(?:'+LABELS+r')\s*[:：]))')
 
 def clean(value): return re.sub(r'\s+',' ',value).strip()
 
@@ -30,7 +30,7 @@ def preview_feed(records):
     for record in records:
         b=record['basis'];item={k:copy.deepcopy(b[k]) for k in ('id','title','url','target','region')}
         item.update(reference_application_dates=copy.deepcopy(b['dates']),application_period=copy.deepcopy(b['period']),eligibility=copy.deepcopy(b['eligibility']),
-            source_id='local-official-review',institution='공식 원문 확인 · 로컬 검토용',publication='official_guidance',verification_status='basics_only',
+            source_id='local-official-review',institution=record.get('source_institution') or '공식 원문 확인 · 로컬 검토용',publication='official_guidance',verification_status='basics_only',
             recommendation_eligible=False,eligibility_complete=False,freshness='current',last_checked_at=now.isoformat(),guidance_expires_at=(now+timedelta(hours=24)).isoformat(),
             local_review_only=True,rights={'public_display':'allowed','evidence_url':b['url'],'checked_at':now.date().isoformat()},
             attribution='로컬 검토용 · 실제 공개 승인이 아님',license='공개 이용 범위 최종확인 전')
@@ -66,9 +66,11 @@ def extract(basis, html, checked_at):
             for segment in segments:
                 match=re.match(re.escape(alias)+r'(?:\s*[:：]\s*|\s+)(.+)',segment)
                 if match:candidate=(match[1],alias);break
-            if candidate:break
+            if candidate and clean(candidate[0]).strip(':：'):break
+            candidate=None
         if candidate:
             value,label=candidate
+            if name=='documents_required':value=re.split(r'\s+\d+\.\s+',value,maxsplit=1)[0]
             if name.startswith('documents_') and re.fullmatch(r'.{0,35}(?:참고|참조).{0,10}',value):continue
             add(name,value,'본문 '+label,value)
     period=tables.get('신청기간') or tables.get('접수기간')
@@ -90,14 +92,16 @@ def extract(basis, html, checked_at):
     if geographic:add('region',geographic[:2],'본문 거주지·농지·접수처 구분',geographic[0])
     share=re.search(r'자부담\s*\d+(?:\.\d+)?\s*%',summary)
     if share:add('self_payment',share[0],'본문 자부담 명시 비율',share[0])
-    cautions=[s for s in segments if re.search(r'지원\s*제한|신청불가|지원\s*불가|예산|사업을 포기|초과 지원',s)]
+    cautions=[s for s in segments if re.search(r'지원\s*제한|신청불가|지원\s*불가|예산|사업을 포기|초과 지원|완공 후|동의 필수',s)]
     if cautions:add('warnings',cautions[:4],'본문 지원 제한·예산 유의사항',cautions[0])
     unresolved=['실제 접수 완료 여부와 첨부 지침 전체는 검증하지 않았습니다.','현재 운영 승인 DB와의 일치 및 공개 이용 범위는 최종 검토가 필요합니다.']
     if fields.get('documents_listed') and not fields.get('documents_required'):unresolved.append('본문 기재 서류의 필수·해당자·가점 구분은 첨부 지침에서 확인해야 합니다.')
     if '지원비율' not in tables and not fields.get('subsidy'):unresolved.append('보조율과 자부담의 전체 조건은 확인되지 않았습니다.')
     if '포항' in body:unresolved.append('연령 표현과 출생연도 범위의 일치 여부는 운영기관 확인이 필요합니다.')
+    institution=tables.get('주관기관') or tables.get('담당기관') or ('한국농수산식품유통공사' if host=='global.at.or.kr' else None)
+    if institution and institution.endswith('농업기술센'):unresolved.append('원문 기관명 표기가 일부 잘려 있어 기관의 정식 명칭은 재확인이 필요합니다.')
     add('unconfirmed',unresolved,'이번 로컬 검토 범위',title)
-    return {'basis':copy.deepcopy(basis),'source_sha256':hashlib.sha256(html).hexdigest(),'rights':{'facts_only':True,'policy_url':basis['url'],
+    return {'basis':copy.deepcopy(basis),'source_institution':institution,'source_sha256':hashlib.sha256(html).hexdigest(),'rights':{'facts_only':True,'policy_url':basis['url'],
         'note':'로컬 검토 초안. 원문·첨부 재배포 또는 공개 승인 아님.'},'fields':fields}
 
 def main():

@@ -44,6 +44,10 @@ class NoticeReviewTests(unittest.TestCase):
         p=rag_catalogue.program(self.item,feed,self.now)
         self.assertTrue(p['guidance_only']);self.assertEqual(p['required_conditions'],[])
         self.assertEqual(p['comparison']['label'],'추가 확인 필요');self.assertFalse(p['application_period']['actual_reception_confirmed'])
+    def test_local_review_item_cannot_escape_by_merging_into_regular_feed(self):
+        draft={**self.item,'id':'NOTICE-private-draft','local_review_only':True}
+        feed={'schema_version':'munongsa-support-public-v1','notices':[self.item,draft]}
+        self.assertEqual([x['id'] for x in rag_catalogue.records(feed,self.now)],[self.item['id']])
     def test_truncated_title_only_from_label(self):
         html='<article class="contentGroup"><table><tr><th>사업명<i>필수</i></th><td>가상 농업 지원사업</td></tr></table></article>'
         soup=BeautifulSoup(html,'html.parser');norm=lambda v:''.join(v.split())

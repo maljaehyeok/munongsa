@@ -4,10 +4,10 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "8fd806e518d651b7b351d5458de909958409f2458fa8c7443498eec317079118",
+    "index.html": "221cd43078404e5bca32d20685553b677f753f9d2c50b7f17ff037e1c149095f",
     "assets/chat-ui.js": "463df5d629bdb0a13b6ef7a62ebbea184493f3c024834894a06c8f80fafae262",
     "assets/chat-ui.css": "63cb322e967faf7807b6cade936c99a09ae5b7e8f05c9ddee44d43bd002c31c1",
-    "assets/support-public.js": "53944ea230cadbb18bc0e023fb94ef46dc701469088fa5213989a2199997aaee",
+    "assets/support-public.js": "2f7a35ec08ce8816ca7c7603c9625a260b5b6ec3d95b95abf44b48e9d695d5b9",
     "assets/selection-view.js": "fc19982c4a8996f4f15da2c6348b4992d66fe177734ab443986ca7ff791e5290",
     "assets/input-ux.js": "9d61d608280ebda6938a2b55aa0a8ba8206af6585f7e0af8e307083432b93136",
     "assets/amount-display.js": "b3bce0564923cdfec1d4110305c990e9f0811bd6a11525aa3c8e42f5613dc982",
@@ -15,7 +15,7 @@
     "assets/support-review.js": "97fc140de643460d7f8892d78e938810f22116030cda6d100586b976174e91ab",
     "assets/personalization.js": "ad998af03d1dd9054567d06295102c2cb66dd1fb9111c934c62ca2fe7d390444",
     "assets/notice-review.js": "e7266cd2cec28f4e64d4c44526cd01c193ec2715c64f5b7f49f1fcd928ee4261",
-    "assets/support-details.js": "1c65fdb3e4ea25aff435c9e983552eb538587d672c02a07b2d65a7c92627bf4b",
+    "assets/support-details.js": "a9755b83b878038687ef976e2875c107d15d12cb32baa0ca2a6a0ba8ce4ba030",
     "assets/user-display.js": "ccb9a05d79cb3a1ff6f770614c2758b4e5de95fd303f595bf072647a57eae606",
     "assets/support-details.json": "c01a7e6a4dd298621bcfa22e840fa849e7b4d8b9d6d02ea58f898aa997f0b451"
   },
@@ -31,7 +31,7 @@
     "scripts/rag_dialogue.py": "23cceea9b20357bd4fa7fda51db7574dd74bd2f57d0d7298f4c48e4478651c03",
     "scripts/rag_profile.py": "b7ea4dbba8a20863bd710bd9a256b16f4400f9b9590742b1c3505afa73b1c500",
     "scripts/rag_nlu.py": "dd022820d863f7b027613cce09ebedff7c4376ad168f2505679562f2f068ea42",
-    "scripts/rag_catalogue.py": "946c0ca85dd338badd6a9460bbd0a7ce778727f396cc88f2e1952f9617563a93",
+    "scripts/rag_catalogue.py": "2dc6c68dadeb2c487c77db0751cc705113a743f3d722d2d142a17d74f9a2c27f",
     "scripts/support_notice_review.py": "a04d3b5bb2e9558eddc019b7153cd79674c02847966b20ecefb6eba616d45d56"
   },
   "private_corpus": {

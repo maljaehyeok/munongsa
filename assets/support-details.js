@@ -20,6 +20,7 @@
  }
  function validField(f){return f?.evidence?.url?.startsWith('https://')&&f.evidence.location&&f.evidence.checked_at&&(typeof f.value==='string'||Array.isArray(f.value)&&f.value.every(x=>typeof x==='string'))}
  function get(item){
+  if(item?.local_review_only===true&&!localPreview)return null;
   const r=records.find(r=>r.basis.id===item.id&&canonical(r.basis)===canonical(basis(item)));
   if(!(localPreview&&r?.approval?.state==='preview')&&(!['approved','approved_reference'].includes(item.publication)||item.verification_status!=='verified'||item.rights?.public_display!=='allowed'))return null;
   return r||null;

@@ -68,6 +68,7 @@ def records(feed,now=None):
     out=[]
     for value in values:
         try:
+            if value.get('local_review_only') is True:continue
             if not re.fullmatch(r'NOTICE-[A-Za-z0-9_-]{1,70}',value['id']):continue
             if not safe_url(value['url']):continue
             if value.get('rights',{}).get('public_display')!='allowed' or value.get('freshness')!='current':continue

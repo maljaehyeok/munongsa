@@ -12,4 +12,9 @@ local.install(data);assert(local.get(item));assert.equal(local.get({...item,titl
 const escape=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const html=local.detail(item,escape,x=>x);assert(html.includes('확인되지 않음'));assert(html.includes('&lt;script&gt;'));assert(!html.includes('<script>'));assert(html.includes('공개 승인이나 운영 반영 결과가 아닙니다'));
 assert(html.indexOf('신청기간')<html.indexOf('누가 신청'));assert(html.indexOf('신청 방법과 접수처')<html.indexOf('준비 서류'));
-console.log(JSON.stringify({passed:true,cases:7,preview_blocked_on_production:true,unknowns_visible:true,text_escaped:true}));
+const publicCode=fs.readFileSync(path.join(__dirname,'../assets/support-public.js'),'utf8');
+const notice={...item,id:'NOTICE-local-test',local_review_only:true,recommendation_eligible:false,eligibility_complete:false,freshness:'current',last_checked_at:evidence.checked_at,guidance_expires_at:'2099-01-01T00:00:00Z',rights:{public_display:'allowed',evidence_url:item.url,checked_at:'2026-11-17'}};
+for(const [hostname,search,expected] of [['munongsa.duckdns.org','?support-details-preview=1',0],['127.0.0.1','',0],['127.0.0.1','?support-details-preview=1',1]]){
+ const c={URL,URLSearchParams,location:{hostname,search}};vm.runInNewContext(publicCode,c);const r=c.MunongsaSupport.explore({schema_version:'munongsa-support-public-v1',notices:[notice]},{});assert.equal(r.references.length,expected);
+}
+console.log(JSON.stringify({passed:true,cases:10,preview_blocked_on_production:true,unknowns_visible:true,text_escaped:true,mixed_feed_blocked:true}));
