@@ -107,9 +107,23 @@ test('inline UI wiring, safe empty/error text and additional profile history',()
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   const code=html.match(/<script>\s*([\s\S]*?)<\/script>/)[1];assert.doesNotThrow(()=>new vm.Script(code));
   assert.ok(html.includes('drawApprovedSupport(x);'));
-  assert.ok(html.includes("fetch('./data/support-public.json')"));
-  assert.ok(html.includes('승인 자료 연결 실패'));
+  const previewGate=html.match(/const supportPreparationPreview=([^;]+);/)[1];
+  const feedChoice=Array.from(html.matchAll(/fetch\((supportPreparationPreview\?[^)]+)\)/g))
+    .map(m=>m[1]).find(expression=>expression.includes("'./data/support-public.json'"));
+  assert.ok(feedChoice);
+  for(const [hostname,search,wanted] of [
+    ['munongsa.duckdns.org','','./data/support-public.json'],
+    ['munongsa.duckdns.org','?support-details-preview=1','./data/support-public.json'],
+    ['localhost','','./data/support-public.json'],
+    ['localhost','?support-details-preview=1','./work/existing-seven-supplement/preview-feed.json']
+  ]) {
+    const scope={location:{hostname,search},URLSearchParams};
+    scope.supportPreparationPreview=vm.runInNewContext(previewGate,scope);
+    assert.equal(vm.runInNewContext(feedChoice,scope),wanted);
+  }
+  assert.ok(html.includes('공식 공고를 불러오지 못했어요.'));
+  assert.ok(html.includes('검색 결과가 없는 상황과는 다릅니다.'));
   assert.ok(html.includes("'supportReference','supportPublic'"));
-  assert.ok(html.includes('공식 신청 자격·접수 가능 확정이 아닙니다'));
+  assert.ok(html.includes('자격·모집 여부가 미확인인 공고는 신청 가능 판정에 사용하지 않습니다.'));
   assert.ok(!html.includes('????'));
 });

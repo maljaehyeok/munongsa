@@ -16,6 +16,8 @@ scripts/verify_support_publication.py
 scripts/support_runtime/__init__.py
 scripts/support_runtime/boards.py
 scripts/support_runtime/conditions.py
+scripts/support_runtime/core_facts.py
+scripts/support_runtime/api_core.py
 scripts/support_runtime/discovery.py
 scripts/support_runtime/enrichment.py
 scripts/support_runtime/extractor.py
@@ -24,6 +26,7 @@ scripts/support_runtime/gochang.py
 scripts/support_runtime/ingestion.py
 scripts/support_runtime/periods.py
 scripts/support_runtime/rda.py
+scripts/support_runtime/regional.py
 scripts/support_runtime/koat.py
 scripts/support_runtime/at_export.py
 scripts/test_at_source.py

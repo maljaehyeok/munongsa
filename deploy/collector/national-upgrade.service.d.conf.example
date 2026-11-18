@@ -1,0 +1,4 @@
+# Candidate only. Review and install as a drop-in for the EXISTING collector.
+# Never replaces its unit, credentials, timer, private hooks or access controls.
+[Service]
+Environment=MUNONGSA_GUIDANCE_EXISTING_ONLY=1

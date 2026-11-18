@@ -106,6 +106,18 @@ def collect(registry, saved, now):
     return groups
 
 
+def hold_new_guidance(data, prior):
+    """Optional release fence. Existing guidance still passes all rights gates.
+
+    Independently approved notices remain governed by the normal exporter.
+    Never reinsert an old notice excluded by revocation or an expired grant.
+    """
+    existing={n['id'] for n in prior.get('notices',[])}
+    before=len(data['notices'])
+    data['notices']=[n for n in data['notices'] if n.get('publication')!='official_guidance' or n['id'] in existing]
+    return before-len(data['notices'])
+
+
 def export_public(state, output, rights_file, now=None):
     # No rights manifest means fail closed, not permission inferred from a URL.
     if rights_file.resolve() == output.resolve() or output.resolve() in rights_file.resolve().parents:
@@ -127,6 +139,12 @@ def export_public(state, output, rights_file, now=None):
             import support_guidance
             stats['official_guidance'] = support_guidance.append(ro, data, json.loads(guidance.read_text('utf-8')), now)
             stats['exported'] = len(data['notices'])
+    if os.environ.get('MUNONGSA_GUIDANCE_EXISTING_ONLY')=='1':
+        previous_path=output/'support-public.json'
+        prior=json.loads(previous_path.read_text('utf8')) if previous_path.exists() else {'notices':[]}
+        stats['new_guidance_held']=hold_new_guidance(data,prior)
+        stats['official_guidance']=sum(n.get('publication')=='official_guidance' for n in data['notices'])
+        stats['exported']=len(data['notices'])
     output.mkdir(parents=True, exist_ok=True)
     previous = output / 'support-public.json'
     if previous.exists():
