@@ -10,11 +10,16 @@ def candidate_order(key, corpus, context, relevance=0):
     from datetime import datetime, timezone
     document=corpus['documents'][key]
     comparison=rag_profile.compare(document,context,rag_search.valid_url,AREAS)
+    from support_recommendation_readiness import decision
+    import rag_catalogue
+    from datetime import datetime,timezone
+    partial=rag_catalogue.comparison(document['public'],corpus.get('guidance_feed',{}),context,datetime.now(timezone.utc))
+    priority=(partial or {}).get('decision') or decision(comparison)
     period=rag_search.recruitment_context(document,datetime.now(timezone.utc))
     mismatch=comparison['label']=='조건 불일치'
     elapsed=period['date_state']=='elapsed'
     timing={'within_recorded_dates':0,'deadline_day_time_unknown':0,'upcoming':1,'unknown':2,'elapsed':3}[period['date_state']]
-    return (mismatch,elapsed,timing,-relevance,comparison['label']!='관련 가능성 있음',document['public']['title'])
+    return (priority['tier'],mismatch,elapsed,timing,-relevance,document['public']['title'])
 
 PREFIX='[무농사 대화 참고]\n'
 SEPARATOR='\n[질문]\n'

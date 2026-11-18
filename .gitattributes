@@ -24,3 +24,4 @@ assets/support-details.js -text
 scripts/rag_nlu.py -text
 scripts/rag_catalogue.py -text
 scripts/support_notice_review.py -text
+scripts/support_recommendation_readiness.py -text

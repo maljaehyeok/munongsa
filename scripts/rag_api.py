@@ -251,7 +251,7 @@ def catalogue_response(response,corpus):
 def decorate_cards(response,corpus):
     """Public, hash-verified facts only. Never parse new eligibility rules here."""
     if not response['programs']:return
-    import rag_profile,rag_dialogue,support_notice_review
+    import rag_profile,rag_dialogue,support_notice_review,support_recommendation_readiness as readiness
     by_id={d['public']['id']:d for d in corpus['documents'].values()}
     context=response.get('conversation',{})
     def clean(value):
@@ -274,13 +274,14 @@ def decorate_cards(response,corpus):
             partial=rag_catalogue.comparison(live,corpus['guidance_feed'],context,datetime.now(rag_answer.KST)) if live else None
             if partial:
                 comparison={**comparison,'label':'조건 불일치' if '조건 불일치' in (comparison['label'],partial['label']) else '관련 가능성 있음' if '관련 가능성 있음' in (comparison['label'],partial['label']) else '추가 확인 필요',
+                            'region_state':partial.get('region_state',comparison.get('region_state','check')),
+                            'structured_state':partial.get('structured_state',comparison.get('structured_state','check')),
+                            'verified_condition_count':max(partial.get('verified_condition_count',0),comparison.get('verified_condition_count',0)),
                             'reasons':list(dict.fromkeys(comparison.get('reasons',[])+partial['reasons']))[:3],
                             'checks':list(dict.fromkeys(partial['checks']+comparison.get('checks',[])))[:4],
                             'questions':list(dict.fromkeys(partial['questions']+comparison.get('questions',[])))[:2]}
-        area=context.get('farm_region') or context.get('region')
-        if area and public.get('region') not in (None,'','unknown') and not rag_dialogue.region_matches(area,public,document) and comparison['label']!='조건 불일치':
-            comparison={**comparison,'label':'추가 확인 필요','checks':['알려주신 '+area+' 지역과 공고의 지원 지역을 함께 확인해야 합니다. 거주지·영농지 요건은 서로 다를 수 있습니다.']+comparison['checks']}
         program['comparison']=comparison
+        observed=public
         period=rag_search.recruitment_context(document,datetime.now(rag_answer.KST))
         if corpus.get('guidance_feed') and live:
             import support_notice_review
@@ -297,9 +298,12 @@ def decorate_cards(response,corpus):
         if closing:period={**period,'date_state':'elapsed'}
         if period['date_state']=='elapsed':
             program['application_period']['description']=(closing or '기재 신청기간 경과')+' · 과거 금액·조건은 현재 신청에 적용할 수 없습니다. 연장·재공고는 별도 확인하세요.'
-        mismatch=comparison['label']=='조건 불일치'
-        group='elapsed' if period['date_state']=='elapsed' else 'mismatch' if mismatch else 'related' if comparison['label']=='관련 가능성 있음' else 'check'
-        program['card']={'group':group,'label':{'elapsed':'모집기간 경과','mismatch':'확인된 조건 불일치','related':'관련 가능성 있음','check':'추가 확인 필요'}[group],
+        audience=bool(context.get('planned') and any('수출' in v for v in field(document,'conditions')))
+        comparison=readiness.apply(comparison,national=observed.get('geographic_scope')=='nationwide_verified' and bool(observed.get('verified_facts_at')),
+                                  complete=public.get('eligibility_complete') is True,audience_check=audience)
+        program['comparison']=comparison;verdict=comparison['decision']
+        group='elapsed' if period['date_state']=='elapsed' else 'mismatch' if verdict['excluded'] else 'related' if verdict['category']=='A' else 'check'
+        program['card']={'group':group,'label':verdict['label'],
             'period_state':period['date_state'],'lifecycle_label':closing,'institution':clean(public.get('institution')),
             'facts':{'region':clean(public.get('region')),'target':clean(public.get('target')),'support':clean(public.get('support')),
                      'funding':field(document,'funding'),'method':field(document,'method'),
@@ -311,9 +315,17 @@ def decorate_cards(response,corpus):
             if preparation.get('method'):program['card']['facts']['method']=[preparation['method']]
             if preparation.get('documents_note'):program['card']['facts']['documents']=[preparation['documents_note']]
             program['card']['reception_state']=observed.get('actual_reception_state','unconfirmed')
-    priorities={'related':0,'check':1,'elapsed':2,'mismatch':3}
-    response['programs'].sort(key=lambda p:(p['comparison']['label']=='조건 불일치',p['card']['period_state']=='elapsed',
-        {'within_recorded_dates':0,'deadline_day_time_unknown':0,'upcoming':1,'unknown':2,'elapsed':3}[p['card']['period_state']],priorities[p['card']['group']]))
+    if response.get('kind')=='recommendation':
+        response['programs']=[p for p in response['programs'] if not p['comparison']['decision']['excluded']]
+    response['programs'].sort(key=lambda p:(p['comparison']['decision']['tier'],p['comparison']['decision']['audience_check'],p['card']['period_state']=='elapsed',
+        {'within_recorded_dates':0,'deadline_day_time_unknown':0,'upcoming':1,'unknown':2,'elapsed':3}[p['card']['period_state']]))
+    if response.get('kind')=='recommendation' or response.get('answer','').startswith('조건 비교'):
+        qualified=any(p['comparison']['decision']['region_state']=='match' for p in response['programs'])
+        intro='공식 지역 조건과 확인된 자격조건을 비교했습니다. 전체 신청 자격은 미확정입니다.' if qualified else '지역·주요 조건이 확인된 추천 공고가 부족합니다. 아래는 추가 확인이 필요한 참고 공고입니다.'
+        response['answer']=intro+'\n\n'+'\n\n'.join(p['name']+' — '+p['card']['label']+'\n'+('비교 이유: '+' / '.join(p['comparison']['reasons'])+'\n' if p['comparison']['reasons'] else '')+'확인할 조건: '+' / '.join(p['comparison']['checks']) for p in response['programs'])
+        kept={p['source_url'] for p in response['programs']};response['sources']=[s for s in response.get('sources',[]) if s['url'] in kept]
+        response.setdefault('conversation',{})['notice_ids']=[p['id'] for p in response['programs']]
+        response['conversation'].update(list_ids=[],list_versions=[])
     response['followup_questions']=list(dict.fromkeys(q for p in response['programs'] for q in p['card']['questions']))[:2]
 
 

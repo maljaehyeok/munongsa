@@ -52,13 +52,35 @@
   const groups=root.MunongsaSupport.explore(data,profile,now),rows=[...groups.recommendations,...groups.excluded,...groups.references];
   return rows.map(row=>{const facts=data.verified_facts?.[row.item.id],shown=root.MunongsaNoticeReview?.project(sourceFacts(row.item,facts,now),data.notice_observations?.[row.item.id],now)||sourceFacts(row.item,facts,now),reviewed=sourceConditions(row.item,data.verified_comparisons?.[row.item.id]||facts,now),projected=project(reviewed||row.item),match=root.MunongsaSupport.evaluate(projected,profile),why=reasons(projected,match),place=String(profile.district||'').replace(/[시군]$/,''),scope=row.item.region||'';
    const geographic=place.length>=2&&place!=='all'&&scope.includes(place)?'영농지역과 안내 지역 관련 · 거주·농지 자격 충족 아님':null;
-   const display=root.MunongsaSupportReview.presentation(shown,now),relatedCandidate=!!reviewed&&display.state==='window'&&match.conditionStatus!=='mismatch'&&why.some(r=>r.state==='match');
+   const display=root.MunongsaSupportReview.presentation(shown,now),verdict=decision(projected,shown,match,profile),relatedCandidate=verdict.region_state==='match'&&!verdict.excluded&&display.state==='window'&&why.some(r=>r.state==='match');
    const sourceWarning=data.source_review?.[row.item.id]?.title_needs_review===true;
-   return {...row,item:shown,match,comparisonItem:{...shown,eligibility:projected.eligibility},reasons:why,geographic,sourceWarning,comparisonReady:!!reviewed&&!sourceWarning,relatedCandidate:relatedCandidate&&!sourceWarning,recommendationAllowed:row.available&&match.conditionStatus==='match'&&!sourceWarning,display,relevance:why.reduce((n,r)=>n+(r.state==='match'?r.weight:0),0)+(geographic?2:0)};
+   return {...row,item:shown,match,decision:verdict,comparisonItem:{...shown,eligibility:projected.eligibility},reasons:why,geographic,sourceWarning,comparisonReady:!!reviewed&&!sourceWarning,relatedCandidate:relatedCandidate&&!sourceWarning,recommendationAllowed:row.available&&verdict.category==='A'&&!sourceWarning,display,relevance:why.reduce((n,r)=>n+(r.state==='match'?r.weight:0),0)};
   }).sort((a,b)=>{
    const period=r=>({window:0,unknown:1,upcoming:2,elapsed:3}[r.display.state]),condition=r=>({match:0,check:1,mismatch:2}[r.match.conditionStatus]);
-   return period(a)-period(b)||condition(a)-condition(b)||b.relevance-a.relevance||(a.display.end||'9999-12-31').localeCompare(b.display.end||'9999-12-31')||a.item.id.localeCompare(b.item.id);
+   return a.decision.tier-b.decision.tier||Number(a.decision.audience_check)-Number(b.decision.audience_check)||period(a)-period(b)||condition(a)-condition(b)||b.relevance-a.relevance||(a.display.end||'9999-12-31').localeCompare(b.display.end||'9999-12-31')||a.item.id.localeCompare(b.item.id);
   });
  }
- root.MunongsaPersonalization={project,reasons,support,sourceConditions,sourceFacts};
+ function decision(projected,shown,match,profile){
+  const trusted=(projected.eligibility?.conditions||[]).filter(c=>c.status==='verified'&&['specified','no_restriction'].includes(c.presence)&&c.evidence?.location&&root.MunongsaSupport.safeUrl(c.evidence.url)&&(c.evidence.quote||c.evidence.fact_confirmed===true));
+  const ids=new Set(trusted.filter(c=>['residence','business_location'].includes(c.kind)).map(c=>c.condition_id));
+  function regional(node){
+   if(!node)return null;if(node.condition_id)return ids.has(node.condition_id)?node:null;
+   const children=(node.children||[]).map(regional),kept=children.filter(Boolean);if(!kept.length)return null;
+   if(node.op==='OR'&&children.some(n=>!n))return {op:'UNKNOWN',children:[]};
+   return {...node,children:kept};
+  }
+  const logic=regional(projected.eligibility?.logic);
+  const region=shown.geographic_scope==='nationwide_verified'&&shown.verified_facts_at?'match':logic?root.MunongsaSupport.evaluate({...projected,eligibility:{conditions:trusted.filter(c=>ids.has(c.condition_id)),logic}},profile).conditionStatus:'check';
+  const audience=profile.farmingSituation==='preparing'&&/수출/.test(shown.target||'')&&(shown.verified_facts_at||shown.evidence?.target?.url===shown.url);
+  let category,label,tier;
+  if(match.conditionStatus==='mismatch'){category='C';label='명확한 조건 불일치';tier=4;}
+  else if(audience){category='D';label='조건 정보 부족';tier=3;}
+  else if(region==='match'){
+   if(projected.eligibility_complete===true&&match.conditionStatus==='match'){category='A';label='확인된 조건 일치';tier=0;}
+   else{category='B';label='추가 자격 확인 필요';tier=1;}
+  }else if(trusted.length){category='B';label='지역 확인 필요';tier=2;}
+  else{category='D';label='조건 정보 부족';tier=3;}
+  return {category,label,tier,region_state:region,audience_check:!!audience,excluded:category==='C',final_application_eligibility_confirmed:false};
+ }
+ root.MunongsaPersonalization={project,reasons,support,sourceConditions,sourceFacts,decision};
 })(globalThis);

@@ -86,6 +86,7 @@ def records(feed,now=None):
 
 def matches(question,feed,context=None,now=None):
     context=context or {};now=now or datetime.now(timezone.utc);text=rag_dialogue.normalized(question)
+    personal=question=='선택한 조건으로 지원사업을 찾아주세요.'
     archive=archive_requested(text)
     text=re.sub(r'지난|과거|예전|종료된|마감된|기한\s*경과|기간\s*경과|보여줘|포함','',text)
     compact=re.sub(r'[^0-9a-z가-힣]','',text.lower())
@@ -102,7 +103,7 @@ def matches(question,feed,context=None,now=None):
         shown=review.project(review.fact_project(raw,feed.get('verified_facts',{}).get(raw['id']),now),feed.get('notice_observations',{}).get(raw['id']),now)
         past=review.notice_state(shown,now)=='elapsed'
         if not exact and past!=archive:continue
-        if not exact:
+        if not exact and not personal:
             # A title/location word is relevance only, never a residence or farm requirement.
             if area and area not in hay and not ('전국' in text and '전국' in hay):continue
             if crop and crop not in hay:continue
@@ -116,9 +117,11 @@ def matches(question,feed,context=None,now=None):
         period=review.notice_state(shown,now)
         compared=comparison(item,feed,context,now)
         mismatch=bool(compared and compared['label']=='조건 불일치')
+        tier=compared['decision']['tier'] if compared and compared.get('decision') else 3
         announced=shown.get('actual_reception_state')=='operator_notice'
-        return (score!=100,mismatch,{'window':0 if announced else 1,'upcoming':2,'standing':3,'unknown':4,'elapsed':5}[period],-score,item['title'])
-    return [r for _,r in sorted(ranked,key=order)]
+        return (score!=100,tier,mismatch,{'window':0 if announced else 1,'upcoming':2,'standing':3,'unknown':4,'elapsed':5}[period],-score,item['title'])
+    found=[r for _,r in sorted(ranked,key=order)]
+    return [r for r in found if not (comparison(r,feed,context,now) or {}).get('decision',{}).get('excluded')] if personal else found
 
 def comparison(item,feed,context,now):
     import rag_profile
@@ -134,9 +137,17 @@ def comparison(item,feed,context,now):
             projected={**item,'eligibility':{'conditions':conditions,'logic':{'op':'AND','children':[payload.get('logic',{'op':'UNKNOWN','children':[]})]+[{'condition_id':c['condition_id']} for c in values]}}}
             result=rag_profile.compare({'public':projected,'record':{'fields':{}}},context,safe_url,rag_dialogue.AREAS)
             result['checks'].insert(0,'확인된 필수조건 일부만 비교했습니다. 전체 신청 자격과 실제 접수 가능 여부는 미확정입니다.')
-            return result
+            from support_recommendation_readiness import apply
+            shown=review.fact_project(item,feed.get('verified_facts',{}).get(item['id']),now)
+            audience=bool(context.get('planned') and (shown.get('verified_facts_at') and '수출' in shown.get('target','') or any(c.get('kind')=='export_activity' and c.get('value',{}).get('required') is True for c in rag_profile.project_public(item,safe_url).get('eligibility',{}).get('conditions',[]))))
+            return apply(result,national=shown.get('geographic_scope')=='nationwide_verified' and bool(shown.get('verified_facts_at')),audience_check=audience)
         except (KeyError,ValueError,TypeError):continue
-    return None
+    shown=review.fact_project(item,feed.get('verified_facts',{}).get(item['id']),now)
+    payload=item.get('eligibility',{})
+    result=rag_profile.compare({'public':item,'record':{'fields':{}}},context,safe_url,rag_dialogue.AREAS)
+    from support_recommendation_readiness import apply
+    audience=bool(context.get('planned') and (shown.get('verified_facts_at') and '수출' in shown.get('target','') or any(c.get('kind')=='export_activity' and c.get('value',{}).get('required') is True for c in rag_profile.project_public(item,safe_url).get('eligibility',{}).get('conditions',[]))))
+    return apply(result,national=shown.get('geographic_scope')=='nationwide_verified' and bool(shown.get('verified_facts_at')),audience_check=audience)
 
 def program(item,feed,now,context=None):
     shown=review.project(review.fact_project(item,feed.get('verified_facts',{}).get(item['id']),now),feed.get('notice_observations',{}).get(item['id']),now)
@@ -151,14 +162,15 @@ def program(item,feed,now,context=None):
         elif c.get('kind')=='business_location' and value.get('location_basis')=='farm_land':conditions.append('영농지 기준: '+' · '.join(str(v) for v in value.get('regions',[])))
     compared=comparison(item,feed,context or {},now)
     result_comparison=compared or {'label':'추가 확인 필요','reasons':[], 'checks':['제목·기관·공식 링크 중심의 기본 안내입니다. 지역·작물 관련성은 신청 자격 충족을 뜻하지 않습니다.'], 'questions':[]}
+    verdict=result_comparison['decision']
     return {'id':item['id'],'name':item['title'],'source_url':item['url'],'checked_at':shown.get('official_observation_at',item['last_checked_at']),
             'application_entry_url':preparation.get('entry_url'),'application_entry_kind':preparation.get('entry_kind'),
             'required_conditions':conditions,'additional_checks':['전체 신청 자격·지원금·서류는 검증된 상세 근거가 없으면 공식 원문과 담당 기관에서 확인해 주세요.'],
             'evidence_level':'공식 공고 기본 안내','evidence_note':'공식 제목·기관·링크 안내이며, 승인된 상세 근거나 최신 원문 전체 자격 검증이 아닙니다.',
             'application_period':{'start':dates.get('start',{}),'end':dates.get('end',{}),'description':(review.closure_label(shown) or '기재 신청기간 경과')+' · 과거 공고의 금액·조건은 현재 신청에 적용할 수 없습니다. 연장·재공고는 별도 확인하세요.' if state=='elapsed' else '기재 신청기간과 실제 접수 가능 여부는 별개입니다.','actual_reception_confirmed':False},
-            'needs_verification':True,'comparison':result_comparison,'guidance_only':not bool(compared),'partial_comparison':bool(compared),
-            'card':{'group':'elapsed' if state=='elapsed' else 'check','label':'공식 공고 기본 안내','lifecycle_label':review.closure_label(shown),'period_state':{'window':'within_recorded_dates','upcoming':'upcoming','elapsed':'elapsed'}.get(state,'unknown'),
-                    'institution':item['institution'],'reception_state':shown.get('actual_reception_state','unconfirmed'),'facts':{'region':'확인 필요','target':preparation.get('target_note','확인 필요'),'support':'공식 원문에서 확인','funding':[],'method':[preparation.get('method') or shown['application_method']] if preparation.get('method') or shown.get('application_method') else [],'documents':[preparation['documents_note']] if preparation.get('documents_note') else []},'questions':[]}}
+            'needs_verification':True,'comparison':result_comparison,'guidance_only':not bool(result_comparison.get('verified_condition_count')),'partial_comparison':bool(result_comparison.get('verified_condition_count')),
+            'card':{'group':'elapsed' if state=='elapsed' else 'mismatch' if verdict['excluded'] else 'related' if verdict['category']=='A' else 'check','label':verdict['label'],'lifecycle_label':review.closure_label(shown),'period_state':{'window':'within_recorded_dates','upcoming':'upcoming','elapsed':'elapsed'}.get(state,'unknown'),
+                    'institution':item['institution'],'reception_state':shown.get('actual_reception_state','unconfirmed'),'facts':{'region':'전국 · 세부 자격 별도 확인' if shown.get('geographic_scope')=='nationwide_verified' and shown.get('verified_facts_at') else shown.get('region') if shown.get('region') not in (None,'','unknown') else '확인 필요','target':shown.get('target') if shown.get('target') not in (None,'','unknown') else preparation.get('target_note','확인 필요'),'support':shown.get('support') if shown.get('support') not in (None,'','unknown') else '공식 원문에서 확인','funding':[],'method':[preparation.get('method') or shown['application_method']] if preparation.get('method') or shown.get('application_method') else [],'documents':[preparation['documents_note']] if preparation.get('documents_note') else []},'questions':result_comparison['questions']}}
 
 def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False):
     feed=corpus.get('guidance_feed')
@@ -175,7 +187,7 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
     if explicit:
         found=[n for n in exact if include_approved or n['id'] not in strict]
         if not found:return None
-    elif fallback and fallback.get('programs') and not page and len(found)<=3:return None
+    elif fallback and fallback.get('programs') and not page and len(found)<=3 and question!='선택한 조건으로 지원사업을 찾아주세요.':return None
     # Follow-up to a metadata-only listing: do not redirect it to another approved business.
     previous=[] if page else context.get('notice_ids',[])
     if not explicit and previous and any(i not in strict for i in previous) and re.search(r'그\s*사업|서류|지원금|자격|조건|마감|첫\s*번째|두\s*번째',question):
@@ -189,7 +201,9 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
         return rag_dialogue.response('공고 목록이나 확인된 조건이 변경됐어요. 같은 질문으로 다시 검색해 주세요.',context,'clarify',status='needs_verification')
     chosen=found[offset:offset+3];programs=[program(n,feed,now,context) for n in chosen]
     conversation={**context,'notice_ids':[n['id'] for n in chosen],'list_ids':[],'list_versions':[],'last_kind':'results'}
-    return {**rag_dialogue.response(f'공식 공고 {len(found)}건 중 {offset+1}~{offset+len(chosen)}번째를 안내합니다. '+'기본 안내의 지역·키워드 관련성은 신청 가능 판정이 아닙니다. 상세 자격과 실제 접수는 공식 원문에서 확인해 주세요.',conversation,'catalogue',status='needs_verification',programs=programs),
+    summary='\n\n'.join(p['name']+' — '+p['card']['label']+'\n확인할 조건: '+' / '.join(p['comparison']['checks']) for p in programs)
+    intro='공식 지역 조건을 확인한 후보를 먼저 표시합니다. 전체 신청 자격과 실제 접수는 별도 확인이 필요합니다.' if any(p['comparison']['decision']['region_state']=='match' and p['comparison']['decision']['tier']<2 for p in programs) else '지역·주요 조건이 확인된 추천 공고가 부족합니다. 아래는 추가 확인이 필요한 참고 공고입니다.'
+    return {**rag_dialogue.response(f'공식 공고 {len(found)}건 중 {offset+1}~{offset+len(chosen)}번째를 안내합니다. '+intro+'\n\n'+summary,conversation,'catalogue',status='needs_verification',programs=programs),
             'sources':[{'url':p['source_url'],'location':'공식 제목·기관·원문 링크 확인','checked_at':p['checked_at']} for p in programs],
             'catalogue_total':len(found),'catalogue_start':offset+1,'catalogue_scope':'past' if all(p['card']['period_state']=='elapsed' for p in programs) else 'current',
             'catalogue_next':{'query':question,'offset':offset+len(chosen),'fingerprint':fingerprint} if offset+len(chosen)<len(found) and len(question)<=300 else None,'understanding':'rules'}

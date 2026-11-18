@@ -204,10 +204,10 @@
       if(program.card.institution!=='확인 필요')card.append(text('p',program.card.institution,'notice-institution'));
       const comparison=text('section','','chat-condition-block');
       const mismatch=program.comparison?.label==='조건 불일치';
-      const comparisonLabel=program.guidance_only?'\uAE30\uBCF8 \uC548\uB0B4 \u00B7 \uC790\uACA9 \uD310\uB2E8 \uBCF4\uB958':mismatch?'확인된 조건 불일치':program.card.group==='elapsed'&&program.comparison?.label==='관련 가능성 있음'?'일부 조건 일치 · 모집기간 경과':program.comparison?.label||'추가 확인 필요';
+      const comparisonLabel=program.comparison?.decision?.label||(program.guidance_only?'\uAE30\uBCF8 \uC548\uB0B4 \u00B7 \uC790\uACA9 \uD310\uB2E8 \uBCF4\uB958':mismatch?'확인된 조건 불일치':program.card.group==='elapsed'&&program.comparison?.label==='관련 가능성 있음'?'일부 조건 일치 · 모집기간 경과':program.comparison?.label||'추가 확인 필요');
       comparison.append(text('h4','내 조건과 비교'),text('strong',comparisonLabel,'condition-result '+(mismatch?'mismatch':program.card.group)));
       const reasons=program.comparison?.reasons||[],checks=program.comparison?.checks||[];
-      const points=[...new Set([...reasons,...checks])].slice(0,1);
+      const points=[...new Set([reasons[0],checks[0]].filter(Boolean))];
       if(points.length){const ul=document.createElement('ul');points.forEach(v=>ul.append(text('li',v)));comparison.append(ul);}
       else comparison.append(text('p','지역 관련성만으로 전체 신청 자격을 판단하지 않습니다.'));
       if(program.card.group==='elapsed')comparison.append(text('p',program.application_period.description||'과거 공고의 금액·조건은 현재 신청에 적용할 수 없습니다. 연장·재공고는 별도 확인하세요.'));

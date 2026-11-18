@@ -91,9 +91,30 @@ def values(field):
     value=field.get('value',[])
     return value if isinstance(value,list) else [str(value)]
 
+def project_public(item,valid_url):
+    """Reuse the browser's narrow projection of already approved target facts."""
+    if item.get('publication') not in ('approved','approved_reference') or item.get('verification_status')!='verified' or not valid_url(item.get('url','')):return item
+    target=item.get('target','');original=item.get('eligibility') or {};conditions=list(original.get('conditions',[]));added=[]
+    def add(kind,value):
+        if any(c.get('kind')==kind and c.get('status')=='verified' and c.get('presence')=='specified' for c in conditions):return
+        key='display_fact_'+kind;conditions.append({'condition_id':key,'kind':kind,'value':value,'presence':'specified','status':'verified','evidence':{'url':item['url'],'location':'승인된 공식 안내의 지원대상 사실정보','fact_confirmed':True}});added.append({'condition_id':key})
+    if re.search(r'농업경영체에\s*등록하고|경영체\s*등록\s*(?:청년농|농업인)',target):add('farm_registration',{'registered':True})
+    crop=re.search(r'(마늘|벼|양파|사과|배추|무|감자|고구마|콩|밀)(?:을|를)?\s*재배하는',target)
+    if crop and not re.search(r'재배하는.{0,20}(?:제외|대상\s*아님)',target):add('crop',{'any_of':[crop[1]]})
+    residence=re.search(r'(포항|전주)에\s*거주(?:하며|하는|하고)',target)
+    if residence:add('residence',{'regions':[{'포항':'경북 포항시','전주':'전북 전주시'}[residence[1]]]})
+    group=re.search(r'(\d+)\s*인\s*이상[^.。]{0,30}(?:법인|모임|단체)',target)
+    if group and not re.search(r'(?:법인|모임|단체)(?:은|는)?\s*제외',target[group.start():group.end()+8]):
+        minimum=int(group[1])
+        if 0<minimum<=100000:add('group_size',{'min':minimum,'max':None,'min_inclusive':True,'max_inclusive':True,'unit':'persons'})
+    optional=re.search(r'수출실적(?:이)?\s*(?:없어도|무관|불필요)|수출(?:업체|농가).{0,8}(?:아니어도|않아도)|수출(?:업체|농가)(?:는|가)?\s*(?:제외|대상\s*아님)',target)
+    if not optional and re.search(r'수출업체|수출농가|수출실적(?:이\s*있는|\s*요건을\s*충족)|수출\s*농식품\s*업체',target):add('export_activity',{'required':True})
+    return {**item,'eligibility':{'conditions':conditions,'logic':{'op':'AND','children':[original.get('logic') or {'op':'UNKNOWN','children':[]}]+added}}} if added else item
+
+
 def compare(document,context,valid_url,areas):
-    item=document['public'];fields=document['record']['fields'];payload=item.get('eligibility') or {}
-    rows=[];missing=[];by_id={};negative=set()
+    item=project_public(document['public'],valid_url);fields=document['record']['fields'];payload=item.get('eligibility') or {}
+    rows=[];missing=[];by_id={};negative=set();regional_ids=set();verified_count=0
     def refs(node,invert=False,depth=0):
         if not isinstance(node,dict) or depth>12:return
         if node.get('condition_id'):
@@ -111,6 +132,9 @@ def compare(document,context,valid_url,areas):
         identity=cond.get('condition_id');kind=cond.get('kind');v=cond.get('value') or {};e=cond.get('evidence') or {};state='check'
         reason='공고의 미확인 조건은 별도 확인 필요'
         trusted=cond.get('status')=='verified' and (e.get('quote') or e.get('fact_confirmed') is True) and e.get('location') and valid_url(e.get('url',''))
+        if trusted and cond.get('presence') in ('specified','no_restriction'):
+            verified_count+=1
+            if kind in ('residence','business_location'):regional_ids.add(identity)
         if trusted and cond.get('presence')=='no_restriction':state='match';reason='공식 근거에 제한 없음이 명시됨'
         elif trusted and cond.get('presence')=='specified':
             actual=None;known=False;ok=False
@@ -153,6 +177,17 @@ def compare(document,context,valid_url,areas):
         if node.get('op')=='NOT' and len(states)==1:return {'match':'mismatch','mismatch':'match','check':'check'}[states[0]]
         return 'check'
     structured=walk(payload.get('logic'))
+    def region_walk(node):
+        if not isinstance(node,dict):return None
+        if node.get('condition_id'):return by_id.get(node['condition_id'],'check') if node['condition_id'] in regional_ids else None
+        children=[region_walk(n) for n in node.get('children',[])]
+        present=[s for s in children if s is not None]
+        if not present:return None
+        if node.get('op')=='AND':return 'mismatch' if 'mismatch' in present else 'check' if 'check' in present else 'match'
+        if node.get('op')=='OR':return 'check' if None in children else 'match' if 'match' in present else 'check' if 'check' in present else 'mismatch'
+        if node.get('op')=='NOT' and len(present)==1:return {'match':'mismatch','mismatch':'match','check':'check'}[present[0]]
+        return 'check'
+    regional=region_walk(payload.get('logic')) or 'check'
     # Only explicit approved conditions are parsed; never infer rules from titles,
     # funding totals, age examples, documents or other notices.
     f=fields.get('conditions',{});e=f.get('evidence',{})
@@ -182,6 +217,7 @@ def compare(document,context,valid_url,areas):
     if conflict:add('check','연령 기준 충돌로 연령 적합 여부 판단 보류')
     mismatch=structured=='mismatch' or any(r['status']=='mismatch' for r in rows if not payload.get('conditions') or r['reason'].startswith(('개인 단독','공동 신청','시설면적','농업경영체 등록 조건','재배 작물')))
     state='조건 불일치' if mismatch else '추가 확인 필요' if conflict or not any(r['status']=='match' for r in rows) else '관련 가능성 있음'
-    return {'label':state,'reasons':list(dict.fromkeys(r['reason'] for r in rows if r['status']!='check'))[:3],
+    return {'label':state,'region_state':regional,'structured_state':structured,'verified_condition_count':verified_count,
+            'reasons':list(dict.fromkeys(r['reason'] for r in rows if r['status']!='check'))[:3],
             'checks':list(dict.fromkeys(unknown+[r['reason'] for r in rows if r['status']=='check']))[:4],
             'questions':list(dict.fromkeys(missing))[:2]}

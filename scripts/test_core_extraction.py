@@ -99,7 +99,11 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(f['support_summary']['value'],'종자, 자재 구입비 지원')
 
     def test_abcd_existing_engine_and_approval_gate(self):
-        self.assertEqual(classify(document(True,False),{'farm_registered':'yes'},lambda _:True,{})['category'],'A')
+        self.assertEqual(classify(document(True,False),{'farm_registered':'yes'},lambda _:True,{})['category'],'B')
+        d=document(True,False);payload=d['public']['eligibility']
+        payload['conditions'].append({**payload['conditions'][0],'condition_id':'national','kind':'residence','value':{'regions':['전국']}})
+        payload['logic']={'op':'AND','children':[{'condition_id':c['condition_id']} for c in payload['conditions']]}
+        self.assertEqual(classify(d,{'farm_registered':'yes'},lambda _:True,{})['category'],'A')
         self.assertEqual(classify(document(),{'farm_registered':'yes'},lambda _:True,{})['category'],'B')
         self.assertEqual(classify(document(),{'farm_registered':'no'},lambda _:True,{})['category'],'C')
         self.assertEqual(classify(document(publication='private'),{'farm_registered':'yes'},lambda _:True,{})['category'],'D')
