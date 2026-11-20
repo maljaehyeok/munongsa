@@ -46,7 +46,10 @@
             // The existing UI groups corporations with producer associations.
             // That combined selection does not establish a specific legal form.
             // Prospective status does not establish that the user is already a farmer.
-            known=!!actual&&Array.isArray(v.one_of);ok=known&&v.one_of.includes(actual);
+            const aliases={agricultural_corporation:'agricultural_business',group:'institution_group'};
+            const options=Array.isArray(v.one_of)?v.one_of.map(x=>aliases[x]||x):[];
+            known=!!actual&&Array.isArray(v.one_of)&&v.one_of.length>0&&v.one_of.every(x=>typeof x==='string')&&(actual!=='business'||v.one_of.includes(actual));
+            ok=known&&options.includes(aliases[actual]||actual);
           }else if(c.kind==='residence'||c.kind==='business_location'){
             const residence=c.kind==='residence',farm=c.kind==='business_location'&&v.location_basis==='farm_land';
             const province=normalize(residence?p.residenceRegion:farm?p.region:''),district=normalize(residence?p.residenceDistrict:farm?p.district:'');

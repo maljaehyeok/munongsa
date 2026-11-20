@@ -139,7 +139,14 @@ def compare(document,context,valid_url,areas):
         elif trusted and cond.get('presence')=='specified':
             actual=None;known=False;ok=False
             if kind=='applicant':
-                actual=context.get('applicant');known=actual is not None and isinstance(v.get('one_of'),list);ok=actual in v.get('one_of',[])
+                actual=context.get('applicant');allowed=v.get('one_of',[])
+                aliases={'agricultural_corporation':'agricultural_business','group':'institution_group'}
+                canonical=aliases.get(actual,actual) if isinstance(actual,str) else None
+                valid_options=isinstance(allowed,list) and bool(allowed) and all(isinstance(x,str) for x in allowed)
+                options=[aliases.get(x,x) for x in allowed] if valid_options else []
+                # A generic business selection does not establish agricultural legal form.
+                known=isinstance(actual,str) and valid_options and (actual!='business' or actual in allowed)
+                ok=canonical in options
                 reason='알려주신 신청자 유형과 공고의 신청 주체 비교'
                 if not known:missing.append('개인으로 신청하시나요, 단체·법인으로 신청하시나요?')
             elif kind=='farm_registration':
