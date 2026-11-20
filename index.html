@@ -229,7 +229,7 @@
       document.getElementById('modalTitle').textContent=p.title;
       document.getElementById('modalStatus').textContent=d.label;
       document.getElementById('modalStatus').className='status-pill check';
-      document.getElementById('modalSummary').textContent=item.publication==='official_guidance'?'공식 공고 안내 · 신청 자격 확인 필요 · 모집 여부 미확인. '+(item.attribution||'')+' · '+(item.license||''):'';
+      document.getElementById('modalSummary').textContent='';
       for(const id of ['modalEligibilityHeading','modalEligibility','modalSupportHeading','modalSupport','modalSchedule'])document.getElementById(id).hidden=true;
       document.getElementById('modalSource').innerHTML=d.html;
       document.getElementById('modal').classList.add('show');document.getElementById('closeModal').focus();
