@@ -101,6 +101,13 @@ def _inspect_serial(rows,*,seconds=120):
                 if check['display_title']:
                     check['metadata_title_confirmed']=True
                     check['title_match']=True
+                if host=='global.at.or.kr':
+                    at=links.at_title_evidence(soup,row['title'],url,norm)
+                    check['metadata_title_confirmed']=bool(at)
+                    check['title_match']=bool(at)
+                    check['at_identity_verified']=bool(at)
+                    check['display_title']=at['title'] if at and at['truncated'] else None
+                    if at:check['title_evidence']={k:v for k,v in at.items() if k!='title'}
                 check['redirects_verified']=redirected
                 check['metadata_link_restricted']=links.restricted(check['article'])
                 import support_notice_review

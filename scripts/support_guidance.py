@@ -155,12 +155,10 @@ def refresh(db, state, *, now=None, portal=None, link_check=None, source_checks=
     import support_official_apis as api
     from support_runtime import ingestion
     if portal is None:
-        portal = []
-        for page in (1, 2):
-            batch, _ = api.fetch('data_go_kr_bizinfo', 50, page)
-            portal.extend(batch)
-            if len(batch) < 50:
-                break
+        # Query the complete index. Failure propagates before replacing a grant;
+        # a truncated response must never turn old metadata into "not present".
+        pending_ids={r['original_id'] for r in records(db) if r['publication']=='review' and r['source_id']=='bizinfo-support-api'}
+        portal=api.fetch_pages('data_go_kr_bizinfo',wanted_ids=pending_ids) if pending_ids else []
     if link_check is None:
         import support_bizinfo as biz
         import urllib.request

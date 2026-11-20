@@ -1,6 +1,6 @@
 """Official notice names and direct links only; not a licence for source content."""
 import re
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit,parse_qs
 
 POLICY_ID='official-notice-name-link-v1'
 TITLE_BASIS='https://www.mcst.go.kr/site/s_policy/copyright/netizen/netizen02.jsp'
@@ -28,6 +28,7 @@ def allowed(row,check):
     if (not check or check.get('status')!='checked' or check.get('url')!=row['original_url']
         or not check.get('title_match') or check.get('metadata_title_confirmed') is not True
         or check.get('metadata_link_restricted') is True):return None
+    if row['source_id']=='at-export-official' and check.get('at_identity_verified') is not True:return None
     # A paragraph pasted into a title is not treated as an unprotected name.
     title=check.get('display_title') or row['title']
     if len(title)>180 or re.search(r'\b\d{2,3}-\d{3,4}-\d{4}\b|@|[<>\x00-\x1f]',title):return None
@@ -38,20 +39,37 @@ def allowed(row,check):
 def title_check(soup,title,normalizer):
     wanted=normalizer(title)
     # Do not accept a title just because it appears in menus or related notices.
-    candidates=soup.select('h4.title, .viewArea h4, .view_tit, .bbs_view h4, .border_view h4, .view-con h4, h4, .bbs-subject, .bo_v_title, .artclTitle, .artclViewTitle, .view-title, .view_top > dl > dt, .p-table__subject_text')
+    candidates=soup.select('h4.title, .viewArea h4, .view_tit, .bbs_view h4, .border_view h4, .view-con h4, h4, .bbs-subject, .bo_v_title, .artclTitle, .artclViewTitle, .view-title, .view_top > dl > dt')
     return bool(wanted) and any(normalizer(n.get_text(' ',strip=True))==wanted for n in candidates)
+
+def at_title_evidence(soup,stored,url,normalizer):
+    """Official URL identity + matching hidden IDs + unique business-name cell."""
+    u=urlsplit(url);q=parse_qs(u.query,keep_blank_values=True)
+    if u.scheme!='https' or u.netloc!='global.at.or.kr' or u.path!='/front/bizReq/brView.do':return None
+    identity={}
+    for key in ('proj_id','proj_detail_id'):
+        values=q.get(key,[]);nodes=soup.select('input[name="'+key+'"]')
+        if len(values)!=1 or not re.fullmatch(r'\d{1,9}',values[0]) or len(nodes)!=1 or nodes[0].get('value')!=values[0]:return None
+        identity[key]=values[0]
+    names=[]
+    for th in soup.select('article.contentGroup th'):
+        if normalizer(th.get_text(' ',strip=True)) not in ('사업명','사업명필수'):continue
+        td=th.find_next_sibling('td');name=td.get_text(' ',strip=True) if td else ''
+        if not 5<=len(name)<=180 or re.search(r'@|[<>\x00-\x1f]|\d{2,3}-\d{3,4}-\d{4}',name):return None
+        names.append(name)
+    if len(set(names))!=1:return None
+    name=names[0];truncated=bool(re.search(r'(?:\.\.\.|…)\s*$',stored))
+    wanted=normalizer(re.sub(r'(?:\.\.\.|…)\s*$','',stored) if truncated else stored)
+    if not wanted or (truncated and len(wanted)<8):return None
+    matches=normalizer(name).startswith(wanted) if truncated else normalizer(name)==wanted
+    if not matches:return None
+    return {'identity':identity,'title':name,'location':'공식 사업명 항목 및 proj_id/proj_detail_id 대조','truncated':truncated}
+
 
 def recovered_title(soup,stored,url,normalizer):
     """Only a truncated aT name can be completed from its labelled business-name cell."""
-    if urlsplit(url).hostname!='global.at.or.kr' or not re.search(r'(?:\.\.\.|…)\s*$',stored):return None
-    prefix=normalizer(re.sub(r'(?:\.\.\.|…)\s*$','',stored))
-    values=[]
-    for node in soup.select('article.contentGroup th'):
-        if normalizer(node.get_text(' ',strip=True)) not in ('사업명','사업명필수'):continue
-        cell=node.find_next_sibling('td')
-        value=cell.get_text(' ',strip=True) if cell else ''
-        if 5<=len(value)<=180 and normalizer(value).startswith(prefix) and not re.search(r'@|[<>\x00-\x1f]|\d{2,3}-\d{3,4}-\d{4}',value):values.append(value)
-    return values[0] if len(set(values))==1 else None
+    result=at_title_evidence(soup,stored,url,normalizer)
+    return result['title'] if result and result['truncated'] else None
 
 def restricted(text):
     return bool(re.search(r'(?:직접\s*링크|제목.{0,12}재게시|자동.{0,8}수집)\s*(?:를|을)?\s*금지',text))

@@ -1,12 +1,12 @@
 """Bounded authorized Bizinfo APIs. Credentials and raw responses never persist."""
-import json,os,re,time,urllib.parse,urllib.request,xml.etree.ElementTree as ET
+import json,multiprocessing,os,re,time,urllib.parse,urllib.request,xml.etree.ElementTree as ET
 import support_bizinfo as biz
 PORTAL='https://apis.data.go.kr/1421000/bizinfo/pblancBsnsService'
 KEYS={'bizinfo':'BIZINFO_API_KEY','data_go_kr_bizinfo':'DATA_GO_KR_BIZINFO_API_KEY'}
 
 class ApiError(Exception):
     def __init__(self,code):
-        self.code=code if code in {'missing_key','invalid_key','invalid_parameters','authentication_failed','permission_denied','quota_exceeded','invalid_request','provider_error','schema_error','size_limit','transport_error'} else 'provider_error'
+        self.code=code if code in {'missing_key','invalid_key','invalid_parameters','authentication_failed','permission_denied','quota_exceeded','invalid_request','provider_error','schema_error','size_limit','transport_error','pagination_incomplete','pagination_conflict'} else 'provider_error'
         super().__init__(self.code)
 
 def key_for(provider,environ=None):
@@ -22,7 +22,7 @@ def key_for(provider,environ=None):
 REGION_TAGS=('서울','부산','대구','인천','전남광주','대전','울산','세종','경기','강원','충북','충남','전북','경북','경남','제주')
 
 def prepare_request(provider,limit=50,page=1,environ=None,region=None):
-    if provider not in KEYS or type(limit) is not int or not 1<=limit<=50 or type(page) is not int or not 1<=page<=3:raise ApiError('invalid_parameters')
+    if provider not in KEYS or type(limit) is not int or not 1<=limit<=50 or type(page) is not int or not 1<=page<=10000:raise ApiError('invalid_parameters')
     if region is not None and (provider!='bizinfo' or region not in REGION_TAGS):raise ApiError('invalid_parameters')
     key=key_for(provider,environ)
     if provider=='bizinfo':
@@ -41,13 +41,18 @@ def parse_response(raw,provider,limit=50):
             root=ET.fromstring(text);codes=[v.text or '' for v in root.iter() if v.tag in ('returnReasonCode','resultCode')]
             code=next((c for c in codes if c not in ('0','00','0000')),None)
             if code:raise ApiError({'20':'permission_denied','22':'quota_exceeded','30':'authentication_failed','31':'authentication_failed','32':'authentication_failed','10':'invalid_request','11':'invalid_request'}.get(code,'provider_error'))
-            if root.tag=='response':data={'jsonArray':[{v.tag:''.join(v.itertext()) for v in n} for n in root.findall('./body/items/item')]}
+            if root.tag=='response':
+                if root.findtext('./header/resultCode') not in ('0','00','0000') or root.find('body') is None:raise ApiError('schema_error')
+                if root.find('./body/items') is None and root.findtext('./body/totalCount')!='0':raise ApiError('schema_error')
+                data={'jsonArray':[{v.tag:''.join(v.itertext()) for v in n} for n in root.findall('./body/items/item')]}
             else:raise ApiError('schema_error')
         else:data=json.loads(text)
         if provider=='data_go_kr_bizinfo' and isinstance(data,dict) and 'response' in data:
             response=data['response'];header=response.get('header',{})
             if str(header.get('resultCode')) not in ('0','00','0000'):raise ApiError('provider_error')
-            rows=response.get('body',{}).get('items',[])
+            body=response.get('body')
+            if not isinstance(body,dict) or ('items' not in body and str(body.get('totalCount'))!='0'):raise ApiError('schema_error')
+            rows=body.get('items',[])
             if isinstance(rows,dict):rows=rows.get('item',[])
             if isinstance(rows,dict):rows=[rows]
             data={'jsonArray':rows or []}
@@ -56,16 +61,111 @@ def parse_response(raw,provider,limit=50):
     except ApiError:raise
     except Exception:raise ApiError('schema_error') from None
 
-def fetch(provider,limit=50,page=1,environ=None,transport=None,region=None):
+def fetch(provider,limit=50,page=1,environ=None,transport=None,region=None,timeout=12):
+    if not 0<timeout<=12:raise ApiError('invalid_parameters')
     secret=key_for(provider,environ);request=prepare_request(provider,limit,page,environ,region)
-    try:raw,status,_=(transport or biz.probe_transport)(request,timeout=12)
+    try:raw,status,_=(transport or biz.probe_transport)(request,timeout=timeout)
     except Exception:raise ApiError('transport_error') from None
     finally:del request
     if status in (401,403):raise ApiError('authentication_failed')
     if status==429:raise ApiError('quota_exceeded')
     if status!=200:raise ApiError('provider_error')
     records=parse_response(raw,provider,limit)
-    return biz.redact(records,secret),{'http_status':status,'authentication':'accepted_response','records':len(records),'requests':1}
+    paging={}
+    if provider=='data_go_kr_bizinfo':
+        try:
+            text=raw.decode('utf-8-sig')
+            if text.lstrip().startswith('<'):
+                body=ET.fromstring(text).find('body');meta={e.tag:e.text for e in body} if body is not None else {}
+            else:meta=json.loads(text).get('response',{}).get('body',{})
+            for key,label in [('totalCount','total_count'),('pageNo','page_number'),('numOfRows','page_size')]:
+                if key in meta:
+                    if not re.fullmatch(r'\d{1,10}',str(meta[key])):raise ValueError()
+                    paging[label]=int(meta[key])
+        except (ValueError,TypeError,AttributeError):raise ApiError('schema_error') from None
+    return biz.redact(records,secret),{'http_status':status,'authentication':'accepted_response','records':len(records),'requests':1,**paging}
+
+def _scan_worker(channel,provider,limit,options):
+    """Isolate slow network reads so the parent can enforce a wall-clock limit."""
+    try:channel.send(('ok',_scan_pages(provider,limit,**options)))
+    except ApiError as error:channel.send(('error',error.code))
+    except Exception:channel.send(('error','transport_error'))
+    finally:channel.close()
+
+
+def fetch_pages(provider,limit=50,*,wanted_ids=None,max_pages=30,max_seconds=150,fetcher=None):
+    if (provider not in KEYS or type(limit) is not int or not 1<=limit<=50
+            or type(max_pages) is not int or not 1<=max_pages<=30
+            or type(max_seconds) not in (int,float) or not 0<max_seconds<=150):
+        raise ApiError('invalid_parameters')
+    options={'wanted_ids':wanted_ids,'max_pages':max_pages,'max_seconds':max_seconds}
+    # Offline fixtures run in-process; live I/O always has a killable deadline.
+    if fetcher is not None:return _scan_pages(provider,limit,fetcher=fetcher,**options)
+    started=time.monotonic();context=multiprocessing.get_context('spawn')
+    receiver,sender=context.Pipe(duplex=False)
+    worker=context.Process(target=_scan_worker,args=(sender,provider,limit,options),daemon=True)
+    try:
+        worker.start();sender.close()
+        remaining=max_seconds-(time.monotonic()-started)
+        if remaining<=0 or not receiver.poll(remaining):raise ApiError('pagination_incomplete')
+        try:status,result=receiver.recv()
+        except EOFError:raise ApiError('transport_error') from None
+        if time.monotonic()-started>=max_seconds:raise ApiError('pagination_incomplete')
+        if status!='ok':raise ApiError(result)
+        return result
+    finally:
+        sender.close();receiver.close()
+        if worker.pid is not None:
+            if worker.is_alive():worker.terminate()
+            worker.join(timeout=0.1)
+            if worker.is_alive():worker.kill();worker.join(timeout=0.1)
+            worker.close()
+
+
+def _scan_pages(provider,limit=50,*,wanted_ids=None,max_pages=30,max_seconds=150,fetcher=None):
+    """Complete bounded scan or explicit failure, never a partial absence proof.
+
+    Keep only requested identities when revalidating old metadata. No DB writes,
+    credential storage or publication. A short/empty final page proves completion.
+    """
+    wanted=set(wanted_ids) if wanted_ids is not None else None
+    started=time.monotonic();pages=set();seen=set();kept={};total=None
+    for page in range(1,max_pages+1):
+        if page>1:
+            if max_seconds-(time.monotonic()-started)<=2:raise ApiError('pagination_incomplete')
+            time.sleep(2)
+        if time.monotonic()-started>=max_seconds:raise ApiError('pagination_incomplete')
+        remaining=max_seconds-(time.monotonic()-started)
+        rows,info=fetcher(provider,limit,page) if fetcher else fetch(provider,limit,page,timeout=min(12,remaining))
+        if time.monotonic()-started>=max_seconds:raise ApiError('pagination_incomplete')
+        if not isinstance(rows,list) or len(rows)>limit:raise ApiError('schema_error')
+        if info.get('page_number',page)!=page:raise ApiError('pagination_conflict')
+        size=info.get('page_size',limit)
+        if type(size) is not int or not 1<=size<=limit:raise ApiError('schema_error')
+        if 'total_count' in info:
+            count=info['total_count']
+            if type(count) is not int or count<0:raise ApiError('schema_error')
+            if total is not None and total!=count:raise ApiError('pagination_conflict')
+            total=count
+        if not rows:
+            if total is not None and len(seen)<total:raise ApiError('pagination_incomplete')
+            return list(kept.values())
+        ids=[r.get('original_id') for r in rows]
+        if any(not isinstance(i,str) or not i for i in ids) or len(set(ids))!=len(ids):raise ApiError('pagination_conflict')
+        fingerprint=tuple(sorted(ids))
+        if fingerprint in pages or not set(ids)-seen:raise ApiError('pagination_incomplete')
+        # Overlapping pages mean the index moved while scanning; do not infer absence.
+        if seen.intersection(ids):raise ApiError('pagination_conflict')
+        pages.add(fingerprint);seen.update(ids)
+        for row in rows:
+            if wanted is None or row['original_id'] in wanted:kept[row['original_id']]=row
+        if total is not None:
+            if len(seen)>total:raise ApiError('pagination_conflict')
+            if len(seen)==total:return list(kept.values())
+            if len(rows)<size:raise ApiError('pagination_incomplete')
+        elif len(rows)<size:return list(kept.values())
+    raise ApiError('pagination_incomplete')
+
 
 def agricultural(row):
     text=' '.join([row.get('title',''),row.get('description',''),(row.get('api_fields') or {}).get('target','')])
