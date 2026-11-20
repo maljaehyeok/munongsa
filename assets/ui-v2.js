@@ -12,9 +12,11 @@
     const columns=innerWidth>=1100?3:innerWidth>=380?2:1;
     const browseLimit=profile.length?Math.min(columns,browse.length):columns*2;
     const profileLimit=(2-Math.ceil(Math.min(browse.length,browseLimit)/columns))*columns;
-    const more=Math.max(0,profile.length-profileLimit)+Math.max(0,browse.length-browseLimit);
+    // Location is essential to interpreting a comparison, even in a folded summary.
+    const pinned=n=>['region','residenceRegion'].includes(n.dataset.conditionId);
+    const more=profile.filter((n,i)=>i>=profileLimit&&!pinned(n)).length+Math.max(0,browse.length-browseLimit);
     if(!more)summaryExpanded=false;
-    profile.forEach((n,i)=>n.hidden=!summaryExpanded&&i>=profileLimit);
+    profile.forEach((n,i)=>n.hidden=!summaryExpanded&&i>=profileLimit&&!pinned(n));
     browse.forEach((n,i)=>n.hidden=!summaryExpanded&&i>=browseLimit);
     let button=byId('selectionMore');
     if(!button){button=document.createElement('button');button.type='button';button.id='selectionMore';button.className='selection-more';button.setAttribute('aria-controls','profileSummary browseFilterSummary');button.addEventListener('click',()=>{summaryExpanded=!summaryExpanded;foldSummary()});summary.append(button)}
