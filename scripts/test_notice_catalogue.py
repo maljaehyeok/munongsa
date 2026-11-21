@@ -49,9 +49,11 @@ class NoticeReviewTests(unittest.TestCase):
         feed={'schema_version':'munongsa-support-public-v1','notices':[self.item,draft]}
         self.assertEqual([x['id'] for x in rag_catalogue.records(feed,self.now)],[self.item['id']])
     def test_truncated_title_only_from_label(self):
-        html='<article class="contentGroup"><table><tr><th>사업명<i>필수</i></th><td>가상 농업 지원사업</td></tr></table></article>'
+        html='<input name="proj_id" value="42"><input name="proj_detail_id" value="0"><article class="contentGroup"><table><tr><th>사업명<i>필수</i></th><td>가상 농업 지원사업 안내</td></tr></table></article>'
         soup=BeautifulSoup(html,'html.parser');norm=lambda v:''.join(v.split())
-        self.assertEqual(links.recovered_title(soup,'가상 농업 ...','https://global.at.or.kr/front/bizReq/brView.do',norm),'가상 농업 지원사업')
+        url='https://global.at.or.kr/front/bizReq/brView.do?proj_id=42&proj_detail_id=0'
+        self.assertEqual(links.recovered_title(soup,'가상 농업 지원사업 ...',url,norm),'가상 농업 지원사업 안내')
+        self.assertIsNone(links.recovered_title(soup,'가상 농업 지원사업 ...',url.replace('42','43'),norm))
         self.assertIsNone(links.recovered_title(soup,'다른 사업 ...','https://global.at.or.kr/front/bizReq/brView.do',norm))
     def test_safe_source_and_no_body(self):
         feed={'schema_version':'munongsa-support-public-v1','notices':[{**self.item,'url':'https://attacker.example/a'}]}

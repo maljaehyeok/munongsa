@@ -50,10 +50,11 @@ class Transport:
 def canonical(link,host):
     p=url.urlsplit(link)
     if p.scheme!='https' or p.hostname!=host or p.username or p.password or p.port not in (None,443):return None
-    q=url.parse_qs(p.query)
+    q=url.parse_qs(p.query,keep_blank_values=True)
     # Official search fields such as keyword are not authentication credentials.
     secrets={'key','servicekey','crtfckey','apikey','token','accesstoken','refreshtoken','password','passwd','session','sessionid','jsessionid','authorization','auth','secret','clientsecret','accesskey','privatekey'}
-    if any(re.sub(r'[^a-z]','',k.lower()) in secrets for k in q):return None
+    public_menu=(p.hostname=='www.hongcheon.go.kr' and p.path in ('/www/selectBbsNttList.do','/www/selectBbsNttView.do') and q.get('bbsNo')==['140'] and q.get('key')==['1709'])
+    if any(re.sub(r'[^a-z]','',k.lower()) in secrets and not (public_menu and k=='key') for k in q):return None
     return url.urlunsplit((p.scheme,p.netloc,p.path,url.urlencode(sorted((k,v) for k,values in q.items() for v in values)),''))
 
 

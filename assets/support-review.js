@@ -99,7 +99,7 @@
   }
   function conditionViews(item,match){
     const names={applicant:'신청 대상',residence:'거주 지역',business_location:'사업장 소재지',age:'만 나이',farming_experience:'영농 경력',independent_management:'독립경영 경력',farm_registration:'농업경영체 등록',crop:'재배 작물',livestock:'사육 축종',scale:'영농 규모',facility:'시설 조건',group_size:'\uACF5\uB3D9 \uC2E0\uCCAD \uC778\uC6D0',export_activity:'수출 활동',other_required:'추가 자격조건',exclusion:'제외 조건'};
-    const applicants={individual_farmer:'개인 농업인',agricultural_corporation:'농업법인',corporation:'법인',institution_group:'기관·단체',group:'단체',business:'사업자'};
+    const applicants={individual_farmer:'개인 농업인',agricultural_business:'농업법인',agricultural_corporation:'농업법인',corporation:'법인',institution_group:'기관·단체',group:'단체',business:'사업자'};
     const negatives=new Set();
     function walk(n,negative=false,depth=0){if(!n||depth>12)return;if(n.condition_id){if(negative)negatives.add(n.condition_id);return}for(const child of n.children||[])walk(child,n.op==='NOT'?!negative:negative,depth+1)}walk(item.eligibility?.logic);
     return (match.conditions||[]).map(c=>{
@@ -123,7 +123,8 @@
       let status=negative?{match:'명시된 제외 조건에 해당',mismatch:'이 제외 조건에는 해당하지 않음',check:'확인 필요'}[c.status]:{match:'입력 조건 일치',mismatch:'입력 조건 불일치',check:'확인 필요'}[c.status];
       if(individualExclusion)status={match:'개인 단독 신청 대상 아님',mismatch:'개인 단독 신청 제외 조건에는 해당하지 않음',check:'신청자 유형 확인 필요'}[c.status];
       if(!negative&&c.field==='export_activity')status={match:'수출 관련 기본 응답 일치 · 세부 요건 별도 확인',mismatch:'수출 관련 기본 응답 불일치',check:'수출 관련 응답 확인 필요'}[c.status];
-      return {label:(negative?'제외 조건 · ':'')+(names[c.field]||'추가 자격조건'),fact,status:status||'확인 필요',comparison,evidenceUrl:c.evidence?.url||''};
+      const fieldLabel=c.field==='business_location'?(v.location_basis==='farm_land'?'영농지':v.location_basis==='business_office'?'사업장 소재지':'소재지 기준 확인 필요'):(names[c.field]||'추가 자격조건');
+      return {label:(negative?'제외 조건 · ':'')+fieldLabel,fact,status:status||'확인 필요',comparison,evidenceUrl:c.evidence?.url||''};
     });
   }
   root.MunongsaSupportReview={schema,browse,label,publicRecords,presentation,sortRows,displayDate,conditionViews};

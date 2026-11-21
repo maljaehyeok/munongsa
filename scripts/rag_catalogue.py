@@ -190,11 +190,15 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
     elif fallback and fallback.get('programs') and not page and len(found)<=3 and question!='선택한 조건으로 지원사업을 찾아주세요.':return None
     # Follow-up to a metadata-only listing: do not redirect it to another approved business.
     previous=[] if page else context.get('notice_ids',[])
-    if not explicit and previous and any(i not in strict for i in previous) and re.search(r'그\s*사업|서류|지원금|자격|조건|마감|첫\s*번째|두\s*번째',question):
+    if question!='선택한 조건으로 지원사업을 찾아주세요.' and not explicit and previous and any(i not in strict for i in previous) and re.search(r'그\s*사업|서류|지원금|자격|조건|마감|첫\s*번째|두\s*번째',question):
         by_id={n['id']:n for n in records(feed,now)}
         found=[by_id[i] for i in previous if i in by_id]
         if not found:return rag_dialogue.response('앞서 본 공고를 최신 공개 목록에서 확인할 수 없어 안내를 보류했어요. 사업명으로 다시 찾아주세요.',{},'clarify',status='needs_verification')
-    if not found:return None
+    if not found:
+        if not explicit and not page and question=='선택한 조건으로 지원사업을 찾아주세요.':
+            kept={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','last_kind')}
+            return rag_dialogue.response('입력한 조건으로 안내할 수 있는 현재 공개 공고를 찾지 못했어요. 공고나 확인된 조건 정보가 부족할 수 있으며, 신청 자격이 없다는 뜻은 아닙니다. 조건을 수정하거나 전체 지원사업을 살펴보세요. 지난 공고는 현재 신청 정보와 구분하여 볼 수 있어요.',kept,'clarify',status='no_evidence',suggestions=('전체 지원사업','지난 공고'))
+        return None
     fingerprint=hashlib.sha256(json.dumps([{'id':n['id'],'title':n['title'],'url':n['url'],'conditions':[{k:c.get(k) for k in ('condition_id','kind','value')} for c in verified_conditions(n,feed,now)]} for n in found],sort_keys=True,ensure_ascii=False).encode()).hexdigest()
     offset=page['offset'] if page else 0
     if page and (page['fingerprint']!=fingerprint or offset>=len(found)):
