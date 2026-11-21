@@ -36,11 +36,48 @@ def allowed(row,check):
             'evidence_url':TITLE_BASIS,'link_basis_url':LINK_BASIS,'source_policy_url':spec[2],
             'body_redistribution':False,'attachment_redistribution':False,'eligibility_approval':False}
 
-def title_check(soup,title,normalizer):
+def title_check(soup,title,normalizer,url=None):
     wanted=normalizer(title)
     # Do not accept a title just because it appears in menus or related notices.
     candidates=soup.select('h4.title, .viewArea h4, .view_tit, .bbs_view h4, .border_view h4, .view-con h4, h4, .bbs-subject, .bo_v_title, .artclTitle, .artclViewTitle, .view-title, .view_top > dl > dt')
-    return bool(wanted) and any(normalizer(n.get_text(' ',strip=True))==wanted for n in candidates)
+    if bool(wanted) and any(normalizer(n.get_text(' ',strip=True))==wanted for n in candidates):return True
+    return bool(url and scoped_title_evidence(soup,title,url,normalizer))
+
+
+def scoped_title_evidence(soup,title,url,normalizer):
+    """Exact article title plus a second, board-specific ID binding. Not fuzzy matching."""
+    u=urlsplit(url);q=parse_qs(u.query,keep_blank_values=True)
+    if u.scheme!='https' or u.username or u.password or u.port not in (None,443):return None
+    wanted=normalizer(title)
+    if not wanted:return None
+    def unique(nodes):
+        values=[n.get_text(' ',strip=True) for n in nodes]
+        return len(values)==1 and normalizer(values[0])==wanted
+    if u.hostname=='www.oads.or.kr' and u.path=='/board/annc/selectAnnounce.do':
+        ids=q.get('annc_seq',[]);nodes=soup.select('input[name="annc_seq"]')
+        if len(ids)!=1 or not re.fullmatch(r'\d{1,9}',ids[0]) or len(nodes)!=1 or nodes[0].get('value')!=ids[0]:return None
+        if not unique(soup.select('.bo_head > h2')):return None
+        return {'kind':'oads_notice_id','id':ids[0],'location':'.bo_head > h2 + annc_seq'}
+    if u.hostname=='www.jeonju.go.kr' and u.path=='/planweb/board/view.9is':
+        if any(len(q.get(k,[]))!=1 or not re.fullmatch(r'[a-f0-9]{32}',q[k][0]) for k in ('dataUid','boardUid')):return None
+        titles=[n.find('span',recursive=False) for n in soup.select('#board_wrap .view-table li') if n.find('strong',recursive=False) and n.find('strong',recursive=False).get_text(strip=True)=='제목']
+        if any(n is None for n in titles) or not unique(titles):return None
+        # The server-provided return route must refer to this board and this record.
+        bound=False
+        for a in soup.select('a[href]'):
+            target=parse_qs(urlsplit(a['href']).query).get('returnUrl',[])
+            if len(target)!=1:continue
+            route=urlsplit(target[0]);params=parse_qs(route.query)
+            if route.path==u.path and all(params.get(k)==q[k] for k in ('dataUid','boardUid')):bound=True
+        if not bound:return None
+        return {'kind':'jeonju_record_id','id':q['dataUid'][0],'board':q['boardUid'][0],'location':'제목 항목 + 공식 반환 경로의 boardUid/dataUid'}
+    match=re.fullmatch(r'/farm/m2500/view/(\d{1,12})',u.path)
+    if u.hostname=='www.gunsan.go.kr' and match:
+        if not unique(soup.select('.bbsviewtitle')):return None
+        linked=any(re.fullmatch(r'/_cms/board/eFileDownload/\d+/'+match[1]+r'/[a-zA-Z0-9]+',urlsplit(a['href']).path) for a in soup.select('.bbsviewdown a[href]'))
+        if not linked:return None
+        return {'kind':'gunsan_record_id','id':match[1],'location':'.bbsviewtitle + 해당 게시물 ID의 공식 첨부 경로'}
+    return None
 
 def at_title_evidence(soup,stored,url,normalizer):
     """Official URL identity + matching hidden IDs + unique business-name cell."""

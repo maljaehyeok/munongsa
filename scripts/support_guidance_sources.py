@@ -30,6 +30,10 @@ def license_types(soup):
 def article(raw,url):
     soup=BeautifulSoup(raw,'html.parser')
     host=urlsplit(url).hostname
+    scoped={'www.oads.or.kr':'.bo_con','www.jeonju.go.kr':'#board_wrap .view-list'}
+    if host in scoped:
+        node=soup.select_one(scoped[host])
+        return re.sub(r'\s+',' ',node.get_text(' ',strip=True)) if node else ''
     if host in ('www.bizinfo.go.kr','bizinfo.go.kr'):
         node=soup.select_one('.support_project_detail')
         if node:
@@ -96,7 +100,11 @@ def _inspect_serial(rows,*,seconds=120):
                 import support_link_policy as links
                 check.update(status='checked' if status==200 else 'http_'+str(status),title_match=norm(row['title']) in norm(soup.get_text(' ',strip=True)),
                              licenses=license_types(soup),body_sha256=hashlib.sha256(raw).hexdigest(),article=article(raw,url))
-                check['metadata_title_confirmed']=links.title_check(soup,row['title'],norm)
+                check['metadata_title_confirmed']=links.title_check(soup,row['title'],norm,url)
+                scoped=links.scoped_title_evidence(soup,row['title'],url,norm)
+                if scoped:
+                    check['title_match']=True
+                    check['title_evidence']=scoped
                 check['display_title']=links.recovered_title(soup,row['title'],url,norm)
                 if check['display_title']:
                     check['metadata_title_confirmed']=True
