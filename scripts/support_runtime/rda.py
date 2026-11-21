@@ -27,9 +27,10 @@ def balanced_candidates(items, known=None, kind='rda_young'):
     return result
 
 
-def list_url(page=1,unfiltered=False):
+def list_url(page=1,unfiltered=False,state='진행중'):
     # These fields and values are present in the official form and its script.
-    fields={'search_ingState':'진행중','search_sort':'applEdDt','cp':str(page)}
+    if state not in ('진행중','예정'):raise ValueError('Unsupported official recruitment state')
+    fields={'search_ingState':state,'search_sort':'applEdDt','cp':str(page)}
     # Preserve legacy coverage, supplement it without a category restriction.
     if not unfiltered:fields['search_category']='자금,창업,주거,일자리,농지,네트워크,컨설팅,판로'
     return BOARD+'?'+urlencode(fields)
@@ -82,7 +83,7 @@ def collect(source,now,known=None,detail_policy=None):
         t.get('https://'+t.host+'/robots.txt',True)
         body=t.get(list_url());listed=rows(body)
         seen_ids={row['original_id'] for row in listed}
-        for page in range(2,min(int(source.get('max_pages',2)),3)+1):
+        for page in range(2,min(int(source.get('max_pages',2)),6)+1):
             if len(rows(body))<10:break
             try:body=t.get(list_url(page))
             except Exception as error:
@@ -99,6 +100,14 @@ def collect(source,now,known=None,detail_policy=None):
                 added=[row for row in more if row['original_id'] not in seen_ids]
                 listed.extend(added);seen_ids.update(row['original_id'] for row in added)
                 if len(more)<10:break
+        if source.get('include_upcoming'):
+            for page in range(1,3):
+                try:more=rows(t.get(list_url(page,unfiltered=True,state='예정')))
+                except Exception as error:
+                    group['errors'].append({'stage':'upcoming_list','error':boards.error_name(error)});break
+                added=[row for row in more if row['original_id'] not in seen_ids]
+                listed.extend(added);seen_ids.update(row['original_id'] for row in added)
+                if len(more)<10 or not added:break
         items=[row for row in listed if row.get('document_type')!='교육' and boards.classify(row)=='agriculture_support']
         group.update(list_count=len(listed),list_rows=items,candidate_count=len(items),scope_excluded_count=len(listed)-len(items),state='연결 성공')
         group['attempts'].append({'url':list_url(),'purpose':'공식 진행중·사업 필터 및 마감일 정렬; 게시일 제한 없음'})

@@ -24,6 +24,13 @@ def region_state(actual,scopes,areas):
         if len(parts)>2:return None
         names=[re.sub(r'(?:특별시|광역시|특별자치시|시|군|도)$','',p) for p in parts]
         if not names:return None
+        # An explicit province remains usable even when its municipality is not
+        # in the UI's small legacy city list. Never infer a parent from a title.
+        provinces={city for city,parent in areas.values() if parent is None}
+        if len(names)==2 and names[0] in provinces and re.fullmatch(r'[가-힣]{1,12}(?:시|군|구)',parts[1]):
+            known=areas.get(names[1])
+            if known and known[1] and known[1]!=names[0]:return None
+            return names[0],names[1]
         name=names[-1]
         if name not in areas:return None
         city,province=areas[name];parent=province or city

@@ -6,7 +6,7 @@
   const crops={rice:'벼',garlic:'마늘',onion:'양파',apple:'사과',cabbage:'배추',radish:'무',potato:'감자',sweetpotato:'고구마',soybean:'콩',wheat:'밀',pepper:'고추',greenonion:'파',scallion:'쪽파',strawberry:'딸기'};
   const selected=v=>v!==undefined&&v!==null&&v!==''&&!['all','unknown'].includes(v);
   const number=v=>selected(v)&&Number.isFinite(Number(v))&&Number(v)>=0?Number(v):null;
-  const normalize=v=>String(v||'').trim().replace(/전북특별자치도|전라북도/g,'전북').replace(/전라남도/g,'전남').replace(/강원특별자치도|강원도/g,'강원').replace(/경상북도/g,'경북').replace(/경상남도/g,'경남').replace(/충청북도/g,'충북').replace(/충청남도/g,'충남').replace(/경기도/g,'경기').replace(/제주특별자치도|제주도/g,'제주');
+  const normalize=v=>String(v||'').trim().replace(/전북특별자치도|전라북도/g,'전북').replace(/전라남도/g,'전남').replace(/강원특별자치도|강원도/g,'강원').replace(/경상북도/g,'경북').replace(/경상남도/g,'경남').replace(/충청북도/g,'충북').replace(/충청남도/g,'충남').replace(/경기도/g,'경기').replace(/제주특별자치도|제주도/g,'제주').replace(/(서울|부산|대구|인천|광주|대전|울산|세종)(?:특별자치시|특별시|광역시)(?=\s|$)/g,'$1');
   function date(v){if(typeof v!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v))return null;const d=new Date(v+'T00:00:00Z');return Number.isFinite(+d)&&d.toISOString().slice(0,10)===v?d:null}
   function period(item){const p=item.application_period||{};const aware=v=>typeof v==='string'&&/(Z|[+-]\d{2}:\d{2})$/.test(v);const a=aware(p.start)?Date.parse(p.start):NaN,b=aware(p.end)?Date.parse(p.end):NaN;return Number.isFinite(a)&&Number.isFinite(b)&&a<=b?{start:a,end:b}:null}
   function safeUrl(v){try{const u=new URL(v);return u.protocol==='https:'&&!u.username&&!u.password&&(!u.port||u.port==='443')&&!u.hash&&![...u.searchParams.keys()].some(k=>/key|token|auth|secret|password|session/i.test(k))}catch{return false}}

@@ -53,6 +53,10 @@ def lock(path):
 
 def identity(link):
     p=urlsplit(link);q=parse_qs(p.query)
+    if (p.hostname in ('bizinfo.go.kr','www.bizinfo.go.kr')
+            and p.path in ('/sii/siia/selectSIIA200Detail.do','/web/lay1/bbs/S1T122C128/AS/74/view.do')
+            and len(q.get('pblancId',[]))==1 and re.fullmatch(r'PBLN_[0-9]+',q['pblancId'][0])):
+        return ('www.bizinfo.go.kr','pblancId',q['pblancId'][0])
     if q.get('nttNo'):return p.hostname,q.get('bbsNo',[''])[0],'nttNo',q['nttNo'][0]
     for key in ('dataSid','dataUid','postUid','nttId','articleId'):
         if q.get(key):return p.hostname,q.get('boardId',q.get('boardUid',['']))[0],key,q[key][0]

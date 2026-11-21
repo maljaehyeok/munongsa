@@ -313,12 +313,14 @@
       "policy_note": "Both official APIs authenticated on AWS. One canonical PBLN identity; conflicts held; provider omissions are not deletion evidence. API reuse requires attribution and unchanged work (portal KOGL type 3); separate rights review before publication. Call quota/account scope remains provider-account specific.",
       "kind": "bizinfo",
       "city": "전국",
-      "notes": "Authorized official APIs; private agricultural candidates only; no automatic publication. At most two pages of 50 per provider per daily run.",
+      "notes": "Authorized official APIs; private agricultural candidates only; no automatic publication. Two pages of 50 per provider plus three rotating regional discovery tags per daily run; tags are not eligibility.",
       "api_providers": [
         "bizinfo",
         "data_go_kr_bizinfo"
       ],
       "api_pages": 2,
+      "regional_queries_per_run": 3,
+      "portal_rotating_page_limit": 30,
       "portal_api_key_env": "DATA_GO_KR_BIZINFO_API_KEY",
       "authentication_checked_at": "2026-11-14"
     },
@@ -338,8 +340,9 @@
       "detail_limit": 20,
       "reuse_policy": "unknown",
       "notes": "비공개 사실정보 시험; 공개·추천 승인 없음",
-      "max_pages": 3,
-      "include_unfiltered": true
+      "max_pages": 4,
+      "include_unfiltered": true,
+      "include_upcoming": true
     },
     {
       "kind": "koat",

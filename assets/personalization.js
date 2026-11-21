@@ -56,7 +56,7 @@
    const sourceWarning=data.source_review?.[row.item.id]?.title_needs_review===true;
    return {...row,item:shown,match,decision:verdict,comparisonItem:{...shown,eligibility:projected.eligibility},reasons:why,geographic,sourceWarning,comparisonReady:!!reviewed&&!sourceWarning,relatedCandidate:relatedCandidate&&!sourceWarning,recommendationAllowed:row.available&&verdict.category==='A'&&!sourceWarning,display,relevance:why.reduce((n,r)=>n+(r.state==='match'?r.weight:0),0)};
   }).sort((a,b)=>{
-   const period=r=>({window:0,unknown:1,upcoming:2,elapsed:3}[r.display.state]),condition=r=>({match:0,check:1,mismatch:2}[r.match.conditionStatus]);
+   const period=r=>({window:r.display.operator_notice?0:1,upcoming:2,standing:3,unknown:4,elapsed:5}[r.display.state]??4),condition=r=>({match:0,check:1,mismatch:2}[r.match.conditionStatus]);
    return a.decision.tier-b.decision.tier||Number(a.decision.audience_check)-Number(b.decision.audience_check)||period(a)-period(b)||condition(a)-condition(b)||b.relevance-a.relevance||(a.display.end||'9999-12-31').localeCompare(b.display.end||'9999-12-31')||a.item.id.localeCompare(b.item.id);
   });
  }
