@@ -55,7 +55,8 @@
             const province=normalize(residence?p.residenceRegion:farm?p.region:''),district=normalize(residence?p.residenceDistrict:farm?p.district:'');
             const scopes=Array.isArray(v.regions)?v.regions.map(normalize):[];
             const values=scopes.map(scope=>{
-              const parsed=root.MunongsaInputUX?.region(scope),parts=parsed?[parsed.region,parsed.district].filter(Boolean):scope.split(/\s+/);if(scope==='전국')return 'match';
+              const bare={화성시:['경기','화성시'],산청군:['경남','산청군'],함안군:['경남','함안군']};
+              const parsed=root.MunongsaInputUX?.region(scope),parts=parsed?[parsed.region,parsed.district].filter(Boolean):(bare[scope]||scope.split(/\s+/));if(scope==='전국')return 'match';
               if(parts.length===1&&!['전북','전남','경북','경남','경기','충북','충남','강원','제주','서울','부산','인천','대전','대구','광주','울산','세종'].includes(parts[0]))return 'check';
               if(!residence&&!farm)return 'check';
               if(!selected(province))return 'check';

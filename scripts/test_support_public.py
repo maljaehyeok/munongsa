@@ -70,6 +70,29 @@ class PublicTests(unittest.TestCase):
     def test_unapproved_rows_never_export(self):
         self.assertEqual(self.run_export()[0]['notices'], [])
 
+    def test_metadata_only_grant_redacts_unapproved_information(self):
+        self.approve(reference=True)
+        self.rights[self.identity]['metadata_only']=True
+        item=self.run_export()[0]['notices'][0]
+        self.assertEqual([item[k] for k in ('target','region','support')],['unknown']*3)
+        self.assertEqual(item['application_period'],{})
+        self.assertEqual(item['reference_application_dates'],{})
+        self.assertEqual(item['application_status'],'unknown')
+        self.assertFalse(item['recommendation_eligible'])
+        self.assertFalse(item['eligibility_complete'])
+        self.assertEqual(item['evidence'],{})
+
+    def test_facts_only_explicit_farmland_location_has_no_quote(self):
+        data=payload([leaf('land','business_location',{'regions':['산청군'],'location_basis':'farm_land'})])
+        eligibility.register(self.db,self.identity,data,'fixture','test only')
+        eligibility.review(self.db,self.identity,'land','verified','fixture','test only')
+        self.bind_conditions();self.approve(reference=True)
+        self.rights[self.identity]['facts_only']=True
+        c=self.run_export()[0]['notices'][0]['eligibility']['conditions'][0]
+        self.assertEqual(c['value']['location_basis'],'farm_land')
+        self.assertTrue(c['evidence']['fact_confirmed'])
+        self.assertNotIn('quote',c['evidence'])
+
     def test_basic_notice_can_be_reference_with_all_eligibility_unknown(self):
         monitor.review_notice(self.db, self.identity, 'fixture', 'basic facts only',
             verification_status='verified', freshness='current', notice_basics_verified=True,

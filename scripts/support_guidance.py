@@ -53,6 +53,18 @@ def safe_title(value):
     return value
 
 
+def condition_binding_current(db, identity, binding):
+    """An explicit partial approval cannot survive a changed DB revision."""
+    try:
+        import support_eligibility as eligibility
+        row=monitor.notice_record(db,identity);revision=eligibility.show(db,identity)
+        return (row['content_hash']==binding['notice_content_hash']
+            and revision.get('revision_id')==binding['eligibility_revision_id']
+            and not revision.get('needs_review')
+            and set(binding['condition_ids'])<=set(c['condition_id'] for c in revision['payload']['conditions'] if c.get('status')=='verified'))
+    except (KeyError,TypeError,ValueError,monitor.MonitorError):return False
+
+
 def records(db):
     return [dict(r) for r in db.execute('SELECT n.*,s.institution FROM discovered_notices n JOIN monitor_sources s ON s.source_id=n.source_id ORDER BY n.first_collected_at,n.notice_id')]
 
@@ -191,6 +203,8 @@ def refresh(db, state, *, now=None, portal=None, link_check=None, source_checks=
     plans=json.loads(plans_path.read_text('utf-8')) if plans_path.exists() else []
     facts_path=state/'verified-fact-plans.json'
     fact_plans=json.loads(facts_path.read_text('utf-8')) if facts_path.exists() else []
+    bound={p['id']:p['approval_binding'] for p in fact_plans if p.get('approval_binding')}
+    fact_plans=[p for p in fact_plans if not p.get('approval_binding') or condition_binding_current(db,p['id'],p['approval_binding'])]
     decisions_path=state/'guidance-source-decisions.json'
     decisions=json.loads(decisions_path.read_text('utf-8')) if decisions_path.exists() else {}
     all_rows=records(db)
@@ -207,6 +221,7 @@ def refresh(db, state, *, now=None, portal=None, link_check=None, source_checks=
     previous_path=state/'official-guidance.json'
     previous=json.loads(previous_path.read_text('utf-8')) if previous_path.exists() else {}
     result = select(all_rows, portal, link_check, now, source_checks)
+    result['operator_fact_bindings']=bound
     rights=json.loads((state/'publication-rights.json').read_text('utf-8')) if (state/'publication-rights.json').exists() else {}
     strict,_=public.export(db,rights,now)
     result['verified_comparisons']=sources.verified_comparisons(strict,plans,source_checks,now)
@@ -299,6 +314,10 @@ def append(db, feed, manifest, now=None):
         except (ValueError, TypeError, KeyError, monitor.MonitorError):
             continue
     annotations(feed,manifest,now)
+    for ident,binding in manifest.get('operator_fact_bindings',{}).items():
+        if not condition_binding_current(db,ident,binding):
+            feed.get('verified_facts',{}).pop(ident,None)
+            feed.get('verified_comparisons',{}).pop(ident,None)
     return total
 
 def annotations(feed,manifest,now):
@@ -311,3 +330,8 @@ def annotations(feed,manifest,now):
                             and instant(v['checked_at'])<=now}
     import support_notice_review
     feed['notice_observations']={k:v for k,v in manifest.get('notice_observations',{}).items() if k in by_id and support_notice_review.retained(by_id[k],v,now)}
+    # A source refresh must not enlarge an operator's title/institution/link grant.
+    # These notices may carry separately approved conditions in their DB export;
+    # unapproved extracted details and reception observations stay private.
+    for key in ('verified_facts','verified_comparisons','notice_observations'):
+        feed[key]={k:v for k,v in feed[key].items() if by_id[k].get('metadata_only') is not True}

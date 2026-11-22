@@ -137,7 +137,8 @@ def export(connection, rights, now=None):
                         public_text(json.dumps(value, ensure_ascii=False))
                         condition_proof = proof(c['evidence'])
                         if grant.get('facts_only') is True:
-                            if c['kind'] not in ('applicant', 'residence', 'farm_registration'):
+                            if (c['kind'] not in ('applicant', 'residence', 'farm_registration')
+                                    and not (c['kind']=='business_location' and c['value'].get('location_basis')=='farm_land')):
                                 raise ValueError('condition outside reviewed facts-only scope')
                             condition_proof['fact_confirmed'] = True
                         else:
@@ -169,6 +170,15 @@ def export(connection, rights, now=None):
                     'region': public_text(r['region']) if 'region' in evidence else 'unknown',
                     'support': public_text(r['support']) if 'support' in evidence else 'unknown',
                     'evidence': evidence, 'eligibility': structured}
+            if grant.get('metadata_only') is True:
+                # A basic-listing approval does not authorize dates, summaries,
+                # preparation instructions, or a detailed RAG document. Separately
+                # approved, revision-bound conditions above remain available.
+                item.update(metadata_only=True,application_status='unknown',application_period={},
+                    reference_application_dates={},target='unknown',region='unknown',support='unknown',
+                    recommendation_eligible=False,eligibility_complete=False,guidance_level='official_notice')
+                item['evidence']={k:v for k,v in evidence.items() if k=='notice'}
+                allowed=False
             result['notices'].append(item)
             stats['recommendations' if allowed else 'references'] += 1
         except (ValueError, TypeError, KeyError, monitor.MonitorError):
