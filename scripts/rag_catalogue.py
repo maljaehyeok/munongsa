@@ -32,6 +32,20 @@ def verified_conditions(item,feed,now):
         except (KeyError,TypeError,ValueError):continue
     return []
 
+def approved_conditions(item,feed,now):
+    """Use both existing approval paths, never private extracted candidates."""
+    import rag_profile
+    direct=rag_profile.project_public(item,safe_url).get('eligibility',{}).get('conditions',[])
+    result=[];seen=set()
+    for c in direct+verified_conditions(item,feed,now):
+        if (c.get('status')=='verified' and c.get('presence')=='specified'
+                and c.get('evidence',{}).get('location') and safe_url(c.get('evidence',{}).get('url',''))
+                and (c['evidence'].get('fact_confirmed') is True or c['evidence'].get('quote'))
+                and c['condition_id'] not in seen):
+            result.append(c);seen.add(c['condition_id'])
+    return result
+
+
 def search_text(item,feed,now):
     # Only current, version-bound typed conditions augment title relevance.
     labels={'farm_registration':'농업경영체 등록','crop':'작물 재배','residence':'거주지','business_location':'영농지 농지','applicant':'신청자'}
@@ -45,7 +59,7 @@ def search_text(item,feed,now):
     # Office locality helps discovery, never supplies a residence/farm requirement.
     office=observed.get('application_preparation',{}).get('office_note')
     if isinstance(office,str) and len(office)<=100:values.append(office)
-    for condition in verified_conditions(item,feed,now):
+    for condition in approved_conditions(item,feed,now):
         values.append(labels.get(condition.get('kind'),''))
         values.append(json.dumps(condition.get('value',{}),ensure_ascii=False))
     return rag_dialogue.normalized(' '.join(values))
@@ -155,7 +169,7 @@ def program(item,feed,now,context=None):
     state=review.notice_state(shown,now)
     preparation=shown.get('application_preparation',{})
     conditions=[]
-    for c in verified_conditions(item,feed,now):
+    for c in approved_conditions(item,feed,now):
         value=c.get('value',{})
         if c.get('kind')=='farm_registration' and value.get('registered') is True:conditions.append('농업경영체 등록 필요 · 확인된 일부 필수조건')
         elif c.get('kind')=='crop' and isinstance(value.get('any_of'),list):conditions.append('실제 재배 작물: '+' · '.join(str(v) for v in value['any_of']))

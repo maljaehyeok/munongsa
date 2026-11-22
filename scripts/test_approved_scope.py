@@ -3,11 +3,19 @@ from datetime import datetime,timedelta,timezone
 import support_guidance as guidance
 import support_guidance_sources as sources
 import rag_profile,rag_dialogue
+import rag_catalogue
 from unittest.mock import patch
 from test_recommendation_accuracy import condition,document,compare
 from support_recommendation_readiness import decision
 
 class ApprovedScope(unittest.TestCase):
+    def test_direct_db_approved_conditions_are_searchable(self):
+        now=datetime.now(timezone.utc)
+        item={'title':'새 기본 안내','institution':'공식 기관','url':'https://www.rda.go.kr/young/custom/policy/view.do?sId=1',
+            'id':'new','eligibility':document([condition('registration','farm_registration',{'registered':True})])['public']['eligibility']}
+        self.assertIn('농업경영체',rag_catalogue.search_text(item,{},now))
+        item['eligibility']['conditions'][0]['status']='candidate'
+        self.assertNotIn('농업경영체',rag_catalogue.search_text(item,{},now))
     def test_changed_revision_cannot_keep_partial_approval(self):
         binding={'notice_content_hash':'same','eligibility_revision_id':1,'condition_ids':['r']}
         record={'content_hash':'same'}

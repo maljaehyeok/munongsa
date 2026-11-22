@@ -31,7 +31,7 @@
     "scripts/rag_dialogue.py": "fb82a700909e700b23eb19dfd2becd0094a4c325c636583e5434153c520faa39",
     "scripts/rag_profile.py": "73b90417aee36401d49bf24e51bb98207c41af216313a0a0007045c6c0a447d3",
     "scripts/rag_nlu.py": "dd022820d863f7b027613cce09ebedff7c4376ad168f2505679562f2f068ea42",
-    "scripts/rag_catalogue.py": "3730d8f9cae85d7022b7351b28af65d9bb0b67891f76de6b51b28f5d6f97bc36",
+    "scripts/rag_catalogue.py": "580c34043ac93f86b454e7d5c6602556b9fd853507ac2f7c4bc64f6e85a91f34",
     "scripts/support_notice_review.py": "a04d3b5bb2e9558eddc019b7153cd79674c02847966b20ecefb6eba616d45d56",
     "scripts/support_recommendation_readiness.py": "fb86b08cd4af6266eb38bb42eefa46666353c651188f52e5cb52d8d0dc2228a7"
   },
