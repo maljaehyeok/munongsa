@@ -1,0 +1,25 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const listeners={},elements={};
+let profile={farmingSituation:'preparing',region:'전북',district:'김제시',residenceRegion:'제주',residenceDistrict:'제주시',applicant:'individual',farmRegistered:'no'};
+global.document={getElementById:id=>elements[id]||null,addEventListener:(name,fn)=>{(listeners[name]??=[]).push(fn)}};
+global.readProfile=()=>({...profile});global.draw=()=>{};
+global.MunongsaInputUX={commit:()=>{},places:()=>[]};
+for(const id of ['farmingSituation','farmRegistered','applicant','farmingYears','groupMemberCount'])elements[id]={id,get value(){return profile[id]||''},set value(v){profile[id]=v},dispatchEvent:()=>{}};
+vm.runInThisContext(fs.readFileSync('assets/farm-profile.js','utf8'));
+const P=MunongsaFarmProfile;
+assert(!('planned' in P.toConversation({})),'missing stage remains unknown');
+const preparing=P.toConversation(profile);assert.equal(preparing.planned,true);
+profile.farmingSituation='independent';
+const independent=P.toConversation(profile,preparing);
+assert.equal(independent.planned,false,'independent selection must replace the previous planned=true');
+assert.equal(independent.farm_registered,'no');assert.equal(independent.farm_region,'전북 김제시');assert.equal(independent.region,'제주 제주시');
+profile.farmingSituation='unknown';assert(!('planned' in P.toConversation(profile,preparing)),'cleared selection must not retain stale planned=true');
+profile.farmingSituation='preparing';P.apply({...preparing,planned:false});
+assert.equal(profile.farmingSituation,'unknown','already started does not prove independent management');
+assert.equal(P.toConversation(profile,{planned:false}).planned,false,'explicit chat answer survives a round trip without inventing farming type');
+for(const fn of listeners.change||[])fn({target:{id:'farmingSituation'}});
+assert(!('planned' in P.toConversation(profile,{planned:false})),'manual clearing removes the explicit stage answer');
+for(const situation of ['family','organization','unknown']){profile.farmingSituation=situation;assert(!('planned' in P.toConversation(profile,preparing)),situation+' does not prove a start date');}
+profile.farmingSituation='unknown';P.apply({...preparing,planned:true});assert.equal(profile.farmingSituation,'preparing');
+assert.equal(P.toConversation(profile).planned,true);
+console.log(JSON.stringify({passed:true,stage_roundtrips:7,registration_and_locations_preserved:true,no_career_inference:true}));
