@@ -15,9 +15,9 @@
  const fundsText=v=>root.MunongsaSelection.money(v);
  function profile(){return {...custom,requiredFundsWon,requiredFundsDraft:fundsDirty?by('requiredFundsMan').value:null}}
  function restore(p={}){for(const k of Object.keys(custom))custom[k]=typeof p[k]==='string'?p[k].slice(0,100):'';requiredFundsWon=validFunds(p.requiredFundsWon)?p.requiredFundsWon:null;fundsDirty=false;restored=!!Object.keys(p).length;sync(true);if(typeof p.requiredFundsDraft==='string'){by('requiredFundsMan').value=p.requiredFundsDraft.slice(0,100);fundsDirty=true;describeFundsDraft()}}
- function parseFunds(raw){const text=String(raw).trim();if(!text)return null;if(!/^(?:\d+|[1-9]\d{0,2}(?:,\d{3})+)$/.test(text))return NaN;const won=Number(text.replace(/,/g,''))*10000;return validFunds(won)?won:NaN}
+ function parseFunds(raw){const won=root.MunongsaAmounts.parseInput(raw,'man');return won===null?null:validFunds(won)?won:NaN}
  function syncFunds(force=false){const input=by('requiredFundsMan');if(!input||fundsDirty&&!force)return;fundsDirty=false;input.value=requiredFundsWon===null?'':(requiredFundsWon/10000).toLocaleString('ko-KR');input.setAttribute('aria-invalid','false');by('requiredFundsStatus').textContent=requiredFundsWon===null?'':'적용된 필요 자금: '+fundsText(requiredFundsWon);}
- function fundsError(raw){if(/[가-힣a-z]/i.test(raw))return '50억 대신 500000처럼 만원 단위의 숫자만 입력해 주세요.';if(Number(String(raw).replace(/,/g,''))<=0)return '0보다 큰 금액을 만원 단위로 입력해 주세요.';if(/^\d[\d,]*$/.test(raw))return '입력 가능한 금액 범위를 초과했어요.';return '만원 단위의 정수만 입력해 주세요. 예: 5000 또는 5,000';}
+ function fundsError(raw){if(Number(String(raw).replace(/,/g,''))<=0)return '0보다 큰 금액을 입력해 주세요.';return '금액과 단위를 확인해 주세요. 예: 3,000만원 또는 30,000,000원. 만원 미만 금액은 비교하지 않아요.';}
  function describeFundsDraft(){const input=by('requiredFundsMan'),draft=parseFunds(input.value),invalid=Number.isNaN(draft);input.setAttribute('aria-invalid',String(invalid));by('requiredFundsStatus').textContent=invalid?fundsError(input.value):(draft===null?'입력칸을 비웠어요.':('입력한 금액: '+fundsText(draft)))+' 적용을 눌러 비교에 반영하세요.'+(requiredFundsWon===null?'':(' 현재 적용: '+fundsText(requiredFundsWon)));}
  function applyFunds(clear=false){const input=by('requiredFundsMan'),value=clear?null:parseFunds(input.value);if(Number.isNaN(value)){requiredFundsWon=null;fundsDirty=true;describeFundsDraft();refresh('funds');return false}requiredFundsWon=value;fundsDirty=false;syncFunds(true);refresh('funds');return true}
  function flushFunds(){if(fundsDirty)return applyFunds();return true}
@@ -101,6 +101,8 @@
  function reset(){custom={customCrop:'',customFarmRegion:'',customResidence:''};requiredFundsWon=null;fundsDirty=false;for(const w of widgets){w.dirty=false;w.close()}sync(true)}
  function mount(districts,onApply){
   refresh=onApply;
+  by('requiredFundsHint').textContent='숫자만 입력하면 만원 단위예요. 3,000만원·30,000,000원도 입력할 수 있어요. 표시된 환산 금액을 확인한 뒤 적용하세요. 대출 승인을 뜻하지 않아요.';
+  by('requiredFundsMan').inputMode='text';
   for(const [code,text]of Object.entries(provinceNames)){
    // Preserve the existing confirmed province options; do not invent district mappings.
    if(![...by('region').options].some(o=>o.value===code)){const o=document.createElement('option');o.value=code;o.textContent=text;by('region').append(o)}
@@ -112,7 +114,9 @@
   by('region').closest('.field').after(by('crop').closest('.field'));
   mountFunds();by('filterForm').addEventListener('submit',()=>{const pending=widgets.filter(w=>w.dirty).map(w=>[w.kind,w.input.value]);flushFunds();for(const [kind,value]of pending)commit(kind,value)},{capture:true});
   by('crop').addEventListener('change',()=>{if(by('crop').value!=='all')custom.customCrop='';sync()});
+  by('requiredFundsMan').addEventListener('input',()=>{const draft=parseFunds(by('requiredFundsMan').value);if(!Number.isNaN(draft))by('requiredFundsStatus').textContent=(draft===null?'입력칸을 비웠어요.':'입력한 금액: '+fundsText(draft))+ ' 적용을 눌러 비교에 반영하세요.'+(requiredFundsWon===null?'':' 현재 적용: '+fundsText(requiredFundsWon));});
   ready=true;sync(true);
  }
- root.MunongsaInputUX={mount,profile,restore,sync,reset,commit,validBirth,region,crop,parseFunds,flushFunds};
+ function setFunds(won){if(won!==null&&!validFunds(won))return false;requiredFundsWon=won;fundsDirty=false;syncFunds(true);refresh('funds');return true;}
+ root.MunongsaInputUX={mount,profile,restore,sync,reset,commit,validBirth,region,crop,parseFunds,flushFunds,setFunds,places:()=>places.map(p=>({...p}))};
 })(globalThis);

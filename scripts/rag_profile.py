@@ -46,12 +46,21 @@ def region_state(actual,scopes,areas):
         else:states.append('match' if not b[1] or a[1]==b[1] else 'mismatch')
     return 'match' if 'match' in states else 'check' if not states or 'check' in states else 'mismatch'
 
+def valid_area(value,areas):
+    if value in areas:return True
+    if not isinstance(value,str) or len(value)>24:return False
+    parts=value.split()
+    provinces={city for city,parent in areas.values() if parent is None}
+    if len(parts)!=2 or parts[0] not in provinces or not re.fullmatch(r'[가-힣]{1,12}(?:시|군|구)',parts[1]):return False
+    known=areas.get(parts[1][:-1])
+    return not known or not known[1] or known[1]==parts[0]
+
 def valid_context(c,areas):
     for key,(low,high) in NUMBERS.items():
         if key in c and (type(c[key]) not in (int,float) or not math.isfinite(c[key]) or not low<=c[key]<=high):return False
     if any(k in c and type(c[k]) is not bool for k in BOOLEANS):return False
     if any(k in c and c[k] not in values for k,values in ENUMS.items()):return False
-    if 'farm_region' in c and c['farm_region'] not in areas:return False
+    if 'farm_region' in c and not valid_area(c['farm_region'],areas):return False
     return all(k not in c or type(c[k]) is int for k in ('age','group_size'))
 
 def extract(q,areas,crops,normalize):
@@ -66,6 +75,12 @@ def extract(q,areas,crops,normalize):
         residence=re.search(r'거주|살아|살고|사는|사는데|주소',tail)
         next_place=i+1<len(matches) and (bool(residence and farm and residence.start()<farm.start()) or bool(re.search(r'(?:영농지|농지|재배지역|농사는)\s*[:：은는이가]*\s*$',tail)))
         if (farm and not next_place and not re.search(r'(?:영농지|농지|재배지역)\s*(?:제한|요건|기준|조건)',tail)) or re.search(r'(?:영농지|농지|재배지역|농사는|농사짓는\s*곳)\s*[:：은는이가]*\s*$',prefix):out['farm_region']=area
+    provinces=sorted({city for city,parent in areas.values() if parent is None},key=len,reverse=True)
+    for m in re.finditer('('+'|'.join(map(re.escape,provinces))+r')\s+([가-힣]{1,12}(?:시|군|구))',q):
+        place=m[1]+' '+m[2];tail=q[m.end():m.end()+18];prefix=q[max(0,m.start()-8):m.start()]
+        if not valid_area(place,areas):continue
+        if re.search(r'(?:거주지|주소)\s*[:：은는이가]*$',prefix) or re.match(r'(?:에|에서)?\s*(?:거주|살고|살아|사는|사는데)',tail):out['region']=place
+        if re.search(r'(?:영농지|농지|농사짓는곳)\s*[:：은는이가]*$',prefix) or re.match(r'(?:에|에서)?\s*(?:농사|재배|영농)',tail):out['farm_region']=place
     matches=list(re.finditer(r'(?<![\d-])(만\s*)?(\d{1,3})\s*(?:세|살)(?!\s*(?:이상|이하|미만|부터|까지|기준|조건))',q));m=matches[-1] if matches else None
     if m and not re.search(r'나이\s*기준|연령\s*기준',q):out.update(age=int(m[2]),age_basis='international' if m[1] else 'unspecified')
     if re.search(r'개인(?:\s*(?:농업인|농민|신청))?|혼자\s*(?:농사|신청)|단독\s*신청',q):out['applicant']='individual_farmer'

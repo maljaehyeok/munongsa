@@ -45,8 +45,9 @@ def decode(value):
         raw,question=value[len(PREFIX):].split(SEPARATOR,1)
         if len(raw)>1600:raise ValueError('context_too_long')
         context=json.loads(raw)
-        if not isinstance(context,dict) or set(context)-({'region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind'}|rag_profile.KEYS):raise ValueError('context_fields')
-        if 'region' in context and context['region'] not in AREAS:raise ValueError('context_region')
+        if not isinstance(context,dict) or set(context)-({'region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','casual_topic'}|rag_profile.KEYS):raise ValueError('context_fields')
+        if 'casual_topic' in context and context['casual_topic'] not in ('meal','wellbeing','humor'):raise ValueError('context_topic')
+        if 'region' in context and not rag_profile.valid_area(context['region'],AREAS):raise ValueError('context_region')
         if 'crop' in context and context['crop'] not in CROPS:raise ValueError('context_crop')
         if 'farm_registered' in context and context['farm_registered'] not in ('yes','no'):raise ValueError('context_registration')
         if not rag_profile.valid_context(context,AREAS):raise ValueError('context_values')
@@ -73,7 +74,7 @@ def region_matches(area,item,document=None):
     region=normalized(str(item.get('region','')))
     if region in ('','unknown') and document:
         region=normalized(str(document['record'].get('fields',{}).get('conditions',{}).get('value','')))
-    city,province=AREAS[area]
+    city,province=AREAS[area] if area in AREAS else (area.split()[-1].rstrip('시군구'),area.split()[0])
     if any(v in region for v in ('국가 지원사업','전국','지역 제한 없음','지역제한 없음')):return 1
     if city in region:return 3
     if province and province in region:
@@ -103,6 +104,7 @@ def remember(out,corpus):
     ids=context.get('list_ids',[]);versions=context.get('list_versions',[])
     intact=bool(ids) and len(ids)==len(versions) and all(i in by_id and notice_version(by_id[i])==v for i,v in zip(ids,versions))
     if programs and (out.get('kind') in ('catalogue','recommendation') or not intact):
+        context.pop('casual_topic',None)
         ids=[p['id'] for p in programs]
         context.update(list_ids=ids,list_versions=[notice_version(by_id[i]) for i in ids])
     context['last_kind']='results' if programs else 'help' if out.get('kind') in ('help','greeting','thanks','condition_edit') else 'clarify' if out.get('kind')=='clarify' else 'context'
@@ -124,6 +126,11 @@ def continuation(encoded,corpus,grounded,intent=None):
         if i not in ordinal:ordinal.append(i)
     group=bool(re.search(r'그\s*중|그중|아까.*(?:사업|공고).*중',question))
     if not (correction or repeat or next_step or ordinal or group or intent in ('compare','open_notices')):return None
+    if context.get('casual_topic') and (repeat or next_step) and not ordinal and not group and not re.search(r'사업|공고',question):
+        messages={'meal':'간단한 한 끼를 같이 생각해 보자는 뜻이에요. 못 드시는 음식이나 지금 있는 재료를 알려주세요.',
+                  'wellbeing':'지금 가장 부담되는 한 가지부터 이야기해 보자는 뜻이에요. 서두르지 않아도 괜찮아요.',
+                  'humor':'잠깐 웃으며 쉬어 가자는 이야기였어요. 다른 이야기를 해도 좋아요.'}
+        return response(messages[context['casual_topic']],context,'context')
     if correction:
         return response('제가 어떤 부분을 다르게 이해했나요? 바꾸려는 지역·등록 여부나 궁금한 사업을 짧게 알려주세요. 말씀하시기 전까지 기존 조건은 바꾸지 않을게요.',context,'clarify')
     by_id={d['public']['id']:k for k,d in corpus['documents'].items()}
@@ -174,6 +181,9 @@ def service_response(encoded,corpus,intent=None):
     context['notice_ids']=[v for v in context.get('notice_ids',[]) if v in live]
     facts,error=rag_profile.extract(question,AREAS,CROPS,normalized)
     if error:return None
+    if re.search(r'대출|융자|정책자금|금융|자금\s*부족|자금이\s*부족|시설\s*(?:설치\s*)?자금',question) and not re.search(r'지원사업|보조금',question):
+        actual=context if rag_profile.hypothetical(question) else {**context,**facts}
+        return response('농업금융에서 기존 공식 금융자료와 입력한 조건을 비교해 볼게요. 금리·한도는 제도 안내이며 실제 대출 승인과 현재 접수는 취급기관 확인이 필요해요.',actual,'context')
     # Advice/help must not consume new facts or a factual business question.
     if facts:return None
     compact=re.sub(r'[\s!?.~,，。]','',question)
@@ -193,8 +203,19 @@ def service_response(encoded,corpus,intent=None):
         return response('아래 ‘내 조건 선택·수정’에서 바꿀 항목만 고쳐주세요. 이미 알려주신 값은 채워 두고, 적용하면 같은 공식 근거로 다시 비교해요. 모르는 항목은 비워 두어도 됩니다.',context,'condition_edit')
     if thanks and not guide:
         return response('도움이 되셨다니 다행이에요. 궁금한 사업의 신청 조건이나 마감일을 이어서 물어보세요.',context,'thanks')
-    if re.fullmatch(r'(?:오늘)?(?:날씨(?:는|어때|알려줘)?|점심(?:뭐먹지|추천해줘)|저녁메뉴추천|재밌는이야기해줘|농담해줘)',compact):
-        return response('저는 농업 지원사업 탐색과 신청 준비를 돕는 상담이에요. 날씨·식사·일반 잡담은 안내 범위가 아니지만, 지역이나 관심 작물을 알려주시면 공개된 사업을 함께 찾아볼 수 있어요.',context,'help',suggestions=('내 조건에 맞는 지원사업을 찾고 싶어',))
+    if re.fullmatch(r'(?:오늘)?날씨(?:는|어때|알려줘)?',compact):
+        return response('실시간 날씨는 연결되어 있지 않아 정확히 말씀드리기 어려워요. 작업 전 기상청 예보를 확인해 주세요. 다른 궁금한 이야기도 편하게 해 주세요.',context,'context')
+    if re.fullmatch(r'(?:오늘)?(?:점심뭐먹지|점심추천해줘|저녁메뉴추천)',compact):
+        context['casual_topic']='meal'
+        return response('따뜻한 밥에 달걀이나 두부, 좋아하는 채소를 곁들이면 어떨까요? 못 드시는 음식이 있으면 그에 맞춰 생각해 볼게요.',context,'context')
+    if re.search(r'힘들어|지쳤어|피곤해|걱정돼',compact) and not specific:
+        context['casual_topic']='wellbeing'
+        return response('어떤 일이 가장 힘드셨어요? 잠깐 쉬면서 하나씩 이야기해도 괜찮아요. 영농 준비 때문이라면 지금 가장 막히는 한 가지부터 함께 정리해 볼게요.',context,'context')
+    if re.fullmatch(r'재밌는이야기해줘|농담해줘',compact):
+        context['casual_topic']='humor'
+        return response('씨앗에게 가장 필요한 응원은? “잘 자라!”예요. 잠깐 웃고 쉬어 가요.',context,'context')
+    if intent=='other' and not specific and not re.search(r'지원|신청|농업|농사|금융|대출|자격',question):
+        return response('어떤 점이 궁금하신지 조금만 더 이야기해 주세요. 확인이 필요한 최신 정보는 아는 것처럼 답하지 않고, 영농 고민은 공식 자료와 구분해 함께 정리할게요.',context,'context')
     if not (guide or greet or starter):return None
     missing=[]
     if 'farm_region' not in context:missing.append('어느 시·군에서 농사짓고 있거나 시작할 예정인가요?')
@@ -289,7 +310,7 @@ def basic_response(encoded,corpus,grounded):
             # Without another topic, prefer explicitly local notices over nationwide ones.
             ranked.append((score,k))
         if area and not topic:
-            if AREAS[area][1] and any(v[0]==3 for v in ranked):ranked=[v for v in ranked if v[0]==3]
+            if AREAS.get(area,(None,True))[1] and any(v[0]==3 for v in ranked):ranked=[v for v in ranked if v[0]==3]
         keys=[k for score,k in sorted(ranked,key=lambda v:candidate_order(v[1],corpus,context,v[0]))]
         if not keys:
             label=' · '.join(v for v in (area,crop,'청년농업인' if re.search('청년|후계농',question) else None) if v) or '말씀하신 조건'

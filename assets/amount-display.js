@@ -27,5 +27,14 @@
   }
   return {original,display:display+original.slice(last),segments};
  }
- root.MunongsaAmounts={literal,wonText,analyse,format:v=>analyse(v).display};
+ function parseInput(value,defaultUnit='man'){
+  const s=String(value).trim().replace(/\s+/g,'');if(!s)return null;
+  const n='(?:\\d{1,3}(?:,\\d{3})+|\\d+)(?:\\.\\d{1,4})?';
+  let m=s.match(new RegExp('^('+n+')억(?:('+n+')만)?원?$'));
+  let won;
+  if(m)won=Number(m[1].replace(/,/g,''))*100000000+Number((m[2]||'0').replace(/,/g,''))*10000;
+  else{m=s.match(new RegExp('^('+n+')(천만|만)?원?$'));if(!m)return NaN;const unit=m[2]||(/원$/.test(s)?'원':defaultUnit);won=Number(m[1].replace(/,/g,''))*({천만:10000000,만:10000,원:1,man:10000,won:1}[unit]);}
+  return Number.isSafeInteger(won)&&won>0?won:NaN;
+ }
+ root.MunongsaAmounts={literal,wonText,analyse,parseInput,format:v=>analyse(v).display};
 })(globalThis);

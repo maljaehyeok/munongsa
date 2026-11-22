@@ -28,12 +28,15 @@
   ];
   let editor=null;
   const contextLine=document.createElement('details');contextLine.className='chat-context';contextLine.hidden=true;byId('chatQuestion').closest('.chat-composer-inner').prepend(contextLine);
-  function updateContext(value){
+  function updateContext(value,share=true){
     conversation=value||{};
+    if(share)globalThis.MunongsaFarmProfile?.apply(conversation);
     const labels=fields.filter(f=>conversation[f.key]!==undefined).map(f=>{
       const value=conversation[f.key],option=f.options?.find(v=>String(Array.isArray(v)?v[0]:v)===String(value));
       return f.label+': '+(Array.isArray(option)?option[1]:option||value)+(f.key==='group_size'&&conversation.group_min?' 이상':'');
     });
+    const money=globalThis.MunongsaFarmProfile?.money||{};
+    for(const [key,label]of Object.entries({own:'보유 자금',loan:'희망 대출금',project:'필요 사업비',required:'필요 자금'}))if(money[key])labels.push(label+': '+MunongsaAmounts.wonText(money[key]));
     contextLine.replaceChildren(text('summary','적용 중인 조건 '+labels.length+'개'));
     const values=text('div','','chat-context-values');labels.forEach(label=>values.append(text('span',label)));
     values.append(conditionButton('조건 수정',()=>openConditions()));contextLine.append(values);contextLine.hidden=!labels.length;
@@ -52,7 +55,9 @@
       const label=text('label','','chat-condition-field');label.append(text('span',f.label));
       const control=document.createElement(f.options?'select':'input');control.name=f.key;control.dataset.condition=f.key;
       if(f.options){const blank=text('option','선택 안 함');blank.value='';control.append(blank);
-        f.options.forEach(v=>{const option=text('option',Array.isArray(v)?v[1]:v);option.value=Array.isArray(v)?v[0]:v;control.append(option);});
+        const choices=['region','farm_region'].includes(f.key)&&globalThis.MunongsaInputUX?.places?MunongsaInputUX.places().map(p=>[[p.region,p.district].filter(Boolean).join(' '),p.text]):f.options;
+        choices.forEach(v=>{const option=text('option',Array.isArray(v)?v[1]:v);option.value=Array.isArray(v)?v[0]:v;control.append(option);});
+        if(conversation[f.key]&&!Array.from(control.options).some(o=>o.value===String(conversation[f.key]))){const current=text('option',String(conversation[f.key]));current.value=String(conversation[f.key]);control.append(current);}
       }else{control.type='number';control.min=f.min;control.max=f.max;control.step=f.step;control.inputMode=f.step===1?'numeric':'decimal';control.placeholder='선택 입력';}
       control.value=conversation[f.key]===undefined?'':String(conversation[f.key]);
       if(f.key==='group_size'&&conversation.group_min)label.append(text('small','앞서 알려주신 값은 최소 인원이에요. 수정하면 정확한 인원으로 비교해요.'));
@@ -107,7 +112,8 @@
     const str=v=>typeof v==='string',strings=v=>Array.isArray(v)&&v.length<=100&&v.every(str);
     const context=data?.conversation;
     const validContext=context===undefined||(context&&typeof context==='object'&&!Array.isArray(context)
-      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm'].includes(k))
+      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm','casual_topic'].includes(k))
+      &&(context.casual_topic===undefined||['meal','wellbeing','humor'].includes(context.casual_topic))
       &&['age','group_size','farming_years','facility_sqm'].every(k=>context[k]===undefined||(typeof context[k]==='number'&&Number.isFinite(context[k])&&context[k]>=0&&context[k]<=100000000))
       &&['planned','cultivating','group_min'].every(k=>context[k]===undefined||typeof context[k]==='boolean')
       &&['region','crop','farm_registered','farm_region','age_basis','applicant'].every(k=>context[k]===undefined||(str(context[k])&&context[k].length<=24))
@@ -254,7 +260,10 @@
     const paragraphs=text('div','','chat-answer-text');readableAnswer(data).split(/\n{2,}/).filter(Boolean).forEach(p=>paragraphs.append(text('p',p)));explanation.append(paragraphs);node.append(explanation);
   }
   function message(label,value,kind){const node=text('article','','chat-message chat-message-'+kind);node.append(text('p',label,'chat-message-label'),text('p',value));history.append(node);return node;}
-  function openChat(event){opener=event.currentTarget;dialog.showModal();document.documentElement.classList.add('chat-ui-open');input.focus({preventScroll:true});resizeInput();}
+  function pullProfile(){if(typeof readProfile==='function'&&globalThis.MunongsaFarmProfile){const p=readProfile();if(p.requiredFundsWon)MunongsaFarmProfile.money.required=p.requiredFundsWon;else delete MunongsaFarmProfile.money.required;updateContext(MunongsaFarmProfile.toConversation(p,conversation),false);}}
+  document.addEventListener('munongsa:profile-reset',()=>updateContext({},false));
+  document.addEventListener('munongsa:profile-change',()=>{if(!pending&&!globalThis.MunongsaFarmProfile?.isApplying())pullProfile();});
+  function openChat(event){pullProfile();opener=event.currentTarget;dialog.showModal();document.documentElement.classList.add('chat-ui-open');input.focus({preventScroll:true});resizeInput();}
   byId('openChat').addEventListener('click',openChat);
   document.querySelectorAll('[data-start-chat]').forEach(button=>button.addEventListener('click',openChat));
   document.querySelectorAll('[data-start-conditions]').forEach(button=>button.addEventListener('click',event=>{if(!localPage&&typeof navigateTo==='function'){navigateTo('support');return;}openChat(event);openConditions();}));
@@ -275,9 +284,17 @@
     if(pending||!localPage)return;
     if(!question||question.length>1000||/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(question)){input.setCustomValidity('질문을 1~1,000자로 입력하고 사용할 수 없는 특수문자는 지워주세요.');input.reportValidity();return;}
     if(editor?.isConnected)editor.remove();
+    pullProfile();
     showConversation(true);byId('chatFormStatus').textContent='';message('내 질문',label,'user');
     const status=message('무농사','생각 중...','status');status.setAttribute('role','status');
     pending=true;sync();status.scrollIntoView({block:'nearest',behavior:'instant'});
+    const funding=globalThis.MunongsaFarmProfile?.fundingQuestion(question);
+    if(funding){MunongsaFarmProfile.money[funding.kind]=funding.won;}
+    if(funding?.kind==='required'&&globalThis.MunongsaInputUX?.setFunds(funding.won))message('입력 확인','필요 자금 '+MunongsaAmounts.wonText(funding.won)+'으로 반영했어요. 보유 자금이나 대출 승인액을 뜻하지 않아요.','answer');
+    if(funding?.kind==='own')message('입력 확인','말씀하신 보유 자금은 '+MunongsaAmounts.wonText(funding.won)+'이에요. 필요 사업비·희망 대출금과 달라 자동으로 대입하지 않았어요.','answer');
+    if(funding&&['loan','project'].includes(funding.kind))message('입력 확인',(funding.kind==='loan'?'희망 대출금: ':'필요 사업비: ')+MunongsaAmounts.wonText(funding.won)+'으로 따로 기억했어요. 필요 자금과 같은 금액으로 비교하려면 농업금융의 필요 자금에 입력해 주세요.','answer');
+    const finance=/대출|융자|정책자금|금융|자금\s*부족|자금이\s*부족|시설\s*(?:설치\s*)?자금/.test(question);
+    const mixed=finance&&/지원사업|보조금/.test(question);
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
     try{
       const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:requestQuestion(question)}),signal:controller.signal,credentials:'omit',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer'});
@@ -287,13 +304,27 @@
       const raw=await response.text();if(raw.length>262144)throw new Error('답변이 너무 커서 표시하지 않았어요. 질문을 나눠 보내주세요.');
       let data;try{data=JSON.parse(raw)}catch{throw new Error('서버 응답 형식을 확인해야 해요.');}
       if(!validResponse(data))throw new Error('답변의 공식 근거 항목을 확인해야 해요.');
-      renderAnswer(status,data);updateContext(data.conversation);offerConditions(status,data);if(question!==selectionQuestion)input.value='';
+      updateContext(data.conversation);if(finance&&!mixed)await financeAnswer(status,question);else{renderAnswer(status,data);offerConditions(status,data);if(mixed)await financeAnswer(status,question,true);}if(question!==selectionQuestion)input.value='';
     }catch(error){
       const value=error.name==='AbortError'?'응답 대기 시간이 초과됐어요. 잠시 후 다시 보내주세요.':error instanceof Error&&error.name==='Error'?error.message:'서버에 연결하지 못했어요. 잠시 후 다시 보내주세요.';
       status.className='chat-message chat-message-error';status.replaceChildren(text('p','다시 시도해 주세요','chat-message-label'),text('p',value),text('p',question===selectionQuestion?'선택한 조건은 유지돼요. 내 조건 선택·수정에서 다시 검색해 주세요.':'작성한 질문은 입력창에 그대로 남아 있어요.'));
     }finally{clearTimeout(timer);pending=false;status.removeAttribute('role');sync();if(dialog.open){input.focus({preventScroll:true});status.scrollIntoView({block:'start',behavior:'instant'});}}
   }
-  byId('clearChat').addEventListener('click',()=>{if(pending)return;history.replaceChildren();updateContext({});showConversation(false);input.value='';byId('chatFormStatus').textContent='';sync();body.scrollTop=0;input.focus({preventScroll:true});});
+  async function financeAnswer(node,question,append=false){
+    if(!append){node.replaceChildren(text('p','무농사 · 농업금융 안내','chat-answer-label'));node.className='chat-message chat-message-answer';}
+    node.append(text('p','보조금은 공고별 지원이고, 정책자금·융자는 갚아야 하는 자금이에요. 입력한 영농 조건을 그대로 사용하되 대출 승인·중복 수혜·자부담 충당은 보장하지 않아요.'));
+    if(/만약|가정|등록하면|이라면/.test(question))node.append(text('p','가정한 조건은 실제 프로필에 저장하지 않았어요. 아래 금융 후보는 현재 입력된 실제 조건 기준이며, 가정에 따른 대출 가능 여부를 확정한 결과가 아니에요.'));
+    try{
+      const r=await fetch('./data/finance-mvp.json',{cache:'no-cache'});if(!r.ok)throw Error('finance');const data=await r.json();
+      const p=typeof readProfile==='function'?readProfile():{},terms=['귀농','청년','후계','농지','시설'].filter(t=>question.includes(t));
+      let found=MunongsaFinance.filter(data.products,terms[0]||'','all');
+      found=MunongsaFinance.rank(found,p).filter(item=>MunongsaFinance.compare(item,p).state!=='mismatch');
+      node.append(text('p',found.length?'공식 금융 안내 중 확인할 후보예요. 일부 조건 비교이며 신청 가능 확정이 아니에요.':'현재 조건으로 안내할 금융 후보가 부족해요. 조건을 확인하거나 취급기관에 문의해 주세요.'));
+      for(const item of found.slice(0,3)){const card=text('section','','chat-finance-result');card.append(text('h3',item.title),text('p',item.target));const link=conditionButton('공식 조건·신청 방법 확인',()=>{dialog.close();navigateTo('bank','',{kind:'financeMvp',key:item.id});});card.append(link);node.append(card);}
+      const row=text('div','','chat-followups');row.append(conditionButton('농업금융 전체 보기',()=>{dialog.close();navigateTo('bank');}),conditionButton('같은 조건으로 지원사업 찾기',()=>{if(!pending)sendQuestion(selectionQuestion);}));node.append(row);
+    }catch{node.append(text('p','금융자료를 불러오지 못했어요. 농업금융 메뉴에서 다시 확인해 주세요.'));}
+  }
+  byId('clearChat').addEventListener('click',()=>{if(pending)return;history.replaceChildren();conversation={};pullProfile();showConversation(false);input.value='';byId('chatFormStatus').textContent='새 대화를 시작해요. 입력한 영농 조건은 유지돼요. 조건 전체는 탐색 화면에서 초기화할 수 있어요.';sync();body.scrollTop=0;input.focus({preventScroll:true});});
   if(!localPage){byId('chatAvailability').replaceChildren(text('span','질문 상담은 '),Object.assign(text('a','무농사 대표 주소 ↗'),{href:'https://munongsa.duckdns.org/'}),text('span','에서 이용할 수 있어요. 조건 검색은 이 화면에서도 이용할 수 있어요.'));byId('chatPrivacy').textContent='현재 주소에서는 질문을 전송하지 않아요. 대표 주소에서 상담을 이용해 주세요.';}
   const discovery=byId('supportDiscovery');
   document.querySelector('[data-scroll-services]').addEventListener('click',event=>{

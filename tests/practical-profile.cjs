@@ -1,0 +1,14 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+global.document={getElementById:()=>null};
+for(const file of ['amount-display','farm-profile'])vm.runInThisContext(fs.readFileSync('assets/'+file+'.js','utf8'));
+for(const text of ['3,000만 원','3000만원','30,000,000원'])assert.equal(MunongsaAmounts.parseInput(text),30000000);
+for(const text of ['-3000','2,00','3000원원','0','Infinity','1e8','3원abc'])assert(Number.isNaN(MunongsaAmounts.parseInput(text)),text);
+assert.equal(MunongsaAmounts.parseInput('1억 5,000만원'),150000000);
+assert.equal(MunongsaAmounts.parseInput('3000'),30000000);
+assert.equal(MunongsaFarmProfile.fundingQuestion('필요 자금은 3,000만원이에요').won,30000000);
+assert.equal(MunongsaFarmProfile.fundingQuestion('보유 자금은 3000만원이에요').kind,'own');
+assert.equal(MunongsaFarmProfile.fundingQuestion('만약 필요 자금은 3000만원이라면'),null);
+let c=MunongsaFarmProfile.toConversation({region:'제주',district:'all',residenceRegion:'경남',residenceDistrict:'산청군',applicant:'agricultural_corporation',farmRegistered:'no'});
+assert.equal(c.region,'경남 산청군');assert.equal(c.farm_region,'제주');assert.equal(c.applicant,'agricultural_corporation');assert.equal(c.farm_registered,'no');
+assert(!('region' in MunongsaFarmProfile.toConversation({},c)));
+console.log('공통 프로필·금액 안전 검사 통과');

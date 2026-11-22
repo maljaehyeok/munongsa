@@ -8,6 +8,7 @@
   <link rel="canonical" href="https://munongsa.duckdns.org/">
 <link rel="stylesheet" href="./assets/chat-ui.css?v=conditions-20261112">
 <script src="./assets/amount-display.js?v=ux-20261114"></script>
+<script src="./assets/farm-profile.js?v=20261122"></script>
 <script src="./assets/chat-ui.js?usability-20261115" defer></script>
   <link rel="stylesheet" href="./assets/ui-v2.css?v=support-readable-20261029">
   <link rel="stylesheet" href="./assets/finance-mvp.css?v=finance-20261029">
@@ -24,9 +25,10 @@
       <p class="eyebrow">MUNONGSA / 농사를 시작하는 당신에게</p>
       <img class="brand-hero-logo" src="./assets/brand/munongsa-brand-logo-transparent.svg" alt="무농사 MUNONGSA 브랜드 로고" width="1114" height="1114" fetchpriority="high" decoding="async">
       <h1 id="brandHeading">농사의 시작을<br>더 쉽게</h1>
-      <h2>공식 지원사업을 내 조건으로</h2>
+      <h2>지원사업과 영농 자금을 내 조건으로</h2>
       <p class="brand-description">내 상황을 알려주면 공고의 조건을 비교해요.<br>확인할 내용을 살펴보고 공식 신청 안내로 이어가세요.</p>
-      <button type="button" class="hero-support-action" data-start-chat aria-haspopup="dialog" aria-controls="supportChat">내 지원사업 찾기 <span aria-hidden="true">→</span></button>
+      <button type="button" class="hero-support-action" data-start-chat aria-haspopup="dialog" aria-controls="supportChat">AI에게 질문하기 <span aria-hidden="true">→</span></button>
+      <a class="discovery-browse" href="#categories?category=support" data-home-service="support">내 영농 상황으로 찾기 →</a>
     </div>
     <a class="service-scroll-cue discovery-cue" href="#supportDiscovery" data-scroll-services>나에게 맞는 지원사업 찾기 <span aria-hidden="true">↓</span></a>
   </section>
@@ -333,6 +335,7 @@
       return '#categories?'+params.toString();
     }
     function rememberProfile(){
+      document.dispatchEvent(new Event('munongsa:profile-change'));
       if(!navigationReady||!history.state?.munongsaNavigation)return;
       const profile=readProfile();
       if(JSON.stringify(profile)!==JSON.stringify(history.state.profile))
@@ -405,7 +408,7 @@
     document.getElementById('filterForm').addEventListener('submit',e=>{e.preventDefault();draw()});
     document.getElementById('resetFilters').addEventListener('click',()=>{
       document.getElementById('filterForm').reset();document.getElementById('supportSearch').value='';document.getElementById('financeSearch').value='';document.getElementById('financePurpose').value='all';document.getElementById('supportStateFilter').value='all';financeQuery='';financePurpose='all';supportViewFilter='current';supportPeriodFilter='all';selectedCropName='';
-      MunongsaCultivation.resetSelection();MunongsaInputUX.reset();
+      MunongsaCultivation.resetSelection();MunongsaInputUX.reset();document.dispatchEvent(new Event('munongsa:profile-reset'));
       const state=navigationFromUrl();state.crop='';state.detail=null;
       history.replaceState({...history.state,...state,profile:readProfile(),modalEntry:false},'',navigationUrl(state));
       updateRegion();
