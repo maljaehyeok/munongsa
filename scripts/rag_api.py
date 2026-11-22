@@ -165,6 +165,15 @@ def local_pipeline(question):
         decorate_cards(response,corpus)
         return rag_dialogue.remember(response,corpus)
     guidance=rag_dialogue.service_response(question,corpus) or rag_dialogue.continuation(question,corpus,lambda query,notice:grounded_response(query,corpus,notice))
+    # Topic discovery is independent of eligibility. Reuse only the validated
+    # profile parser; never infer residence from a notice or spend a model call.
+    discovery_intent=bool(re.search(r'지원|사업|시설|창업|귀농|교육|비료|보험|시작하려',original)) and not re.search(r'신청 가능|자격|서류|방법|마감|그\s*사업|대출|금융|융자',original)
+    if discovery_intent and not rag_dialogue.rag_profile.hypothetical(original) and (not guidance or guidance.get('kind')=='help'):
+        facts,error=rag_dialogue.rag_profile.extract(original,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
+        if not error:
+            encoded=rag_dialogue.PREFIX+json.dumps({**context,**facts},ensure_ascii=False)+rag_dialogue.SEPARATOR+original
+            listing=rag_catalogue.respond(encoded,corpus)
+            if listing:return catalogue_response(listing,corpus)
     if guidance and not guidance['programs']:
         listing=rag_catalogue.respond(question,corpus,fallback=guidance)
         if listing and guidance.get('kind') in ('catalogue','clarify'):return catalogue_response(listing,corpus)

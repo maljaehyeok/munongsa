@@ -52,11 +52,14 @@ def search_text(item,feed,now):
     values=[item['title'],item['institution']]
     # Approved locality text supports discovery only, never a location requirement.
     if item.get('publication') in ('approved','approved_reference') and item.get('verification_status')=='verified':
-        for field in ('region','target'):
+        for field in ('region','target','support'):
             value=item.get(field);evidence=item.get('evidence',{}).get(field,{})
             if isinstance(value,str) and len(value)<=1000 and evidence.get('url')==item['url'] and evidence.get('location'):values.append(value)
     observed=review.project(review.fact_project(item,feed.get('verified_facts',{}).get(item['id']),now),feed.get('notice_observations',{}).get(item['id']),now)
     # Office locality helps discovery, never supplies a residence/farm requirement.
+    for field in ('target','support'):
+        value=observed.get(field)
+        if observed.get('verified_facts_at') and isinstance(value,str) and len(value)<=1000:values.append(value)
     office=observed.get('application_preparation',{}).get('office_note')
     if isinstance(office,str) and len(office)<=100:values.append(office)
     for condition in approved_conditions(item,feed,now):
@@ -98,6 +101,16 @@ def records(feed,now=None):
         except (KeyError,ValueError,TypeError):continue
     return out
 
+TOPICS=(('창업','귀농','초보','처음','시작','정착','청년'),('시설','설치','온실','스마트팜','현대화'),('교육','배우','연수','컨설팅'),('비료','유기질','토양','유기농'),('수출','판로','판매','유통'),('보험','재해'),('융자','대출','금융','자금'))
+
+def discovery_score(question,title,hay):
+    q=question.lower();title=title.lower();hay=hay.lower()
+    terms=[re.sub(r'(?:으로|에서|관련|을|를|이|가|은|는)$','',t) for t in re.findall('[가-힣a-z0-9]+',q)]
+    terms=[t for t in terms if len(t)>1 and t not in {'지원사업','지원','사업','공고','농사','농업','농업인','관련','어떤','있어','알려줘','보여줘','하려고','해요'}]
+    hits=[t for t in terms if t in hay]
+    topical=sum(any(t in q for t in group) and any(t in hay for t in group) for group in TOPICS)
+    return sum(20 if t in title else 8 for t in hits)+30*topical, bool(hits or topical)
+
 def matches(question,feed,context=None,now=None):
     context=context or {};now=now or datetime.now(timezone.utc);text=rag_dialogue.normalized(question)
     personal=question=='선택한 조건으로 지원사업을 찾아주세요.'
@@ -117,23 +130,19 @@ def matches(question,feed,context=None,now=None):
         shown=review.project(review.fact_project(raw,feed.get('verified_facts',{}).get(raw['id']),now),feed.get('notice_observations',{}).get(raw['id']),now)
         past=review.notice_state(shown,now)=='elapsed'
         if not exact and past!=archive:continue
-        if not exact and not personal:
-            # A title/location word is relevance only, never a residence or farm requirement.
-            if area and area not in hay and not ('전국' in text and '전국' in hay):continue
-            if crop and crop not in hay:continue
-            topical=[t for t in terms if t not in ('지원사업을','지원사업이','사업명으로','알려주세요')]
-            if topical and not any(t in hay for t in topical):continue
-            if not (area or crop or topical or re.search(r'전체|공개|지원사업|공고',text)):continue
-        ranked.append((100 if exact else sum(v in hay for v in terms)+bool(area and area in hay),raw))
+        relevance,related=discovery_score(text,title,hay.replace(raw['institution'],''))
+        if context.get('planned') is True and re.search(r'기업|수출업체|기관 모집',title) and not re.search(r'기업|수출',text):relevance-=15
+        if not exact and not personal and not related and not re.fullmatch(r'(?:전체|공개|지난)?\s*(?:지원사업|공고)',text):continue
+        ranked.append((1000 if exact else relevance,raw))
     def order(pair):
         score,item=pair
         shown=review.project(review.fact_project(item,feed.get('verified_facts',{}).get(item['id']),now),feed.get('notice_observations',{}).get(item['id']),now)
         period=review.notice_state(shown,now)
         compared=comparison(item,feed,context,now)
-        mismatch=bool(compared and compared['label']=='조건 불일치')
+        mismatch=bool(compared and compared.get('decision',{}).get('excluded'))
         tier=compared['decision']['tier'] if compared and compared.get('decision') else 3
         announced=shown.get('actual_reception_state')=='operator_notice'
-        return (score!=100,tier,mismatch,{'window':0 if announced else 1,'upcoming':2,'standing':3,'unknown':4,'elapsed':5}[period],-score,item['title'])
+        return (score!=1000,mismatch,0 if personal else -score,tier,{'window':0 if announced else 1,'upcoming':2,'standing':3,'unknown':4,'elapsed':5}[period],-score,item['title'])
     found=[r for _,r in sorted(ranked,key=order)]
     return [r for r in found if not (comparison(r,feed,context,now) or {}).get('decision',{}).get('excluded')] if personal else found
 
@@ -204,7 +213,7 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
     elif fallback and fallback.get('programs') and not page and len(found)<=3 and question!='선택한 조건으로 지원사업을 찾아주세요.':return None
     # Follow-up to a metadata-only listing: do not redirect it to another approved business.
     previous=[] if page else context.get('notice_ids',[])
-    if question!='선택한 조건으로 지원사업을 찾아주세요.' and not explicit and previous and any(i not in strict for i in previous) and re.search(r'그\s*사업|서류|지원금|자격|조건|마감|첫\s*번째|두\s*번째',question):
+    if question!='선택한 조건으로 지원사업을 찾아주세요.' and not explicit and previous and any(i not in strict for i in previous) and re.search(r'그\s*사업|서류|지원금|자격|조건|마감|첫\s*번째|두\s*번째|^신청\s*가능',question):
         by_id={n['id']:n for n in records(feed,now)}
         found=[by_id[i] for i in previous if i in by_id]
         if not found:return rag_dialogue.response('앞서 본 공고를 최신 공개 목록에서 확인할 수 없어 안내를 보류했어요. 사업명으로 다시 찾아주세요.',{},'clarify',status='needs_verification')
@@ -220,7 +229,7 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
     chosen=found[offset:offset+3];programs=[program(n,feed,now,context) for n in chosen]
     conversation={**context,'notice_ids':[n['id'] for n in chosen],'list_ids':[],'list_versions':[],'last_kind':'results'}
     summary='\n\n'.join(p['name']+' — '+p['card']['label']+'\n확인할 조건: '+' / '.join(p['comparison']['checks']) for p in programs)
-    intro='공식 지역 조건을 확인한 후보를 먼저 표시합니다. 전체 신청 자격과 실제 접수는 별도 확인이 필요합니다.' if any(p['comparison']['decision']['region_state']=='match' and p['comparison']['decision']['tier']<2 for p in programs) else '지역·주요 조건이 확인된 추천 공고가 부족합니다. 아래는 추가 확인이 필요한 참고 공고입니다.'
+    intro='질문과 공개 정보의 관련성을 기준으로 탐색한 결과입니다. 관련성이 신청 자격 충족을 뜻하지 않습니다. 공식 조건 비교와 추가 확인 사항을 따로 확인하세요.' if question!='선택한 조건으로 지원사업을 찾아주세요.' else '공식 조건 비교와 참고 공고를 구분해 안내합니다. 전체 신청 자격과 실제 접수는 별도 확인이 필요합니다.'
     return {**rag_dialogue.response(f'공식 공고 {len(found)}건 중 {offset+1}~{offset+len(chosen)}번째를 안내합니다. '+intro+'\n\n'+summary,conversation,'catalogue',status='needs_verification',programs=programs),
             'sources':[{'url':p['source_url'],'location':'공식 제목·기관·원문 링크 확인','checked_at':p['checked_at']} for p in programs],
             'catalogue_total':len(found),'catalogue_start':offset+1,'catalogue_scope':'past' if all(p['card']['period_state']=='elapsed' for p in programs) else 'current',

@@ -48,16 +48,26 @@
    return {state,weight:not?0:1,text};
   });
  }
+ // Interest vocabulary never creates an eligibility condition.
+ const topics=[['창업','귀농','초보','처음','시작','정착','청년'],['시설','설치','온실','스마트팜','현대화'],['교육','배우','연수','컨설팅'],['비료','유기질','토양','유기농'],['수출','판로','판매','유통'],['보험','재해'],['융자','대출','금융','자금']];
+ function discovery(item,profile={},query=''){
+  const title=String(item.title||'').toLowerCase(),hay=[title,item.institution,item.target,item.support,item.application_preparation?.office_note].filter(v=>typeof v==='string'&&v!=='unknown').join(' ').toLowerCase(),q=String(query).toLowerCase().trim();
+  const terms=(q.match(/[가-힣a-z0-9]+/g)||[]).map(t=>t.replace(/(?:으로|에서|관련|을|를|이|가|은|는)$/,'')).filter(t=>t.length>1&&!/^(지원사업|지원|사업|공고|농사|농업|농업인|관련|어떤|있어|알려줘|보여줘|하려고|해요)$/.test(t));
+  const hits=terms.filter(t=>hay.includes(t)),thematic=topics.filter(g=>g.some(t=>q.includes(t))&&g.some(t=>[title,item.target,item.support].filter(v=>typeof v==='string').join(' ').includes(t))),compact=q.replace(/[^가-힣a-z0-9]/g,''),exact=compact.length>=6&&title.replace(/[^가-힣a-z0-9]/g,'').includes(compact);
+  const preparing=!q&&profile.farmingSituation==='preparing'&&topics[0].some(t=>[title,item.target,item.support].filter(v=>typeof v==='string').join(' ').includes(t)),place=[profile.district,profile.region].filter(t=>t&&t!=='all').some(t=>hay.includes(t)),crop=profile.crop&&profile.crop!=='all'&&hay.includes(profile.crop);
+  const audiencePenalty=profile.farmingSituation==='preparing'&&/기업|수출업체|기관 모집/.test(title)&&!/기업|수출/.test(q)?15:0;
+  return {score:(exact?1000:0)+hits.reduce((n,t)=>n+(title.includes(t)?20:8),0)+thematic.length*30+(preparing?8:0)+(place?3:0)+(crop?5:0)-audiencePenalty,matches:!q||exact||hits.length>0||thematic.length>0,reasons:[...(hits.length?['검색어와 공개 정보 관련']:[]),...(thematic.length?['관심 분야와 사업명·공개 지원 내용 관련']:[]),...(preparing?['영농 준비 관심 분야 관련']:[])],eligibility_confirmed:false};
+ }
  function support(data,profile,now=Date.now()){
   const groups=root.MunongsaSupport.explore(data,profile,now),rows=[...groups.recommendations,...groups.excluded,...groups.references];
   return rows.map(row=>{const facts=data.verified_facts?.[row.item.id],shown=root.MunongsaNoticeReview?.project(sourceFacts(row.item,facts,now),data.notice_observations?.[row.item.id],now)||sourceFacts(row.item,facts,now),reviewed=sourceConditions(row.item,data.verified_comparisons?.[row.item.id]||facts,now),projected=project(reviewed||row.item),match=root.MunongsaSupport.evaluate(projected,profile),why=reasons(projected,match),place=String(profile.district||'').replace(/[시군]$/,''),scope=row.item.region||'';
    const geographic=place.length>=2&&place!=='all'&&scope.includes(place)?'영농지역과 안내 지역 관련 · 거주·농지 자격 충족 아님':null;
    const display=root.MunongsaSupportReview.presentation(shown,now),verdict=decision(projected,shown,match,profile),relatedCandidate=verdict.region_state==='match'&&!verdict.excluded&&display.state==='window'&&why.some(r=>r.state==='match');
    const sourceWarning=data.source_review?.[row.item.id]?.title_needs_review===true;
-   return {...row,sourceItem:row.item,item:shown,match,decision:verdict,comparisonItem:{...shown,eligibility:projected.eligibility},reasons:why,geographic,sourceWarning,comparisonReady:!!reviewed&&!sourceWarning,relatedCandidate:relatedCandidate&&!sourceWarning,recommendationAllowed:row.available&&verdict.category==='A'&&!sourceWarning,display,relevance:why.reduce((n,r)=>n+(r.state==='match'?r.weight:0),0)};
+   return {...row,discovery:discovery(shown,profile,profile.supportSearch||''),sourceItem:row.item,item:shown,match,decision:verdict,comparisonItem:{...shown,eligibility:projected.eligibility},reasons:why,geographic,sourceWarning,comparisonReady:!!reviewed&&!sourceWarning,relatedCandidate:relatedCandidate&&!sourceWarning,recommendationAllowed:row.available&&verdict.category==='A'&&!sourceWarning,display,relevance:why.reduce((n,r)=>n+(r.state==='match'?r.weight:0),0)};
   }).sort((a,b)=>{
    const period=r=>({window:r.display.operator_notice?0:1,upcoming:2,standing:3,unknown:4,elapsed:5}[r.display.state]??4),condition=r=>({match:0,check:1,mismatch:2}[r.match.conditionStatus]);
-   return a.decision.tier-b.decision.tier||Number(a.decision.audience_check)-Number(b.decision.audience_check)||period(a)-period(b)||condition(a)-condition(b)||b.relevance-a.relevance||(a.display.end||'9999-12-31').localeCompare(b.display.end||'9999-12-31')||a.item.id.localeCompare(b.item.id);
+   return Number(a.decision.excluded)-Number(b.decision.excluded)||(profile.supportSearch?b.discovery.score-a.discovery.score:0)||a.decision.tier-b.decision.tier||Number(a.decision.audience_check)-Number(b.decision.audience_check)||period(a)-period(b)||b.discovery.score-a.discovery.score||condition(a)-condition(b)||b.relevance-a.relevance||(a.display.end||'9999-12-31').localeCompare(b.display.end||'9999-12-31')||a.item.id.localeCompare(b.item.id);
   });
  }
  function decision(projected,shown,match,profile){
@@ -82,5 +92,5 @@
   else{category='D';label='조건 정보 부족';tier=3;}
   return {category,label,tier,region_state:region,audience_check:!!audience,excluded:category==='C',final_application_eligibility_confirmed:false};
  }
- root.MunongsaPersonalization={project,reasons,support,sourceConditions,sourceFacts,decision};
+ root.MunongsaPersonalization={project,reasons,support,sourceConditions,sourceFacts,decision,discovery};
 })(globalThis);

@@ -287,7 +287,7 @@
     if(!question||question.length>1000||/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(question)){input.setCustomValidity('질문을 1~1,000자로 입력하고 사용할 수 없는 특수문자는 지워주세요.');input.reportValidity();return;}
     if(editor?.isConnected)editor.remove();
     pullProfile();
-    if(lastNext&&/^(?:다른|다음|나머지)\s*지원사업(?:도)?\s*(?:보여줘|알려줘)[.!?\s]*$/.test(question))question='[공식 공고 더 보기]\n'+JSON.stringify(lastNext);
+    if(lastNext&&/^(?:다른|다음|나머지)\s*(?:관련\s*)?(?:지원)?사업(?:도)?\s*(?:보여줘|알려줘)[.!?\s]*$/.test(question))question='[공식 공고 더 보기]\n'+JSON.stringify(lastNext);
     showConversation(true);byId('chatFormStatus').textContent='';message('내 질문',label,'user');
     const status=message('무농사','생각 중...','status');status.setAttribute('role','status');
     pending=true;sync();status.scrollIntoView({block:'nearest',behavior:'instant'});
