@@ -20,14 +20,14 @@
   const duplicateLabels=reviewed?[...(reviewed.fields.summary?['지원 내용']:[]),...(reviewed.fields.method?['신청 방법']:[]),...(reviewed.fields.documents_required?['필요 서류']:[]),...(reviewed.fields.funding?['지원 규모·금액']:[]),...(reviewed.fields.office?['접수처']:[]),...(reviewed.fields.contact?['담당 기관·문의처']:[])]:[];
   const shownFields=reviewed?fields.filter(([k])=>k==='모집 상태'):fields;
   const details=root.MunongsaSupportDetails?.detail(row?.sourceItem||row?.item||item,esc,review.displayDate)||'';
-  const comparisons=facts.map(v=>`<li><b>${esc(v.label)}</b><p class="condition-result ${esc(v.comparison)}">${esc(v.comparison==='check'?'입력 후 비교 가능':v.status)}</p><p>${esc(v.fact)}</p></li>`).join('');
+  const comparisons=facts.map(v=>`<li><b>${esc(v.label)}</b><p class="condition-result ${esc(v.comparison)}">${esc(v.comparison==='check'?'입력 후 비교 가능':v.status)}</p><p>${esc(v.fact)}</p>${v.evidenceUrl?`<a href="${esc(v.evidenceUrl)}" target="_blank" rel="noopener">이 조건의 공식 근거 ↗</a>`:''}</li>`).join('');
   const application=item.application_url_verified===true&&item.application_url!==item.url?sourceButton(item.application_url,'별도 신청 안내 · 접수 완료 미검증'):'';
   return `${details}<h3>내 조건과 비교</h3><p>${row?esc(row.decision?.label||status[row.match.conditionStatus]||status.check):'검토 중 참고 공고 · 자격 비교 전'}</p><dl class="support-detail-list user-facts">${shownFields.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>${root.MunongsaSupportDetails?.links(item,esc)||`<div class="detail-actions">${sourceButton(item.url)}${application}</div>`}${facts.length?`<h3>비교한 조건과 근거</h3><ul>${comparisons}</ul>`:''}${missing.length?`<details class="more-conditions"><summary>더 확인할 조건 ${missing.length}개</summary><p>${esc([...new Set(missing.map(v=>v.label))].join(' · '))}</p></details>`:''}<div class="detail-caution"><h3>신청 전 확인하세요</h3><p>${esc(display.chips.filter(c=>!['세부 자격 일부 미확인','마감 임박','기재 기간 경과','검토중 · 참고자료'].includes(c.text)).map(c=>c.text).join(' · '))}</p><p>조건 비교는 신청 자격·접수 가능 확정이 아닙니다. 정정·연장·예산 소진·조기 종료와 세부 요건은 공식 원문에서 확인하세요.</p></div><p class="notice-meta">게시일 ${esc(review.displayDate(item.published_at))}<br>정보 확인일 ${row?esc(review.displayDate(item.last_checked_at)):'검토 전'}<br>마지막 수집일 ${esc(review.displayDate(item.last_collected_at||item.collected_at||item.checked_at))}</p><p>${esc(item.institution)}</p>`;
  }
  function profileFields(category,published,products=[],profile={}){
   const support=category==='support',bank=category==='bank',cultivation=category==='cultivation';
   const kinds=new Set();
-  if(support)for(const n of published?.notices||[]){const item=root.MunongsaPersonalization.project(n);for(const c of item.eligibility?.conditions||[])if(c.status==='verified'&&c.presence==='specified')kinds.add(c.kind)}
+  if(support)for(const n of published?.notices||[]){const approved=root.MunongsaPersonalization.sourceConditions?.(n,published.verified_comparisons?.[n.id]||published.verified_facts?.[n.id],Date.now())||n;const item=root.MunongsaPersonalization.project(approved);for(const c of item.eligibility?.conditions||[])if(c.status==='verified'&&c.presence==='specified')kinds.add(c.kind)}
   const precise=['organization','agricultural_corporation','group','business','municipality'].includes(profile.applicant)||profile.farmingSituation==='organization';
   return {region:!bank,district:!bank,age:false,experience:false,budget:false,
    requiredFundsMan:bank,applicant:precise&&(support&&kinds.has('applicant')||bank&&products.some(p=>p.applicants?.length)),
@@ -38,7 +38,7 @@
    farmRegistered:support&&kinds.has('farm_registration'),farmingYears:support&&kinds.has('farming_experience'),independentYears:support&&kinds.has('independent_management'),
    experienceBasisDate:support&&(kinds.has('farming_experience')||kinds.has('independent_management'))};
  }
- function applyProfileFields(category,published,products,profile){const fields=profileFields(category,published,products,profile);for(const [id,show]of Object.entries(fields)){const el=document.getElementById(id);if(el)el.closest('.field').hidden=!show}
+ function applyProfileFields(category,published,products,profile){const fields=profileFields(category,published,products,profile);for(const [id,show]of Object.entries(fields)){const el=document.getElementById(id);if(el){if(category==='support'&&el.dataset.conditionRequested==='true')fields[id]=true;el.closest('.field').hidden=!fields[id]}}
   const additional=document.getElementById('additionalProfileFields');additional.hidden=!Object.entries(fields).some(([id,show])=>show&&!['region','district','crop','requiredFundsMan'].includes(id));
   document.querySelector('#supportProfileFields>.hint').hidden=category==='bank';
   if(category==='bank'){const comparable=products.some(p=>p.applicants?.length);document.getElementById('farmingSituationField').hidden=!comparable;document.querySelector('.filters-intro').textContent=comparable?'신청자 유형·일부 연령을 비교해요. 필요 자금은 한도 참고에만 사용해요.':'보증은 별도 상담·심사가 필요해요. 필요 자금으로 보증 승인을 판단하지 않아요.'}

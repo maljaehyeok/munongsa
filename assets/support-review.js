@@ -101,11 +101,16 @@
     const names={applicant:'신청 대상',residence:'거주 지역',business_location:'사업장 소재지',age:'만 나이',farming_experience:'영농 경력',independent_management:'독립경영 경력',farm_registration:'농업경영체 등록',crop:'재배 작물',livestock:'사육 축종',scale:'영농 규모',facility:'시설 조건',group_size:'\uACF5\uB3D9 \uC2E0\uCCAD \uC778\uC6D0',export_activity:'수출 활동',other_required:'추가 자격조건',exclusion:'제외 조건'};
     const applicants={individual_farmer:'개인 농업인',agricultural_business:'농업법인',agricultural_corporation:'농업법인',corporation:'법인',institution_group:'기관·단체',group:'단체',business:'사업자'};
     const negatives=new Set();
+    function range(v,unit){
+      if(typeof v.min_inclusive!=='boolean'||typeof v.max_inclusive!=='boolean'||[v.min,v.max].some(n=>n!=null&&(!Number.isFinite(n)||n<0))||v.min==null&&v.max==null)return '';
+      return [v.min!=null?`${v.min}${unit} ${v.min_inclusive?'이상':'초과'}`:'',v.max!=null?`${v.max}${unit} ${v.max_inclusive?'이하':'미만'}`:''].filter(Boolean).join(' · ');
+    }
     function walk(n,negative=false,depth=0){if(!n||depth>12)return;if(n.condition_id){if(negative)negatives.add(n.condition_id);return}for(const child of n.children||[])walk(child,n.op==='NOT'?!negative:negative,depth+1)}walk(item.eligibility?.logic);
     return (match.conditions||[]).map(c=>{
       const original=(item.eligibility?.conditions||[]).find(v=>v.condition_id===c.id),v=original?.value||{},negative=negatives.has(c.id)||c.field==='exclusion';
       let fact='확인 필요';
-      if(original?.status==='verified'){
+      const trusted=original?.status==='verified'&&original.evidence?.location&&root.MunongsaSupport?.safeUrl(original.evidence.url)&&(original.evidence.quote||original.evidence.fact_confirmed===true);
+      if(trusted){
         if(original.presence==='no_restriction')fact='공식적으로 확인된 제한 없음';
         else if(original.presence==='specified'){
           if(c.field==='applicant'&&Array.isArray(v.one_of))fact=v.one_of.map(x=>applicants[x]||'신청 대상 확인 필요').join(' 또는 ');
@@ -115,16 +120,18 @@
           else if(c.field==='group_size'&&v.unit==='persons'&&Number.isInteger(v.min))fact=`공동 신청 인원 ${v.min}인 이상`;
           else if(c.field==='crop'&&Array.isArray(v.any_of))fact=v.any_of.join(', ');
           else if(c.field==='age'&&v.age_basis==='international')fact=[v.min!=null?`만 ${v.min}세 ${v.min_inclusive?'이상':'초과'}`:'',v.max!=null?`만 ${v.max}세 ${v.max_inclusive?'이하':'미만'}`:'',v.basis_date?`기준일 ${displayDate(v.basis_date)}`:'기준일 확인 필요'].filter(Boolean).join(' · ');
+          else if(['farming_experience','independent_management'].includes(c.field)&&v.unit==='years'&&range(v,'년'))fact=range(v,'년')+' · '+(validDay(v.basis_date)?'기준일 '+displayDate(v.basis_date):'기준일 확인 필요');
+          else if(c.field==='scale'&&v.metric==='cultivated_area'&&v.unit==='ha'&&range(v,'ha'))fact='재배 면적 '+range(v,'ha');
         }
       }
-      const individualExclusion=negative&&c.field==='applicant'&&v.one_of?.length===1&&v.one_of[0]==='individual_farmer';
+      const individualExclusion=trusted&&negative&&c.field==='applicant'&&v.one_of?.length===1&&v.one_of[0]==='individual_farmer';
       if(individualExclusion)fact='개인 단독 신청 제외 · 단체의 인원·조직 요건은 별도 확인';
       const comparison=negative?({match:'mismatch',mismatch:'match',check:'check'}[c.status]||'check'):c.status;
       let status=negative?{match:'명시된 제외 조건에 해당',mismatch:'이 제외 조건에는 해당하지 않음',check:'확인 필요'}[c.status]:{match:'입력 조건 일치',mismatch:'입력 조건 불일치',check:'확인 필요'}[c.status];
       if(individualExclusion)status={match:'개인 단독 신청 대상 아님',mismatch:'개인 단독 신청 제외 조건에는 해당하지 않음',check:'신청자 유형 확인 필요'}[c.status];
       if(!negative&&c.field==='export_activity')status={match:'수출 관련 기본 응답 일치 · 세부 요건 별도 확인',mismatch:'수출 관련 기본 응답 불일치',check:'수출 관련 응답 확인 필요'}[c.status];
       const fieldLabel=c.field==='business_location'?(v.location_basis==='farm_land'?'영농지':v.location_basis==='business_office'?'사업장 소재지':'소재지 기준 확인 필요'):(names[c.field]||'추가 자격조건');
-      return {label:(negative?'제외 조건 · ':'')+fieldLabel,fact,status:status||'확인 필요',comparison,evidenceUrl:c.evidence?.url||''};
+      return {label:(negative?'제외 조건 · ':'')+fieldLabel,fact,status:status||'확인 필요',comparison,evidenceUrl:trusted?c.evidence?.url||'':'',kind:c.field,locationBasis:v.location_basis||null};
     });
   }
   root.MunongsaSupportReview={schema,browse,label,publicRecords,presentation,sortRows,displayDate,conditionViews};
