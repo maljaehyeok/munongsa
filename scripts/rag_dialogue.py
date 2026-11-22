@@ -151,7 +151,7 @@ def continuation(encoded,corpus,grounded,intent=None):
     if next_step:
         return choose('신청 준비를 확인할 사업을 골라주세요. 그 사업의 공식 신청 방법·서류·접수처 중 저장된 근거가 있는 내용만 안내할게요. 전체 신청 자격이나 현재 접수 가능 여부는 별도 확인이 필요해요.')
     query='지원 금액 한도' if re.search('얼마|지원금|금액',question) or intent=='funding' else '신청 대상 조건과 모집기간 마감' if re.search('마감|언제|모집',question) or intent in ('deadline','open_notices') else '신청 대상 자격 조건 지원 내용' 
-    if '서류' in question or intent=='documents':query='필수 제출서류 신청처'
+    if '서류' in question or intent=='documents' or re.search(r'어떻게.*신청|어디.*신청|신청.*(?:방법|절차)|접수처',question):query='신청 방법 접수처 필수 제출서류'
     date_filter=bool(re.search(r'모집\s*중|신청\s*기간\s*내',question)) or intent=='open_notices'
     import rag_search
     from datetime import datetime,timezone
@@ -181,9 +181,19 @@ def service_response(encoded,corpus,intent=None):
     context['notice_ids']=[v for v in context.get('notice_ids',[]) if v in live]
     facts,error=rag_profile.extract(question,AREAS,CROPS,normalized)
     if error:return None
+    if re.search(r'처음.*(?:농사|농업)|(?:농사|농업).*처음',question) and re.search(r'뭐부터|무엇부터|어떻게|시작',question):
+        actual=context if rag_profile.hypothetical(question) else {**context,**facts}
+        missing=[]
+        if not actual.get('farm_region'):missing.append('농사짓거나 준비하는 시·군을 알려주세요.')
+        if not actual.get('crop'):missing.append('관심 작물을 알려주세요. 미정이면 건너뛰어도 돼요.')
+        out=response('먼저 농사지을 곳과 작물을 정하고, 관련 공고의 신청 대상과 준비사항을 비교해 보세요. 경영체 등록이나 교육이 반드시 필요한지는 사업별 공식 조건을 확인해야 해요.\n\n'+(' '.join(missing) if missing else '이미 알려주신 지역과 작물로 지원사업을 찾아볼 수 있어요.')+' 지원사업을 찾은 뒤 자금이 더 필요하면 같은 조건으로 농업금융도 볼 수 있어요.',actual,'help',suggestions=('선택한 조건으로 지원사업을 찾아주세요.',))
+        out['followup_questions']=missing[:2];return out
     if re.search(r'대출|융자|정책자금|금융|자금\s*부족|자금이\s*부족|시설\s*(?:설치\s*)?자금',question) and not re.search(r'지원사업|보조금',question):
         actual=context if rag_profile.hypothetical(question) else {**context,**facts}
         return response('농업금융에서 기존 공식 금융자료와 입력한 조건을 비교해 볼게요. 금리·한도는 제도 안내이며 실제 대출 승인과 현재 접수는 취급기관 확인이 필요해요.',actual,'context')
+    if facts and not rag_profile.hypothetical(question) and len(question)<100 and not re.search(r'지원|사업|신청|대상|요건|자격|서류|마감|방법|가능|[?？]',question) and re.search(r'미등록|등록\s*안\s*했|등록했|살고|거주|농사짓|재배하고',question):
+        actual={**context,**facts}
+        return response('말씀하신 조건을 반영했어요. 이전 결과는 변경 전 조건 기준이에요. 바뀐 조건으로 다시 비교하면 확인된 요건과 불일치·미확인 사항을 구분해 보여드려요.',actual,'condition_edit',suggestions=('선택한 조건으로 지원사업을 찾아주세요.',))
     # Advice/help must not consume new facts or a factual business question.
     if facts:return None
     compact=re.sub(r'[\s!?.~,，。]','',question)

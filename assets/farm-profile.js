@@ -36,15 +36,15 @@
   }finally{applying=false;}
  }
  const money={};
- function fundingQuestion(q){
-  if(/만약|가정|이라면|있다면|하면|한다면|할\s*경우/.test(q))return null;
-  const matches=[...q.matchAll(/(?:필요\s*(?:한\s*)?(?:자금|사업비|대출금)|희망\s*대출금|보유\s*자금|자기\s*자금|자부담)\s*(?:은|이|가|을|:)?\s*([\d,]+(?:\.\d+)?\s*(?:억\s*(?:[\d,]+\s*만)?|천\s*만|만)?\s*원)/g)];
-  if(matches.length!==1)return null;
-  const m=matches[0],won=root.MunongsaAmounts?.parseInput(m[1],'won');
-  if(!Number.isSafeInteger(won)||won<=0)return null;
-  return {won,kind:/보유|자기|자부담/.test(m[0])?'own':/대출금/.test(m[0])?'loan':/사업비/.test(m[0])?'project':'required'};
+ function fundingFacts(q){
+  if(/만약|가정|이라면|있다면|하면|한다면|할\s*경우/.test(q))return [];
+  const matches=[...q.matchAll(/(?:필요\s*(?:한\s*)?(?:자금|사업비|대출금)|(?:총\s*)?사업비|희망\s*대출금|보유\s*자금|자기\s*자금|자부담)\s*(?:은|는|이|가|을|를|:)?\s*([\d,]+(?:\.\d+)?\s*(?:억\s*(?:[\d,]+\s*만)?|천\s*만|만)?\s*원)/g)];
+  const values=matches.map(m=>({won:root.MunongsaAmounts?.parseInput(m[1],'won'),kind:/보유|자기|자부담/.test(m[0])?'own':/대출금/.test(m[0])?'loan':/사업비/.test(m[0])?'project':'required'}));
+  if(values.some(v=>!Number.isSafeInteger(v.won)||v.won<=0)||new Set(values.map(v=>v.kind)).size!==values.length)return [];
+  return values;
  }
- root.MunongsaFarmProfile={toConversation,apply,fundingQuestion,money,isApplying:()=>applying};
+ function fundingQuestion(q){const values=fundingFacts(q);return values.length===1?values[0]:null;}
+ root.MunongsaFarmProfile={toConversation,apply,fundingQuestion,fundingFacts,money,isApplying:()=>applying};
  document.addEventListener?.('munongsa:profile-reset',()=>{for(const key of Object.keys(money))delete money[key];});
  document.addEventListener?.('munongsa:profile-change',()=>setTimeout(()=>{
   if(typeof activeCategory==='undefined'||typeof readProfile!=='function')return;

@@ -2,6 +2,16 @@ import unittest,json
 import rag_dialogue,rag_profile,rag_nlu
 
 class PracticalDialogue(unittest.TestCase):
+    def test_beginner_uses_existing_conditions(self):
+        context={'farm_region':'김제','crop':'토마토','farm_registered':'no'}
+        encoded=rag_dialogue.PREFIX+json.dumps(context,ensure_ascii=False)+rag_dialogue.SEPARATOR+'나 농사 처음 시작하려고 하는데 뭐부터 해야 해?'
+        out=rag_dialogue.service_response(encoded,{'documents':{}})
+        self.assertFalse(out['programs']);self.assertFalse(out['followup_questions'])
+        self.assertEqual(out['conversation']['farm_registered'],'no')
+    def test_registration_statement_is_not_a_new_search(self):
+        out=rag_dialogue.service_response('아직 농업경영체 등록 안 했어.',{'documents':{}})
+        self.assertEqual(out['conversation']['farm_registered'],'no')
+        self.assertEqual(out['kind'],'condition_edit')
     def test_generated_reply_boundary(self):
         value={'intent':'other','facts':{},'hypothetical':False,'reply':'잠깐 쉬며 좋아하는 음악을 들어보면 어떨까요?'}
         self.assertTrue(rag_nlu.safe_conversation_reply(value,'기분 전환하고 싶어요'))

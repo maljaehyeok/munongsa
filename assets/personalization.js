@@ -54,7 +54,7 @@
    const geographic=place.length>=2&&place!=='all'&&scope.includes(place)?'영농지역과 안내 지역 관련 · 거주·농지 자격 충족 아님':null;
    const display=root.MunongsaSupportReview.presentation(shown,now),verdict=decision(projected,shown,match,profile),relatedCandidate=verdict.region_state==='match'&&!verdict.excluded&&display.state==='window'&&why.some(r=>r.state==='match');
    const sourceWarning=data.source_review?.[row.item.id]?.title_needs_review===true;
-   return {...row,item:shown,match,decision:verdict,comparisonItem:{...shown,eligibility:projected.eligibility},reasons:why,geographic,sourceWarning,comparisonReady:!!reviewed&&!sourceWarning,relatedCandidate:relatedCandidate&&!sourceWarning,recommendationAllowed:row.available&&verdict.category==='A'&&!sourceWarning,display,relevance:why.reduce((n,r)=>n+(r.state==='match'?r.weight:0),0)};
+   return {...row,sourceItem:row.item,item:shown,match,decision:verdict,comparisonItem:{...shown,eligibility:projected.eligibility},reasons:why,geographic,sourceWarning,comparisonReady:!!reviewed&&!sourceWarning,relatedCandidate:relatedCandidate&&!sourceWarning,recommendationAllowed:row.available&&verdict.category==='A'&&!sourceWarning,display,relevance:why.reduce((n,r)=>n+(r.state==='match'?r.weight:0),0)};
   }).sort((a,b)=>{
    const period=r=>({window:r.display.operator_notice?0:1,upcoming:2,standing:3,unknown:4,elapsed:5}[r.display.state]??4),condition=r=>({match:0,check:1,mismatch:2}[r.match.conditionStatus]);
    return a.decision.tier-b.decision.tier||Number(a.decision.audience_check)-Number(b.decision.audience_check)||period(a)-period(b)||condition(a)-condition(b)||b.relevance-a.relevance||(a.display.end||'9999-12-31').localeCompare(b.display.end||'9999-12-31')||a.item.id.localeCompare(b.item.id);

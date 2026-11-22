@@ -9,7 +9,7 @@
     '서울': ['서울'], '인천': ['인천'], '대전': ['대전'], '세종': ['세종'],
     '광주': ['광주'], '대구': ['대구'], '울산': ['울산'], '부산': ['부산']
   };
-  const cropNames = {rice:'벼',garlic:'마늘',onion:'양파',apple:'사과',cabbage:'배추',radish:'무',potato:'감자',sweetpotato:'고구마',soybean:'콩',wheat:'밀',pepper:'고추',greenonion:'파',scallion:'쪽파',strawberry:'딸기'};
+  const cropNames = {rice:'벼',garlic:'마늘',onion:'양파',apple:'사과',cabbage:'배추',radish:'무',potato:'감자',sweetpotato:'고구마',soybean:'콩',wheat:'밀',pepper:'고추',greenonion:'파',scallion:'쪽파',strawberry:'딸기',tomato:'토마토',cucumber:'오이',grape:'포도',lettuce:'상추',mushroom:'버섯'};
   const asList = v => Array.isArray(v) ? v : [];
   function regionScope(text) {
     const value = typeof text === 'string' ? text : '';

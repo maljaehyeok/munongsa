@@ -101,6 +101,7 @@
  function reset(){custom={customCrop:'',customFarmRegion:'',customResidence:''};requiredFundsWon=null;fundsDirty=false;for(const w of widgets){w.dirty=false;w.close()}sync(true)}
  function mount(districts,onApply){
   refresh=onApply;
+  for(const [value,label]of Object.entries({tomato:'토마토',cucumber:'오이',strawberry:'딸기',grape:'포도',lettuce:'상추',mushroom:'버섯'}))if(![...by('crop').options].some(o=>o.value===value||o.textContent===label)){const o=document.createElement('option');o.value=value;o.textContent=label;by('crop').append(o);}
   by('requiredFundsHint').textContent='숫자만 입력하면 만원 단위예요. 3,000만원·30,000,000원도 입력할 수 있어요. 표시된 환산 금액을 확인한 뒤 적용하세요. 대출 승인을 뜻하지 않아요.';
   by('requiredFundsMan').inputMode='text';
   for(const [code,text]of Object.entries(provinceNames)){
