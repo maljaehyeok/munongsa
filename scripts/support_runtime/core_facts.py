@@ -26,16 +26,18 @@ LABELS={
 ALIASES={re.sub(r'\s+','',label):key for key,labels in LABELS.items() for label in labels}
 PATTERN='|'.join(r'\s*'.join(re.escape(c) for c in label) for label in sorted(ALIASES,key=len,reverse=True))
 HEADER=re.compile(r'(?:'+r'(?P<colon>'+PATTERN+r')(?P<modifier>\s*(?:연장|변경\s*후|정정\s*후))?\s*[:：]'+
+                  r'|(?:^|\s)(?:\d{1,2}|[가-하])[.．)]\s*(?P<number>'+PATTERN+r')(?=\s|[:：]|$))')
+REVIEW_HEADER=re.compile(r'(?:'+r'(?P<colon>'+PATTERN+r')(?P<modifier>\s*(?:연장|변경\s*후|정정\s*후))?\s*[:：]'+
                   r'|(?:^|\s)(?:\d{1,2}|[가-하])[.．)]\s*(?P<number>'+PATTERN+r')(?=\s|[:：]|$)'+
                   r'|[□○❍▪]\s*(?P<bullet>'+PATTERN+r')\s*(?:[:：-]\s*|(?=\s)))')
 
 
-def sections(lines):
+def sections(lines,review_mode=False):
     # Join editor formatting first: e.g. "12." + "31." is one date, not two.
     text=' '.join(dict.fromkeys(' '.join(x.split()) for x in lines if x.strip()))
-    matches=list(HEADER.finditer(text));result=[]
+    matches=list((REVIEW_HEADER if review_mode else HEADER).finditer(text));result=[]
     for i,m in enumerate(matches):
-        label=m.group('colon') or m.group('number') or m.group('bullet');key=ALIASES[re.sub(r'\s+','',label)]
+        label=m.group('colon') or m.group('number') or (m.group('bullet') if review_mode else None);key=ALIASES[re.sub(r'\s+','',label)]
         if m.group('modifier'):label+=m.group('modifier')
         end=matches[i+1].start() if i+1<len(matches) else len(text)
         value=text[m.end():end].strip(' :：')
@@ -62,12 +64,12 @@ def period_input(lines):
     return list(dict.fromkeys(repaired))
 
 
-def extract(lines,url):
+def extract(lines,url,review_mode=False):
     result={}
     def add(key,value,quote,location):
         if key not in result and value not in ('','unknown',None):
             result[key]={'value':value,'evidence':{'url':url,'quote':quote,'location':location}}
-    for key,label,value,offset in sections(lines):
+    for key,label,value,offset in sections(lines,review_mode):
         if key.startswith('_') or key=='application_period':continue
         if key=='implementing_institution':continue
         if len(value)>900:continue  # No truncated qualification clause.
@@ -100,11 +102,11 @@ def extract(lines,url):
     # Reuse the documented target/benefit parser for explicit HTML bullet pairs.
     # Only the pair's own target supplies qualifications, never an agency name.
     from .api_core import overview
-    pair=overview(' '.join(lines),url)
+    pair=overview(' '.join(lines),url,review_mode=True) if review_mode else {}
     for key,value in pair.items():result.setdefault(key,value)
     target=result.get('target_description',{});v=target.get('value','')
-    if v:
-        labelled=overview('☞ '+v+' ☞ 지원',url)
+    if v and review_mode:
+        labelled=overview('☞ '+v+' ☞ 지원',url,review_mode=True)
         for key in ('farm_registration_required','applicant_types','location_requirements'):
             if key in labelled:result[key]=labelled[key]
     # Preserve logical alternatives/exceptions as text; do not flatten them.

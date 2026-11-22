@@ -4,7 +4,7 @@ No trial data, automatic approval or publication side effects.
 """
 import re
 
-def extra_facts(lines,url):
+def extra_facts(lines,url,review_mode=False):
     rules={'target_description':r'(?:사업대상자?|지원대상|신청대상)',
            'support_description':r'(?:사업내용|지원내용|지원내역|지원단가|지원금액)',
            'budget_total':r'(?:사업비|총사업비)',
@@ -26,7 +26,7 @@ def extra_facts(lines,url):
             result[key]={'value':' / '.join(dict.fromkeys(x[0] for x in found))[:350],
                 'evidence':{'url':url,'location':'공식 상세의 명시된 항목명','quote':' / '.join(dict.fromkeys(x[1] for x in found))[:420]}}
     from .core_facts import extract
-    result.update(extract(lines,url))
+    result.update(extract(lines,url,review_mode=review_mode))
     return result
 
 

@@ -6,21 +6,26 @@ from support_runtime.qualification_guards import explicit_locations
 URL='https://www.rda.go.kr/young/custom/policy/view.do?sId=1'
 
 class QualificationSources(unittest.TestCase):
+    def test_new_qualification_extraction_requires_explicit_review_mode(self):
+        from support_runtime import enrichment
+        text='☞ 농업경영정보를 등록하고 토양검정 결과를 제출한 농업인 ☞ 유기농업자재'
+        self.assertNotIn('farm_registration_required',enrichment.extra_facts([text],URL))
+        self.assertTrue(enrichment.extra_facts([text],URL,review_mode=True)['farm_registration_required']['value'])
     def test_bullet_boundaries_do_not_swallow_documents_and_contact(self):
-        f=core_facts.extract(['□ 신청대상: 농업경영정보를 등록한 농업인 및 농업법인 □ 사업내용: 자재 일부 지원 □ 신청방법: 방문 신청 □ 제출서류 - 신청서, 동의서 □ 문의처: 기관 전화'],URL)
+        f=core_facts.extract(['□ 신청대상: 농업경영정보를 등록한 농업인 및 농업법인 □ 사업내용: 자재 일부 지원 □ 신청방법: 방문 신청 □ 제출서류 - 신청서, 동의서 □ 문의처: 기관 전화'],URL,review_mode=True)
         self.assertEqual(f['required_documents']['value'],'신청서, 동의서')
         self.assertNotIn('제출서류',f['application_method']['value'])
         self.assertTrue(f['farm_registration_required']['value'])
 
     def test_target_bullet_registration_is_reused(self):
-        f=core_facts.extract(['☞ 농업경영정보를 등록하고, 토양검정 결과를 제출한 농업인 ☞ 유기농업자재 구입비 지원'],URL)
+        f=core_facts.extract(['☞ 농업경영정보를 등록하고, 토양검정 결과를 제출한 농업인 ☞ 유기농업자재 구입비 지원'],URL,review_mode=True)
         self.assertTrue(f['farm_registration_required']['value'])
         p=payload_for(f,{})
         self.assertTrue(any(c['kind']=='farm_registration' for c in p['conditions']))
         self.assertTrue(any(c['presence']=='unknown' for c in p['conditions']))
         for text in ['☞ 농업경영정보를 등록하고 토양검정 결과를 제출한 농업인 ☞ 녹비작물 종자, 유기농업자재',
                      '☞ 농업경영체에 등록된 농업인 및 농업법인 중 품목별 요건 충족자 ☞ 토양검정ㆍ시비처방 등 컨설팅']:
-            self.assertTrue(core_facts.extract([text],URL)['farm_registration_required']['value'])
+            self.assertTrue(core_facts.extract([text],URL,review_mode=True)['farm_registration_required']['value'])
 
     def test_land_registration_is_not_person_registration(self):
         f=core_facts.extract(['사업대상: 농업경영정보에 등록한 농지(토지)'],URL)
