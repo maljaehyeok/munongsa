@@ -145,6 +145,19 @@ def local_pipeline(question):
     import rag_dialogue,rag_nlu
     original,context=rag_dialogue.decode(question)
     import rag_catalogue
+    # A new definition question or a follow-up to ordinary conversation must
+    # not inherit an old crop/list as the subject. One existing NLU call only.
+    explanation=bool(re.search(r'뭐야|무엇(?:이야|인가|인지)|무슨\s*(?:뜻|말)|뜻(?:이|은)|설명|풀어\s*(?:줘|줄)',original))
+    knowledge_request=explanation and not re.search(r'지원|사업|공고|신청|자격|금액|대출|금융|경영체|서류|마감',original) and (bool(context.get('conversation_topic')) or bool(re.search(r'농업|농사|재배|작물|스마트팜',original)))
+    if knowledge_request:
+        understood=rag_nlu.interpret(original,context)
+        reply=rag_nlu.safe_conversation_reply(understood or {},original)
+        clean={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','casual_topic','conversation_topic')}
+        topic=(understood or {}).get('topic') or (original if rag_nlu.valid_topic(original) else '') or context.get('conversation_topic','')
+        if topic and rag_nlu.valid_topic(topic):clean['conversation_topic']=topic
+        out=rag_dialogue.response(reply or '일반 개념에 관한 질문으로 이해했어요. 지금은 설명을 확인하지 못해 이전 지원사업을 대신 추천하지 않았습니다. 궁금한 개념을 조금 더 구체적으로 알려주세요.',clean,'context',status='answered' if reply else 'needs_verification')
+        out['understanding']='gpt' if reply else 'rules'
+        return rag_dialogue.remember(out,corpus)
     if original.startswith(rag_catalogue.PAGE_PREFIX) or re.fullmatch(r'(?:전체|모든)\s*(?:공식|공개)?\s*(?:공고|지원사업)',original.strip()) or rag_catalogue.archive_requested(original) or re.search(r'신청기간.{0,8}남|기간.{0,5}남은|마감.{0,5}남은',original):
         listing=rag_catalogue.respond(question,corpus)
         return catalogue_response(listing,corpus) if listing else rag_dialogue.response('공개 목록이 변경됐어요. 같은 질문으로 다시 검색해 주세요.',context,'clarify',status='needs_verification')
@@ -192,9 +205,20 @@ def local_pipeline(question):
     understood=None if guidance or original=='선택한 조건으로 지원사업을 찾아주세요.' else rag_nlu.interpret(original,context)
     used_gpt=understood is not None
     if understood and rag_nlu.safe_conversation_reply(understood,original):
-        out=rag_dialogue.response(understood['reply'],context,'context')
+        clean={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','casual_topic','conversation_topic')}
+        topic=understood.get('topic','')
+        if topic and rag_nlu.valid_topic(topic):clean['conversation_topic']=topic
+        out=rag_dialogue.response(understood['reply'],clean,'context')
         out['understanding']='gpt'
         return rag_dialogue.remember(out,corpus)
+    if understood and understood['intent'] in ('knowledge','other') and not understood['facts'] and not re.search(r'지원|사업|공고|신청|자격|금액|대출|금융|서류|마감',original):
+        clean={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','casual_topic','conversation_topic')}
+        return rag_dialogue.remember(rag_dialogue.response('어떤 내용을 알고 싶으세요? 이전 검색 조건은 유지하되, 새 질문에 맞춰 이야기할게요. 확인되지 않은 제도나 신청 정보는 추측하지 않습니다.',clean,'context',status='needs_verification'),corpus)
+    if understood is None and not guidance and not re.search(r'지원|사업|공고|신청|자격|등록|서류|마감|시설|교육|농기계|비료|보험|금융|대출|융자|자금|그럼|아까|그\s*사업',original):
+        facts,error=rag_dialogue.rag_profile.extract(original,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
+        if not facts and not error:
+            clean={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','casual_topic','conversation_topic')}
+            return rag_dialogue.remember(rag_dialogue.response('새 질문의 뜻을 충분히 파악하지 못했어요. 어떤 이야기를 하고 싶은지 조금 더 알려주세요. 이전 작물 조건만으로 지원사업을 대신 추천하지 않을게요.',clean,'context',status='needs_verification'),corpus)
     if understood is None and rag_dialogue.rag_profile.hypothetical(original):
         understood={'intent':'discover','facts':{},'hypothetical':True,'reference_previous':bool(context.get('notice_ids')),'uncertain':[]}
     # Conservative follow-up routing still works when GPT is unavailable.

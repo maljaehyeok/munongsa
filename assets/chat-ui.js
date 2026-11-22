@@ -113,7 +113,8 @@
     const str=v=>typeof v==='string',strings=v=>Array.isArray(v)&&v.length<=100&&v.every(str);
     const context=data?.conversation;
     const validContext=context===undefined||(context&&typeof context==='object'&&!Array.isArray(context)
-      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm','casual_topic'].includes(k))
+      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm','casual_topic','conversation_topic'].includes(k))
+      &&(context.conversation_topic===undefined||(typeof context.conversation_topic==='string'&&context.conversation_topic.length<=80&&!/https?:\/\/|www\.|[\d<>\n\r@]|API[_ -]?KEY|sk-/i.test(context.conversation_topic)))
       &&(context.casual_topic===undefined||['meal','wellbeing','humor'].includes(context.casual_topic))
       &&['age','group_size','farming_years','facility_sqm'].every(k=>context[k]===undefined||(typeof context[k]==='number'&&Number.isFinite(context[k])&&context[k]>=0&&context[k]<=100000000))
       &&['planned','cultivating','group_min'].every(k=>context[k]===undefined||typeof context[k]==='boolean')
@@ -313,7 +314,7 @@
       const raw=await response.text();if(raw.length>262144)throw new Error('답변이 너무 커서 표시하지 않았어요. 질문을 나눠 보내주세요.');
       let data;try{data=JSON.parse(raw)}catch{throw new Error('서버 응답 형식을 확인해야 해요.');}
       if(!validResponse(data))throw new Error('답변의 공식 근거 항목을 확인해야 해요.');
-      lastNext=data.catalogue_next||null;if(data.catalogue_total!==undefined)lastDiscovery=true;else if(data.kind==='condition_edit')lastDiscovery=false;updateContext(data.conversation);if(finance&&!mixed)await financeAnswer(status,question,false,financeFollow);else{renderAnswer(status,data);offerConditions(status,data);if(mixed)await financeAnswer(status,question,true,false);}if(question!==selectionQuestion)input.value='';
+      lastNext=data.catalogue_next||null;if(data.catalogue_total!==undefined)lastDiscovery=true;else if(data.kind==='condition_edit'||data.kind==='context')lastDiscovery=false;updateContext(data.conversation);if(finance&&!mixed)await financeAnswer(status,question,false,financeFollow);else{renderAnswer(status,data);offerConditions(status,data);if(mixed)await financeAnswer(status,question,true,false);}if(question!==selectionQuestion)input.value='';
     }catch(error){
       const value=error.name==='AbortError'?'응답 대기 시간이 초과됐어요. 잠시 후 다시 보내주세요.':error instanceof Error&&error.name==='Error'?error.message:'서버에 연결하지 못했어요. 잠시 후 다시 보내주세요.';
       status.className='chat-message chat-message-error';status.replaceChildren(text('p','다시 시도해 주세요','chat-message-label'),text('p',value),text('p',question===selectionQuestion?'선택한 조건은 유지돼요. 내 조건 선택·수정에서 다시 검색해 주세요.':'작성한 질문은 입력창에 그대로 남아 있어요.'));

@@ -45,7 +45,10 @@ def decode(value):
         raw,question=value[len(PREFIX):].split(SEPARATOR,1)
         if len(raw)>1600:raise ValueError('context_too_long')
         context=json.loads(raw)
-        if not isinstance(context,dict) or set(context)-({'region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','casual_topic'}|rag_profile.KEYS):raise ValueError('context_fields')
+        if not isinstance(context,dict) or set(context)-({'region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','casual_topic','conversation_topic'}|rag_profile.KEYS):raise ValueError('context_fields')
+        if 'conversation_topic' in context:
+            import rag_nlu
+            if not rag_nlu.valid_topic(context['conversation_topic']):raise ValueError('conversation_topic')
         if 'casual_topic' in context and context['casual_topic'] not in ('meal','wellbeing','humor'):raise ValueError('context_topic')
         if 'region' in context and not rag_profile.valid_area(context['region'],AREAS):raise ValueError('context_region')
         if 'crop' in context and context['crop'] not in CROPS:raise ValueError('context_crop')
@@ -105,6 +108,7 @@ def remember(out,corpus):
     intact=bool(ids) and len(ids)==len(versions) and all(i in by_id and notice_version(by_id[i])==v for i,v in zip(ids,versions))
     if programs and (out.get('kind') in ('catalogue','recommendation') or not intact):
         context.pop('casual_topic',None)
+        context.pop('conversation_topic',None)
         ids=[p['id'] for p in programs]
         context.update(list_ids=ids,list_versions=[notice_version(by_id[i]) for i in ids])
     context['last_kind']='results' if programs else 'help' if out.get('kind') in ('help','greeting','thanks','condition_edit') else 'clarify' if out.get('kind')=='clarify' else 'context'
@@ -118,7 +122,7 @@ def continuation(encoded,corpus,grounded,intent=None):
     if facts or error or rag_profile.hypothetical(question):return None
     compact=re.sub(r'[\s?!.,~，。]','',question)
     correction=compact in ('아니','아니내말은그게아니라','내말은그게아니야') or intent=='correction'
-    repeat=compact in ('응','네','무슨뜻이야','무슨말이야','다시설명해줘','다시설명해','아까말한거다시알려줘','아까알려준거다시알려줘') or intent=='rephrase'
+    repeat=compact in ('응','네','그게무슨뜻이야','그게무슨말이야','무슨뜻이야','무슨말이야','다시설명해줘','다시설명해','아까말한거다시알려줘','아까알려준거다시알려줘') or intent=='rephrase'
     next_step=compact in ('그럼어떻게해야해','어떻게하면돼','다음엔뭘해야해') or intent=='next_step'
     ordinal=[]
     for m in re.finditer(r'(첫|두|세|[1-3])\s*(?:번째|번)(?:째)?',question):
@@ -126,6 +130,7 @@ def continuation(encoded,corpus,grounded,intent=None):
         if i not in ordinal:ordinal.append(i)
     group=bool(re.search(r'그\s*중|그중|아까.*(?:사업|공고).*중',question))
     if not (correction or repeat or next_step or ordinal or group or intent in ('compare','open_notices')):return None
+    if context.get('conversation_topic') and (repeat or next_step) and not ordinal and not group and not re.search(r'사업|공고',question):return None
     if context.get('casual_topic') and (repeat or next_step) and not ordinal and not group and not re.search(r'사업|공고',question):
         messages={'meal':'간단한 한 끼를 같이 생각해 보자는 뜻이에요. 못 드시는 음식이나 지금 있는 재료를 알려주세요.',
                   'wellbeing':'지금 가장 부담되는 한 가지부터 이야기해 보자는 뜻이에요. 서두르지 않아도 괜찮아요.',
