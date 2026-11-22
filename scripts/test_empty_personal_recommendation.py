@@ -22,7 +22,7 @@ class EmptyRecommendation(unittest.TestCase):
     def test_changed_conditions_do_not_reuse_previous_list(self):
         context={'region':'제주','notice_ids':['NOTICE-old'],'last_kind':'results'}
         question=rag_dialogue.PREFIX+json.dumps(context,ensure_ascii=False)+rag_dialogue.SEPARATOR+'선택한 조건으로 지원사업을 찾아주세요.'
-        notice={'id':'NOTICE-new','title':'새 공고','url':'https://www.rda.go.kr/young/custom/policy/view.do?sId=1'}
+        notice={'id':'NOTICE-new','title':'새 공고','institution':'공식 기관','url':'https://www.rda.go.kr/young/custom/policy/view.do?sId=1'}
         card={'name':'새 공고','card':{'label':'지역 확인 필요','period_state':'unknown'},'comparison':{'checks':['지역 확인'],'decision':{'region_state':'check','tier':2}},'source_url':notice['url'],'checked_at':'2026-11-22T00:00:00Z'}
         with patch.object(rag_catalogue,'matches',return_value=[notice]),patch.object(rag_catalogue,'program',return_value=card):
             result=rag_catalogue.respond(question,{'guidance_feed':{'notices':[]},'documents':{}})

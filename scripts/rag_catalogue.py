@@ -101,16 +101,26 @@ def records(feed,now=None):
         except (KeyError,ValueError,TypeError):continue
     return out
 
-TOPICS=(('창업','귀농','초보','처음','시작','정착','청년'),('시설','설치','온실','스마트팜','현대화'),('교육','배우','연수','컨설팅'),('비료','유기질','토양','유기농'),('수출','판로','판매','유통'),('보험','재해'),('융자','대출','금융','자금'))
+TOPICS=(('startup',r'창업|귀농|처음|초보|정착|농사.{0,6}시작',r'창업|귀농|정착|후계농','창업·영농 시작'),('facility',r'시설|하우스|온실|스마트팜|현대화',r'시설|하우스|온실|스마트팜|현대화','시설 설치·개선'),('machinery',r'농기계|트랙터|농업기계',r'농기계|트랙터|농업기계','농기계 구입'),('education',r'교육|배우|연수|공부',r'교육|연수|대학|교육생|학습|수강','농업 교육'),('fertilizer',r'비료|유기질|유기농업자재|토양',r'비료|유기질|유기농업자재|토양','비료·토양 관리'),('export',r'수출|해외판로',r'수출|해외판로','수출 지원'),('insurance',r'보험|재해',r'보험|재해','보험·재해'),('finance',r'융자|대출|금융|운영\s*자금|자금.{0,4}부족',r'융자|대출|금융|운영\s*자금','금융·운영 자금'))
 
-def discovery_score(question,title,hay):
+def discovery_quality(question,title,hay,context=None,purpose=None):
     q=question.lower();title=title.lower();hay=hay.lower()
     terms=[re.sub(r'(?:으로|에서|관련|을|를|이|가|은|는)$','',t) for t in re.findall('[가-힣a-z0-9]+',q)]
     terms=[t for t in terms if len(t)>1 and t not in {'지원사업','지원','사업','공고','농사','농업','농업인','관련','어떤','있어','알려줘','보여줘','하려고','해요'}]
     hits=[t for t in terms if t in hay]
-    interest=q+' 창업' if re.search(r'재배하려|영농\s*준비|농사\s*준비',q) else q
-    topical=sum(any(t in interest for t in group) and any(t in hay for t in group) for group in TOPICS)
-    return sum(20 if t in title else 8 for t in hits)+30*topical, bool(hits or topical)
+    purpose=hay if purpose is None else purpose.lower()
+    wanted=[g for g in TOPICS if re.search(g[1],q)]
+    installation=bool(re.search(r'설치|하우스|온실|현대화',q))
+    thematic=[g for g in wanted if re.search(g[2],purpose) and (g[0]!='facility' or not installation or re.search(r'시설원예|시설현대화|시설지원|시설\s*지원|온실|하우스|스마트팜|시설.{0,8}(?:설치|신축|개보수|현대화)',purpose))]
+    crop=next((c for c in ('토마토','딸기','감귤','마늘','벼','사과','포도','상추','고추','배추','콩','오이') if c in q),None)
+    broadened=not wanted and bool(crop) and (context or {}).get('planned') is True and bool(re.search(TOPICS[0][2],purpose))
+    related=len(thematic)==len(wanted) if wanted else bool(crop in hay or broadened) if crop else bool(hits)
+    reasons=[' · '.join(g[3] for g in thematic)+' 분야의 공개 정보 일치'] if thematic else ['영농 준비 관련 대안 · 작물 전용 사업 아님'] if broadened else ['공개 정보에 '+crop+' 명시'] if crop and crop in hay else ['검색어가 공개 정보에 포함'] if hits else []
+    return {'score':sum(20 if t in title else 8 for t in hits)+sum(70 if re.search(g[2],title) else 35 for g in thematic),'matches':related,'reasons':reasons,'broadened':broadened}
+
+def discovery_score(question,title,hay):
+    r=discovery_quality(question,title,hay)
+    return r['score'],r['matches']
 
 def matches(question,feed,context=None,now=None):
     context=context or {};now=now or datetime.now(timezone.utc);text=rag_dialogue.normalized(question)
@@ -131,9 +141,11 @@ def matches(question,feed,context=None,now=None):
         shown=review.project(review.fact_project(raw,feed.get('verified_facts',{}).get(raw['id']),now),feed.get('notice_observations',{}).get(raw['id']),now)
         past=review.notice_state(shown,now)=='elapsed'
         if not exact and past!=archive:continue
-        relevance,related=discovery_score(text,title,hay.replace(raw['institution'],''))
-        if context.get('planned') is True and re.search(r'기업|수출업체|기관 모집',title) and not re.search(r'기업|수출',text):relevance-=15
-        if not exact and not personal and not related and not re.fullmatch(r'(?:전체|공개|지난)?\s*(?:지원사업|공고)',text):continue
+        if re.search(r'신청기간.{0,8}남|기간.{0,5}남은|마감.{0,5}남은',text) and review.notice_state(shown,now) not in ('window','upcoming'):continue
+        quality=discovery_quality(text,title,hay.replace(raw['institution'],''),context,title+' '+str(shown.get('support','')));relevance,related=quality['score'],quality['matches']
+        if (context.get('planned') is True or context.get('applicant')=='individual_farmer') and re.search(r'기업|수출업체|기관 모집',title) and not re.search(r'기업|수출',text):relevance-=45
+        period_only=bool(re.search(r'신청기간.{0,8}남|기간.{0,5}남은|마감.{0,5}남은',text)) and not any(re.search(g[1],text) for g in TOPICS)
+        if not exact and not personal and not related and not re.fullmatch(r'(?:전체|공개|지난)?\s*(?:지원사업|공고)',text) and not period_only:continue
         ranked.append((1000 if exact else relevance,raw))
     def order(pair):
         score,item=pair
@@ -143,8 +155,13 @@ def matches(question,feed,context=None,now=None):
         mismatch=bool(compared and compared.get('decision',{}).get('excluded'))
         tier=compared['decision']['tier'] if compared and compared.get('decision') else 3
         announced=shown.get('actual_reception_state')=='operator_notice'
-        return (score!=1000,mismatch,0 if personal else -score,tier,{'window':0 if announced else 1,'upcoming':2,'standing':3,'unknown':4,'elapsed':5}[period],-score,item['title'])
-    found=[r for _,r in sorted(ranked,key=order)]
+        try:checked=-datetime.fromisoformat(item['last_checked_at']).timestamp()
+        except (ValueError,KeyError,TypeError):checked=0
+        return (score!=1000,mismatch,0 if personal else -score,tier,{'window':0 if announced else 1,'upcoming':2,'standing':3,'unknown':4,'elapsed':5}[period],-score,checked,item['title'])
+    found=[];seen=set()
+    for _,r in sorted(ranked,key=order):
+        key=(r['url'],re.sub(r'[^0-9a-z가-힣]','',r['title'].lower()))
+        if key not in seen:found.append(r);seen.add(key)
     return [r for r in found if not (comparison(r,feed,context,now) or {}).get('decision',{}).get('excluded')] if personal else found
 
 def comparison(item,feed,context,now):
@@ -228,6 +245,10 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
     if page and (page['fingerprint']!=fingerprint or offset>=len(found)):
         return rag_dialogue.response('공고 목록이나 확인된 조건이 변경됐어요. 같은 질문으로 다시 검색해 주세요.',context,'clarify',status='needs_verification')
     chosen=found[offset:offset+3];programs=[program(n,feed,now,context) for n in chosen]
+    for n,p in zip(chosen,programs):
+        shown=review.fact_project(n,feed.get('verified_facts',{}).get(n['id']),now)
+        quality=discovery_quality(question,n['title'],search_text(n,feed,now).replace(n['institution'],''),context,n['title']+' '+str(shown.get('support','')))
+        p['card']['discovery_reason']='사업명 일치' if n in exact else ' / '.join(quality['reasons'])[:160]
     conversation={**context,'notice_ids':[n['id'] for n in chosen],'list_ids':[],'list_versions':[],'last_kind':'results'}
     summary='\n\n'.join(p['name']+' — '+p['card']['label']+'\n확인할 조건: '+' / '.join(p['comparison']['checks']) for p in programs)
     intro='질문과 공개 정보의 관련성을 기준으로 탐색한 결과입니다. 관련성이 신청 자격 충족을 뜻하지 않습니다. 공식 조건 비교와 추가 확인 사항을 따로 확인하세요.' if question!='선택한 조건으로 지원사업을 찾아주세요.' else '공식 조건 비교와 참고 공고를 구분해 안내합니다. 전체 신청 자격과 실제 접수는 별도 확인이 필요합니다.'

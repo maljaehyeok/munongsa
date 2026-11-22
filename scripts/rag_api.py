@@ -145,11 +145,17 @@ def local_pipeline(question):
     import rag_dialogue,rag_nlu
     original,context=rag_dialogue.decode(question)
     import rag_catalogue
-    if original.startswith(rag_catalogue.PAGE_PREFIX) or re.fullmatch(r'(?:전체|모든)\s*(?:공식|공개)?\s*(?:공고|지원사업)',original.strip()) or rag_catalogue.archive_requested(original):
+    if original.startswith(rag_catalogue.PAGE_PREFIX) or re.fullmatch(r'(?:전체|모든)\s*(?:공식|공개)?\s*(?:공고|지원사업)',original.strip()) or rag_catalogue.archive_requested(original) or re.search(r'신청기간.{0,8}남|기간.{0,5}남은|마감.{0,5}남은',original):
         listing=rag_catalogue.respond(question,corpus)
         return catalogue_response(listing,corpus) if listing else rag_dialogue.response('공개 목록이 변경됐어요. 같은 질문으로 다시 검색해 주세요.',context,'clarify',status='needs_verification')
     listing=rag_catalogue.respond(question,corpus,explicit=True)
     if listing:return catalogue_response(listing,corpus)
+    if '경영체' in original and re.search(r'미등록|등록.{0,5}안\s*했',original) and re.search(r'지원받|지원\s*받|가능',original):
+        facts,error=rag_dialogue.rag_profile.extract(original,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
+        if not error:
+            encoded=rag_dialogue.PREFIX+json.dumps({**context,**facts},ensure_ascii=False)+rag_dialogue.SEPARATOR+'선택한 조건으로 지원사업을 찾아주세요.'
+            listing=rag_catalogue.respond(encoded,corpus)
+            if listing:return catalogue_response(listing,corpus)
     # Exact official names are routed locally; do not send listing titles to NLU.
     compact=lambda value:re.sub(r'[^0-9a-z가-힣]','',rag_dialogue.normalized(value).lower())
     exact=[(key,d) for key,d in corpus['documents'].items() if len(compact(d['public']['title']))>=6 and compact(d['public']['title']) in compact(original)]
@@ -167,13 +173,15 @@ def local_pipeline(question):
     guidance=rag_dialogue.service_response(question,corpus) or rag_dialogue.continuation(question,corpus,lambda query,notice:grounded_response(query,corpus,notice))
     # Topic discovery is independent of eligibility. Reuse only the validated
     # profile parser; never infer residence from a notice or spend a model call.
-    discovery_intent=bool(re.search(r'지원|사업|시설|창업|귀농|교육|비료|보험|시작하려|재배하려|영농\s*준비|농사\s*준비',original)) and not re.search(r'신청 가능|자격|서류|방법|마감|그\s*사업|대출|금융|융자',original)
+    discovery_intent=bool(re.search(r'지원|사업|시설|하우스|농기계|창업|귀농|교육|비료|보험|시작하려|재배하려|영농\s*준비|농사\s*준비',original)) and not re.search(r'신청 가능|자격|서류|방법|마감|그\s*사업|대출|금융|융자',original)
     if discovery_intent and not rag_dialogue.rag_profile.hypothetical(original) and (not guidance or guidance.get('kind')=='help'):
         facts,error=rag_dialogue.rag_profile.extract(original,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
         if not error:
             encoded=rag_dialogue.PREFIX+json.dumps({**context,**facts},ensure_ascii=False)+rag_dialogue.SEPARATOR+original
             listing=rag_catalogue.respond(encoded,corpus)
             if listing:return catalogue_response(listing,corpus)
+            if re.search(r'재배하려|농기계|하우스|시설|교육|수출',original):
+                return rag_dialogue.response('현재 공개 정보에서 말씀하신 목적과 직접 관련된 공고를 찾지 못했어요. 작물만으로 창업 지원을 원한다고 판단하지 않습니다. 시설 설치·교육·신규 영농 준비 중 어떤 도움을 찾는지 알려주시면 입력한 조건을 유지해 다시 탐색할게요. 신청 자격이 없다는 뜻은 아닙니다.',{**context,**facts},'clarify',status='no_evidence')
     if guidance and not guidance['programs']:
         listing=rag_catalogue.respond(question,corpus,fallback=guidance)
         if listing and guidance.get('kind') in ('catalogue','clarify'):return catalogue_response(listing,corpus)
