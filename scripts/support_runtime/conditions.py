@@ -7,6 +7,7 @@ from urllib.parse import urlsplit,parse_qsl,urlencode,urlunsplit
 import support_monitor as monitor
 import export_support_public as public
 from .boards import CITIES
+from .qualification_guards import personal_only,review_requirements,explicit_locations
 
 def make_payload(facts):
     conditions=[]
@@ -89,8 +90,11 @@ def payload_for(facts,base):
                     'location_basis':place['location_basis']},locations)
     target=facts.get('target_description',{});text=target.get('value','')
     if isinstance(text,str):
+        for i,place in enumerate(explicit_locations(text)):
+            add('target_named_location_'+str(i),place['kind'],{
+                'regions':place['regions'],'location_basis':place['location_basis']},target)
         complex_clause=bool(re.search(r'또는|제외|다만|모임체|대표|미등록|예외|예비|예정|등록.*(?:무관|불필요|필요하지|않|없어도|필수.*아님)',text))
-        personal=bool(re.search(r'농업인|농가',text)) and not re.search(r'법인|기업|농협|조합|기관|단체',text)
+        personal=personal_only(text)
         # Registration can apply to both individuals and corporations. Do not
         # require a personal-only target, or infer it from the institution/region.
         if not complex_clause and re.search(r'농업경영정보를\s*등록한\s*농업경영체',text):
@@ -105,6 +109,14 @@ def payload_for(facts,base):
         # Age words without a reference date are displayable, never decidable.
         age=re.search(r'만\s*(\d{1,2})\s*[~∼～]\s*(\d{1,2})\s*세',text)
         if age and not complex_clause:add('text_age','age',{'min':int(age[1]),'max':int(age[2]),'min_inclusive':True,'max_inclusive':True,'basis_date':'unknown','age_basis':'international'},target)
+        for i,note in enumerate(review_requirements(text)):
+            cid='target_review_'+str(i)
+            if not any(c['condition_id']==cid for c in conditions):
+                proof=clean_proof(target) or {}
+                if proof:proof['location']=proof['location']+' · '+note
+                conditions.append({'condition_id':cid,'kind':'other_required','presence':'unknown',
+                    'value':None,'status':'candidate','evidence':proof})
+                added.append({'condition_id':cid})
     if added:
         base['logic']={'op':'AND','children':[base.get('logic',{'op':'UNKNOWN','children':[]}),*added]}
     base['conditions']=conditions
