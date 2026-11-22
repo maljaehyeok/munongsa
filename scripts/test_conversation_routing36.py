@@ -39,6 +39,8 @@ class ConversationRouting(unittest.TestCase):
         v={**self.knowledge('좋아하는 음악이나 가볍게 쉬는 이야기를 나눠도 좋아요.','음악 이야기'),'intent':'other'}
         out=self.run_question('음악 이야기하자',{'crop':'토마토','conversation_topic':'농업의 의미'},v)
         self.assertEqual(out['conversation']['conversation_topic'],'음악 이야기');self.assertFalse(out['programs'])
+        hints=json.loads(n.make_request('음악 이야기하자',{'conversation_topic':'농업의 의미'})['input'])
+        self.assertIsNone(hints['conversation_topic'])
     def test_budget_and_schema_stay_bounded(self):
         self.assertEqual((n.DAILY_CALLS,n.MINUTE_CALLS,n.MAX_OUTPUT),(30,6,512))
         raw={**self.knowledge(),'facts':[]}
