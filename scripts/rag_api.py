@@ -150,10 +150,13 @@ def local_pipeline(question):
     explanation=bool(re.search(r'뭐야|무엇(?:이야|인가|인지)|무슨\s*(?:뜻|말)|뜻(?:이|은)|설명|풀어\s*(?:줘|줄)',original))
     knowledge_request=explanation and not re.search(r'지원|사업|공고|신청|자격|금액|대출|금융|경영체|서류|마감',original) and (bool(context.get('conversation_topic')) or bool(re.search(r'농업|농사|재배|작물|스마트팜',original)))
     if knowledge_request:
-        understood=rag_nlu.interpret(original,context)
+        referential=bool(context.get('conversation_topic')) and bool(re.search(r'그게|그건|그거|다시|쉽게|풀어|무슨\s*(?:뜻|말)',original)) and not re.search(r'농업|농사|재배|작물|스마트팜',original)
+        # Resolve the subject, not the answer. No second call or factual history.
+        interpreted_question=context['conversation_topic']+'에 대해 쉬운 말로 설명해 주세요.' if referential else original
+        understood=rag_nlu.interpret(interpreted_question,context)
         reply=rag_nlu.safe_conversation_reply(understood or {},original)
         clean={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','casual_topic','conversation_topic')}
-        topic=(understood or {}).get('topic') or (original if rag_nlu.valid_topic(original) else '') or context.get('conversation_topic','')
+        topic=context['conversation_topic'] if referential else (understood or {}).get('topic') or (original if rag_nlu.valid_topic(original) else '')
         if topic and rag_nlu.valid_topic(topic):clean['conversation_topic']=topic
         out=rag_dialogue.response(reply or '일반 개념에 관한 질문으로 이해했어요. 지금은 설명을 확인하지 못해 이전 지원사업을 대신 추천하지 않았습니다. 궁금한 개념을 조금 더 구체적으로 알려주세요.',clean,'context',status='answered' if reply else 'needs_verification')
         out['understanding']='gpt' if reply else 'rules'
@@ -280,6 +283,7 @@ def local_pipeline(question):
 
 def catalogue_response(response,corpus):
     """Recheck the served public listing before returning metadata or partial facts."""
+    for key in ('conversation_topic','casual_topic'):response.setdefault('conversation',{}).pop(key,None)
     if os.environ.get('MUNONGSA_RAG_SYNC_DIR'):
         import rag_sync,rag_catalogue
         current=rag_sync.load(os.environ['MUNONGSA_RAG_SYNC_DIR'])

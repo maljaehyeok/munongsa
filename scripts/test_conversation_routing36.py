@@ -10,6 +10,7 @@ class ConversationRouting(unittest.TestCase):
         with patch.object(api,'load_api_corpus',return_value=corpus),patch.object(n,'interpret',return_value=value) as model,patch.dict('os.environ',{},clear=True):
             out=api.local_pipeline(encoded)
         self.assertLessEqual(model.call_count,1)
+        self.last_nlu_question=model.call_args.args[0] if model.call_count else None
         return out
     def knowledge(self,reply='농업은 작물과 가축을 길러 먹거리와 생활에 필요한 재료를 얻는 활동이에요.',topic='농업의 의미'):
         return {'intent':'knowledge','facts':{},'hypothetical':False,'reference_previous':False,'uncertain':[],'reply':reply,'topic':topic}
@@ -21,6 +22,7 @@ class ConversationRouting(unittest.TestCase):
         self.assertNotIn('notice_ids',out['conversation'])
         follow=self.run_question('그게 무슨 뜻이야?',out['conversation'],self.knowledge('쉽게 말해, 먹거리와 여러 재료를 얻기 위해 식물을 기르거나 동물을 돌보는 일이에요.'))
         self.assertFalse(follow['programs']);self.assertNotIn('토마토 관련 공고',follow['answer'])
+        self.assertIn('농업의 의미에 대해',self.last_nlu_question)
         hints=json.loads(n.make_request('그게 무슨 뜻이야?',out['conversation'])['input'])
         self.assertEqual(hints['conversation_topic'],'농업의 의미');self.assertFalse(hints['has_previous_business'])
     def test_unavailable_model_never_restores_crop_search(self):
@@ -50,5 +52,9 @@ class ConversationRouting(unittest.TestCase):
         out=self.run_question('음악 이야기하자',{'crop':'토마토','notice_ids':['NOTICE-old']})
         self.assertEqual(out['kind'],'context');self.assertFalse(out['programs'])
         self.assertNotIn('notice_ids',out['conversation'])
+    def test_business_result_replaces_general_subject(self):
+        out=d.response('공개 목록',{'conversation_topic':'음악','casual_topic':'humor'},'catalogue')
+        with patch.dict('os.environ',{},clear=True):out=api.catalogue_response(out,{'documents':{}})
+        self.assertNotIn('conversation_topic',out['conversation']);self.assertNotIn('casual_topic',out['conversation'])
 
 if __name__=='__main__':unittest.main()
