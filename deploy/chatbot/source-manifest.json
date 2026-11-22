@@ -15,11 +15,11 @@
     "assets/support-review.js": "be9fed3f95ea99bfc4eeb38f4d3c25def44d9fbefb79a38118fe931890a0d468",
     "assets/personalization.js": "c712b58ad65c5f173e15b27929973cd513583fd4b750a2e91aa56a4f288504f5",
     "assets/notice-review.js": "e7266cd2cec28f4e64d4c44526cd01c193ec2715c64f5b7f49f1fcd928ee4261",
-    "assets/support-details.js": "7c351cbd3045fb22cc0f50e6d68aa18482973c20b299a28a8572e70d8c602ec5",
-    "assets/user-display.js": "f2226c1c270124f2c667c78da2d1aa3e3b53f938e29d8ab8a244daa610a81807",
+    "assets/support-details.js": "6f2dd7d66c23fb64f4b794536e28af783b4b776eb3d768105fc53d57556343e8",
+    "assets/user-display.js": "567ea1eccba2095283d1c830ecd8966686cf9e42ba12b87609dd04daca819170",
     "assets/support-details.json": "c01a7e6a4dd298621bcfa22e840fa849e7b4d8b9d6d02ea58f898aa997f0b451",
     "assets/farm-profile.js": "9723cbd8ffbc188430d6366b1f1e0dc403d82601421be2d28ba09a86c01e1bc0",
-    "assets/application-journey.js": "b7af24bf5545661f4a507ad05182dfb1ae88c0234cf39d66e89e2f5c2ef435f9",
+    "assets/application-journey.js": "e9d2cfe6cb2bc7090552c2251640d705c5ca2b80adcc215ac43b32030d03e43a",
     "assets/finance-mvp.js": "df6220ffee0ff8013f80bcfd2f0300d075bebae41bee7281a0c484d340a5b1a0",
     "assets/profile-matching.js": "e28410a516c9a4f8b6e4b1d9d7ddec408db794f11f6d281963a156ddd1a768f4"
   },
@@ -37,7 +37,12 @@
     "scripts/rag_nlu.py": "6fc1cd0e3f6dfbec5020ae3fcffd8a22fe53d7f359469927714fa855231c1e70",
     "scripts/rag_catalogue.py": "580c34043ac93f86b454e7d5c6602556b9fd853507ac2f7c4bc64f6e85a91f34",
     "scripts/support_notice_review.py": "a04d3b5bb2e9558eddc019b7153cd79674c02847966b20ecefb6eba616d45d56",
-    "scripts/support_recommendation_readiness.py": "fb86b08cd4af6266eb38bb42eefa46666353c651188f52e5cb52d8d0dc2228a7"
+    "scripts/support_recommendation_readiness.py": "fb86b08cd4af6266eb38bb42eefa46666353c651188f52e5cb52d8d0dc2228a7",
+    "scripts/support_runtime/api_core.py": "9a5f58832ac823463c900aac60ee416fa186bed10d72619db36d99c0a048b13a",
+    "scripts/support_runtime/core_facts.py": "af37f0a3778d7d46bda4c18dbb39e387639635e6d190ec9fb89670a5dddd4259",
+    "scripts/support_runtime/discovery.py": "240e1ccf599bfadd45967af1a49a5aa5fa81e58b966c48143eebb0f52c4af84c",
+    "scripts/support_runtime/ingestion.py": "36828907fef9f007aeab031b9490fea70efa9bd9ce414242aa21c5454ffe9f00",
+    "scripts/support_runtime/qualification_guards.py": "f266b694afae745dac7f27c9f0cf0003e8f9302d52b8424d1b500e09890a8e7f"
   },
   "private_corpus": {
     "assets/support-details.json": "01a3d2eb61ab8ea6d70b1514eddafaf60b107e3a777c5df342991ac5c6e72c62",

@@ -38,6 +38,7 @@ def explicit_locations(text):
         ('residence','residence',r'([가-힣]{2,10}(?:시|군|구|도))(?:에\s*|\s*관내\s*)(?:거주(?:하는|하면서)|주소(?:지)?를?\s*둔)'),
         ('business_location','farm_land',r'([가-힣]{2,10}(?:시|군|구|도))에\s*농지를\s*둔'),
         ('business_location','business_office',r'([가-힣]{2,10}(?:시|군|구|도))에\s*사업장을\s*둔'),
+        ('business_location','business_office',r'([가-힣]{2,10}(?:시|군|구|도))에\s*소재\s*\(\s*본사\s*[,·]\s*공장\s*기준\s*\)'),
     ]:
         for match in re.finditer(pattern,text):
             item={'kind':kind,'regions':[match[1]],'location_basis':basis}

@@ -2,7 +2,7 @@
 Senior project row/link/date parsing reused with the operator's permission.
 No trial data, automatic approval or publication side effects.
 """
-import re,urllib.error,urllib.robotparser
+import re,urllib.error,urllib.robotparser,hashlib,json
 from bs4 import BeautifulSoup
 from . import boards as w, periods, facts, extractor
 
@@ -48,6 +48,22 @@ def content_lines(body,result):
     return [w.clean(x) for x in node.get_text(' ',strip=True).split(marker) if x.strip()]
 
 
+def source_snapshot(body,selector):
+    """Fingerprint the selected official HTML, not parser-generated facts.
+
+    Keep links, embedded tables and attributes. Attachment links are fingerprints,
+    not verification of bytes served behind an unchanged download URL.
+    """
+    soup=BeautifulSoup(body,'html.parser');node=soup.select_one(selector) if selector else None
+    if node is None:return None
+    attachments=sorted(set(str(a) for a in soup.select('a') if re.search(
+        r'download|filedown|\.pdf|\.hwpx?|\.docx?|\.xlsx?|첨부파일',str(a),re.I)))
+    content=json.dumps({'body':str(node),'attachment_links':attachments},ensure_ascii=False,sort_keys=True)
+    return {'schema':'official-body-snapshot-v1','selector':selector,
+            'sha256':hashlib.sha256(content.encode('utf8')).hexdigest(),
+            'attachments_present':bool(attachments or re.search(r'붙임|첨부(?:된|문서|자료|파일\s*(?:참조|참고|확인|을|의))',node.get_text(' ',strip=True)))}
+
+
 def analyse(entry,t,now):
     row=entry['metadata'];checked=w.m.utc_now()
     try:body=t.get(row['original_url'])
@@ -58,6 +74,7 @@ def analyse(entry,t,now):
         result['recruitment']['fetch_status']='failed';return result
     try:
         result=w.extract(body,row['original_url']);lines=content_lines(body,result)
+        result['source_snapshot']=source_snapshot(body,result.get('content_selector'))
         if getattr(t,'line_cache',None):t.line_cache(row['original_url'],lines,checked)
         import html
         normalized=[re.sub(r'^\s*[가-하][.．)]\s*','',x) for x in lines]

@@ -26,7 +26,8 @@ LABELS={
 ALIASES={re.sub(r'\s+','',label):key for key,labels in LABELS.items() for label in labels}
 PATTERN='|'.join(r'\s*'.join(re.escape(c) for c in label) for label in sorted(ALIASES,key=len,reverse=True))
 HEADER=re.compile(r'(?:'+r'(?P<colon>'+PATTERN+r')(?P<modifier>\s*(?:연장|변경\s*후|정정\s*후))?\s*[:：]'+
-                  r'|(?:^|\s)(?:\d{1,2}|[가-하])[.．)]\s*(?P<number>'+PATTERN+r')(?=\s|[:：]|$))')
+                  r'|(?:^|\s)(?:\d{1,2}|[가-하])[.．)]\s*(?P<number>'+PATTERN+r')(?=\s|[:：]|$)'+
+                  r'|[□○❍▪]\s*(?P<bullet>'+PATTERN+r')\s*(?:[:：-]\s*|(?=\s)))')
 
 
 def sections(lines):
@@ -34,7 +35,7 @@ def sections(lines):
     text=' '.join(dict.fromkeys(' '.join(x.split()) for x in lines if x.strip()))
     matches=list(HEADER.finditer(text));result=[]
     for i,m in enumerate(matches):
-        label=m.group('colon') or m.group('number');key=ALIASES[re.sub(r'\s+','',label)]
+        label=m.group('colon') or m.group('number') or m.group('bullet');key=ALIASES[re.sub(r'\s+','',label)]
         if m.group('modifier'):label+=m.group('modifier')
         end=matches[i+1].start() if i+1<len(matches) else len(text)
         value=text[m.end():end].strip(' :：')
@@ -96,6 +97,16 @@ def extract(lines,url):
     method=re.search(r'농지소재지[^。]{0,100}?사업신청서\s*제출(?:\s*또는\s*온라인\s*신청)?',text)
     if method:add('application_method',method[0],method[0],'공식 본문 신청서 제출 문구')
     target=result.get('target_description',{});v=target.get('value','')
+    # Reuse the documented target/benefit parser for explicit HTML bullet pairs.
+    # Only the pair's own target supplies qualifications, never an agency name.
+    from .api_core import overview
+    pair=overview(' '.join(lines),url)
+    for key,value in pair.items():result.setdefault(key,value)
+    target=result.get('target_description',{});v=target.get('value','')
+    if v:
+        labelled=overview('☞ '+v+' ☞ 지원',url)
+        for key in ('farm_registration_required','applicant_types','location_requirements'):
+            if key in labelled:result[key]=labelled[key]
     # Preserve logical alternatives/exceptions as text; do not flatten them.
     if isinstance(v,str) and not re.search(r'또는|제외|다만|미등록|예비|창업계획',v):
         types=[]

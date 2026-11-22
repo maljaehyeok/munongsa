@@ -195,6 +195,34 @@ class RuntimeTests(unittest.TestCase):
         self.run_groups([changed])
         with closing(self.db()) as c:self.assertEqual(monitor.notice_record(c,nid)['publication'],'review')
 
+    def snapshot_case(self,changed_body=False,changed_fact=False,attachment=False):
+        first=item();first['source_snapshot']={'schema':'official-body-snapshot-v1','selector':'.basicView .conText','sha256':'a'*64,'attachments_present':attachment}
+        self.run_groups([first])
+        with closing(monitor.connect(self.state)) as c:
+            nid=c.execute('SELECT notice_id FROM discovered_notices').fetchone()[0]
+            monitor.review_notice(c,nid,'fixture','test only',verification_status='verified',freshness='current',target='fixture farmer',evidence_url=item()['metadata']['original_url'],evidence_location='fixture')
+            monitor.publish_notice(c,nid,'approved_reference','fixture','test only')
+            before=monitor.notice_record(c,nid);revision=ingestion.eligibility.latest(c,nid)
+        newer=copy.deepcopy(first)
+        if changed_body:newer['source_snapshot']['sha256']='b'*64
+        elif changed_fact:newer['facts']['application_deadline']['value']['date']='2026-10-31'
+        else:newer['facts']['farm_registration_required']={'value':True,'evidence':newer['facts']['application_deadline']['evidence']}
+        self.run_groups([newer])
+        with closing(self.db()) as c:
+            after=monitor.notice_record(c,nid)
+            if changed_body or changed_fact or attachment:self.assertEqual(after['publication'],'review')
+            else:
+                self.assertEqual(after['publication'],'approved_reference');self.assertEqual(after['content_hash'],before['content_hash'])
+                self.assertEqual(ingestion.eligibility.latest(c,nid),revision)
+                h=json.loads(c.execute('SELECT hints_json FROM discovered_notices WHERE notice_id=?',(nid,)).fetchone()[0])
+                self.assertEqual(h['parser_enrichment_review']['state'],'pending')
+                self.assertNotIn('farm_registration_required',after['field_evidence'])
+
+    def test_identical_official_body_parser_addition_stays_private(self):self.snapshot_case()
+    def test_changed_official_body_with_same_extracted_facts_revokes(self):self.snapshot_case(changed_body=True)
+    def test_changed_old_fact_is_not_silently_preserved(self):self.snapshot_case(changed_fact=True)
+    def test_unverified_attachment_bytes_do_not_receive_same_body_exception(self):self.snapshot_case(attachment=True)
+
     def test_calendar_change_does_not_revoke_reference_approval(self):
         self.run_groups()
         with closing(monitor.connect(self.state)) as c:

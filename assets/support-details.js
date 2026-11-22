@@ -43,6 +43,13 @@
   if(!(localPreview&&r?.approval?.state==='preview')&&(!fieldGuidance&&(!['approved','approved_reference'].includes(item.publication)||item.verification_status!=='verified')||item.rights?.public_display!=='allowed'))return null;
   return r||null;
  }
+ function availability(item){
+  if(!item||typeof item.id!=='string')return {state:'unavailable',message:''};
+  if(get(item))return {state:'available',message:''};
+  if(item?.local_review_only===true||!records.some(r=>r.basis.id===item?.id))return {state:'unavailable',message:''};
+  if(item.publication==='official_guidance'&&item.verification_status==='basics_only')return {state:'scope_review',message:'이 공고는 현재 제목·기관·공식 링크 중심의 기본 안내입니다. 상세정보는 현재 공고와 공개 범위를 다시 확인해야 하므로 표시하지 않습니다. 원문에서 신청 대상·기간·서류를 확인해 주세요.'};
+  return {state:'basis_review',message:'현재 공고와 기존 상세정보의 확인 기준이 달라 상세 안내를 보류했습니다. 원문의 변경·정정 여부와 신청 조건을 확인해 주세요.'};
+ }
  function linkReview(item,now=Date.now()){
     const r=linkHistory(item,now);return r&&now<Date.parse(r.expires_at)?r:null;
   }
@@ -68,7 +75,7 @@
  }
  function card(item,escape){const r=get(item);if(!r)return '';return ['summary','funding'].filter(k=>r.fields[k]).map(k=>`<span class="notice-fact${k==='funding'?' notice-funding':''}"><b class="notice-fact-label">${k==='summary'?'지원 내용':'지원 금액·비율'}</b><span class="notice-fact-value">${escape(r.fields[k].value)}</span></span>`).join('')}
  function detail(item,escape,date){
-  const r=get(item);if(!r)return '';
+  const r=get(item);if(!r){const state=availability(item);return state.message?`<section class="support-reviewed-details"><h3>상세정보 확인이 필요해요</h3><p>${escape(state.message)}</p></section>`:'';}
   const labels={documents_listed:'\uBCF8\uBB38\uC5D0 \uAE30\uC7AC\uB41C \uC11C\uB958',summary:'지원 내용',funding:'지원 금액·한도',conditions:'필수 자격조건',method:'신청 방법',office:'접수처',documents_required:'필수 제출서류',documents_conditional:'해당자만 필요한 서류',documents_bonus:'가점자료',contact:'문의처',warnings:'중요한 제한사항',unconfirmed:'추가 확인 사항',target:'신청 대상',region:'거주지·영농지 기준',age:'연령 기준',experience:'영농 경력',period:'공식 신청기간',subsidy:'지원 비율',self_payment:'자부담'};
   const list=f=>Array.isArray(f.value)?`<ul>${f.value.map(v=>`<li>${escape(v)}</li>`).join('')}</ul>`:escape(f.value);
   const row=k=>`<div><dt>${labels[k]}</dt><dd>${r.fields[k]?list(r.fields[k]):'<span class="support-fact-unknown">확인되지 않음</span>'}</dd></div>`;
@@ -78,5 +85,5 @@
   const proofs=fields.filter(k=>r.fields[k]).map(k=>{const e=r.fields[k].evidence;return `<li><b>${labels[k]}</b> · ${escape(e.location)} · 확인일 ${escape(date(e.checked_at))} <a href="${escape(e.url)}" target="_blank" rel="noopener">공식 근거 보기 ↗</a></li>`}).join('');
   return `<section class="support-reviewed-details"><h3>신청 준비에 필요한 정보</h3>${localPreview?'<p class="support-local-review" role="status">로컬 검토 미리보기 · 공개 승인이나 운영 반영 결과가 아닙니다.</p>':''}<p>확인된 항목만 안내합니다. 일부 조건이 맞아도 신청 자격이나 현재 접수 가능 여부가 확정되는 것은 아닙니다.</p>${sections}<details class="more-conditions"><summary>공식 근거와 항목별 확인일</summary><ul>${proofs}</ul></details></section>`;
  }
- root.MunongsaSupportDetails={basis,install,get,card,detail,linkReview,linkHistory,application,links};
+ root.MunongsaSupportDetails={basis,install,get,availability,card,detail,linkReview,linkHistory,application,links};
 })(globalThis);

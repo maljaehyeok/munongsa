@@ -159,12 +159,24 @@ def save(c,entry):
         conflict={'previous':before['published_at'],'observed':after['published_at'],'status':'needs_review; official change not established'}
         changed=[];after['published_at']=before['published_at'];row['published_at']=before['published_at']
     action='new' if not old else 'changed' if changed else 'enriched' if added else 'metadata_conflict' if conflict and h.get('daily_date_conflict')!=conflict else 'same'
+    snapshot=entry.get('source_snapshot') if entry.get('detail_fetched') and entry.get('status')!='failed' else None
+    previous_snapshot=h.get('daily_source_snapshot')
+    valid_snapshot=lambda s:isinstance(s,dict) and s.get('schema')=='official-body-snapshot-v1' and isinstance(s.get('selector'),str) and isinstance(s.get('sha256'),str) and bool(re.fullmatch(r'[0-9a-f]{64}',s['sha256']))
+    comparable=valid_snapshot(snapshot) and valid_snapshot(previous_snapshot)
+    # Only additive parser enrichment of the EXACT same official body may retain
+    # an existing grant. Changed old facts, unknown baselines and metadata still
+    # take the original invalidation path; no past approval is restored here.
+    parser_enrichment=bool(old and action=='enriched' and comparable and snapshot==previous_snapshot
+        and snapshot.get('attachments_present') is False)
+    if old and comparable and snapshot!=previous_snapshot and not changed:
+        changed=['source_snapshot'];action='changed'
     # Additional private operational facts are not edits to the approved notice.
     # Never extend this exception to dates, targets, conditions or exclusions.
     private_fields={'support_unit_rates','application_method','budget_total','project_year'}
-    private_enrichment=bool(old and action=='enriched' and all(k.removeprefix('facts.') in private_fields for k in added))
+    private_enrichment=bool(old and action=='enriched' and (parser_enrichment or all(k.removeprefix('facts.') in private_fields for k in added)))
     if action in ('new','changed','enriched') and not private_enrichment:
         stable={'original_id':row['original_id'],'title':row['title'],'published_at':row.get('published_at'),'original_url':row['original_url'],'important_facts':after['facts']}
+        if valid_snapshot(snapshot):stable['official_body_snapshot']=snapshot
         result=write_items(c,kind,[stable])
         if result['status']=='failed':raise RuntimeError('db_registration_failed')
         if not old:
@@ -175,6 +187,10 @@ def save(c,entry):
     h.update(daily_semantic=after,daily_checked_at=entry.get('checked_at'),objective_facts=retained_facts,
              recruitment_assessment=entry.get('recruitment',{}),unknown_fields=entry.get('unknown_fields',[]))
     h['observed_original_url']=observed_url
+    if valid_snapshot(snapshot):h['daily_source_snapshot']=snapshot
+    if parser_enrichment:
+        h['parser_enrichment_review']={'state':'pending','added_fields':added,'source_snapshot':snapshot,
+            'note':'private parser candidates only; approval/hash/eligibility revision preserved'}
     if conflict:h['daily_date_conflict']=conflict
     with c:
         c.execute('UPDATE discovered_notices SET hints_json=?,last_collected_at=? WHERE notice_id=?',(m.packed(h),m.utc_now(),nid))

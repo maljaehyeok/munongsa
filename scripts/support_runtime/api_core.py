@@ -13,7 +13,7 @@ def overview(description, url):
     # The provider's explicit target/benefit pair, not an arbitrary paragraph.
     if len(parts)!=3 or not all(0<len(p)<=900 for p in parts[1:]):return facts
     target,support=parts[1:]
-    if not re.search(r'지원',support):return facts
+    if not re.search(r'지원|녹비작물\s*종자|유기농업자재|토양검정|시비처방',support):return facts
     def add(name,value,quote):
         facts[name]={'value':value,'evidence':{'url':url,'quote':quote,
             'location':'공식 API 사업개요의 대상·지원 구분; 관리자 미승인'}}
@@ -25,7 +25,7 @@ def overview(description, url):
     if not re.search(r'농업인|농업법인|농가|농업경영체|농어업인|생산자단체|예비농',target):return facts
     # Do not turn alternatives/exceptions into independent mandatory clauses.
     if re.search(r'또는|다만|제외|예외|미등록|예비|예정|등록.*(?:무관|불필요|필요하지|않|없어도|필수.*아님)',target):return facts
-    if re.search(r'농업경영정보를\s*등록한|농업경영체\s*등록(?:한|된|\s+(?:농업인|농가|농업법인)|\s*\d+\s*년\s*이상)',target):
+    if re.search(r'농업경영정보를\s*등록(?:한|하고)|농업경영체(?:에)?\s*등록(?:한|된|\s+(?:농업인|농가|농업법인)|\s*\d+\s*년\s*이상)',target):
         add('farm_registration_required',True,target)
     if re.fullmatch(r'농업경영정보를\s*등록한\s*농업인\s*(?:및|·|ㆍ)\s*농업법인',target):
         add('applicant_types',['individual_farmer','agricultural_business'],target)

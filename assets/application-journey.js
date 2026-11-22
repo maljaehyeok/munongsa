@@ -10,6 +10,7 @@
   if(display.state==='elapsed')actions.push({text:'기재된 신청기간이 지났어요. 연장·재공고가 있는지 공식 기관에 확인하세요.',kind:'past'});
   else{
    if(decision?.excluded)actions.push({text:'확인된 조건이 맞지 않아요. 아래 불일치 이유를 확인하고, 입력이 잘못됐다면 수정하세요.',kind:'mismatch'});
+   if(decision?.region_state==='check'&&!views.some(v=>/거주 지역|영농지|사업장 소재지/.test(v.label)&&v.fact!=='확인 필요'))actions.push({text:'신청 가능한 거주지·영농지 범위가 확인되지 않았어요. 게시 기관의 지역만으로 신청할 수 있다고 판단하지 말고 원문의 지역 요건을 확인하세요.',kind:'region_unknown'});
    for(const view of views.filter(v=>v.comparison==='check').slice(0,3)){
     const key=Object.keys(editFields).find(k=>(k==='farm_registration'&&/경영체/.test(view.label))||(k==='residence'&&/거주/.test(view.label))||(k==='business_location'&&/영농지/.test(view.label))||(k==='crop'&&/작물/.test(view.label))||(k==='applicant'&&/주체|신청자/.test(view.label)));
     actions.push({text:view.label+'을 확인해 주세요. '+(view.fact==='확인 필요'?'공식 조건이 부족해 입력만으로 판단할 수 없어요.':view.fact),field:view.fact==='확인 필요'?null:editFields[key],kind:'check'});
