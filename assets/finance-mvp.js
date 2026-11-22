@@ -54,10 +54,43 @@
     const list=items=>items.map(v=>`<li>${esc(v)}</li>`).join('');
     return `<section class="finance-application-guide"><h3>신청 방법·접수처</h3><p>${esc(g.scope)}</p><ol>${list(g.steps)}</ol><dl class="support-detail-list"><div><dt>접수처</dt><dd>${esc(g.reception)}</dd></div></dl><details class="more-conditions finance-documents"><summary>준비서류 확인하기</summary>${g.documents.length?`<h4>공식 안내의 주요 서류</h4><ul>${list(g.documents)}</ul>`:''}${g.conditionalDocuments.length?`<h4>해당자만 확인할 서류</h4><ul>${list(g.conditionalDocuments)}</ul>`:''}<p>${esc(g.documentNote)}</p></details><p class="notice-meta">신청·서류 정보 확인일: ${esc(date(g.checkedAt))}</p><div class="cite"><a href="${esc(g.source.url)}" target="_blank" rel="noopener">${esc(g.source.publisher)} · 신청·서류 근거 보기 ↗</a><p>${esc(g.source.location)}</p></div></section>`;
   }
+  // Calculation only, separate from funding needs, eligibility and approval.
+  // Enable only the existing reviewed 2026 fixed-rate product, never guarantees
+  // or variable rates inferred from a general percentage in free text.
+  function interestAssumption(p,checkedAt){
+    if(p?.id!=='successor'||p.type!=='정책융자'||!String(p.year).includes('2026'))return null;
+    if(p.source?.url!=='https://agro.seoul.go.kr/archives/55168?listPage=4'||!p.source.location)return null;
+    if(!/^2026-\d{2}-\d{2}$/.test(checkedAt||'')||date(checkedAt)==='확인 필요'||new Date(checkedAt+'T00:00:00Z').toISOString().slice(0,10)!==checkedAt)return null;
+    const m=p.interest?.match(/연\s*(\d+(?:\.\d+)?)%\s*고정금리/);
+    if(!m||Number(m[1])!==1.5)return null;
+    return {percent:1.5,basisPoints:150,source:p.source,checkedAt,terms:p.interest};
+  }
+  function simpleInterest(principal,basisPoints){
+    if(!Number.isSafeInteger(principal)||principal<=0||!Number.isInteger(basisPoints)||basisPoints<0||basisPoints>10000)return null;
+    const numerator=BigInt(principal)*BigInt(basisPoints),round=d=>Number((numerator+d/2n)/d);
+    return {principal,annual:round(10000n),monthlyAverage:round(120000n)};
+  }
+  const interestConfigs=new Map();
+  function interestHtml(p,checkedAt){
+    const assumption=interestAssumption(p,checkedAt);if(!assumption)return '';
+    interestConfigs.set(p.id,assumption);
+    return `<details class="more-conditions finance-interest" data-interest-product="${esc(p.id)}"><summary>고정금리 선택 시 단순 예상 이자 계산</summary><p>2026년 안내의 연 ${assumption.percent}% 고정금리를 선택한다고 가정합니다. 변동금리에는 적용하지 않습니다.</p><label for="interestPrincipal-${esc(p.id)}">계산할 가정 대출금액 · 원 또는 만원</label><input id="interestPrincipal-${esc(p.id)}" data-interest-principal type="text" inputmode="text" maxlength="24" autocomplete="off" placeholder="예: 5,000만원 또는 50,000,000원" aria-describedby="interestCaution-${esc(p.id)}"><button type="button" data-calculate-interest>가정 이자 계산</button><output data-interest-result role="status" aria-live="polite"></output><p id="interestCaution-${esc(p.id)}">대출 원금이 1년 동안 줄지 않는 단순 가정입니다. 월평균은 연간 이자를 12로 나눈 참고값이며 실제 월 상환액이 아닙니다. 표시 금액은 원 단위로 반올림합니다. 원금 상환·보증료·수수료는 제외하며, 실제 승인액·적용 금리·거치기간 이자 납부는 취급기관에 확인하세요.</p><a href="${esc(assumption.source.url)}" target="_blank" rel="noopener">금리 공식 근거 ↗</a><p class="notice-meta">안내 정보 확인일 ${esc(date(checkedAt))} · 계산값은 영농 조건이나 필요 자금에 자동 저장하지 않습니다.</p></details>`;
+  }
+  if(typeof document!=='undefined'){
+    document.addEventListener('click',event=>{
+      const button=event.target.closest?.('[data-calculate-interest]');if(!button)return;
+      const box=button.closest('[data-interest-product]'),config=interestConfigs.get(box?.dataset.interestProduct);if(!config)return;
+      const input=box.querySelector('[data-interest-principal]'),output=box.querySelector('[data-interest-result]');
+      const amount=root.MunongsaAmounts?.parseInput(input.value),result=simpleInterest(amount,config.basisPoints);
+      input.setAttribute('aria-invalid',String(!result));
+      output.textContent=result?'가정 대출금 '+root.MunongsaAmounts.wonText(result.principal)+' · 연 '+config.percent+'% 가정\n연간 단순 이자 '+root.MunongsaAmounts.wonText(result.annual)+'\n월평균 단순 환산 약 '+root.MunongsaAmounts.wonText(result.monthlyAverage)+' · 실제 월 상환액 아님':'계산할 대출금액을 양수로 입력해 주세요. 예: 5,000만원 또는 50,000,000원';
+    });
+    document.addEventListener('input',event=>{if(!event.target.matches?.('[data-interest-principal]'))return;const box=event.target.closest('[data-interest-product]');box.querySelector('[data-interest-result]').textContent='';event.target.removeAttribute('aria-invalid');});
+  }
   function detail(p,profile,checkedAt){const m=compare(p,profile),view=comparisonView(p,m);const fields=[['지원 대상',p.target],['적용 지역',p.region],['자금 용도',p.uses],[p.id==='farmland'?'지원단가·개인별 총한도':amountLabel(p),p.limit],['금리·보증료',p.interest],[p.type==='신용보증'?'이용 대출 거치기간':'거치기간',p.grace],[p.type==='신용보증'?'이용 대출 상환조건':'상환기간·방식',p.repayment],['신청 방법·취급기관',p.application]];
     const glossary=p.type==='신용보증'?'':`<details class="more-conditions finance-glossary"><summary>거치·상환 용어 알아보기</summary><dl><dt>거치기간</dt><dd>원금 상환을 미루는 기간입니다. 이자 납부 여부는 해당 제도 조건에 따릅니다.</dd><dt>원금균등분할상환</dt><dd>매번 갚는 원금은 같고, 이자는 남은 대출 잔액에 따라 달라지는 방식입니다.</dd></dl></details>`;
-    const comparison=p.type==='신용보증'?`<h3>보증 상담 안내</h3><p>${esc(view.scope)}</p>`:`<h3>실제로 비교한 입력 항목</h3><ul>${view.rows.map(r=>`<li><b>${esc(r.text)}</b><br>${esc(r.detail)}</li>`).join('')}</ul><p class="finance-caution">${esc(view.scope)}</p>`;
+    const comparison=interestHtml(p,checkedAt)+(p.type==='신용보증'?`<h3>보증 상담 안내</h3><p>${esc(view.scope)}</p>`:`<h3>실제로 비교한 입력 항목</h3><ul>${view.rows.map(r=>`<li><b>${esc(r.text)}</b><br>${esc(r.detail)}</li>`).join('')}</ul><p class="finance-caution">${esc(view.scope)}</p>`);
     return {match:m,label:view.label,html:`<h3>주요 조건</h3><dl class="support-detail-list finance-facts">${fields.map(([a,b])=>`<div><dt>${esc(a)}</dt><dd>${esc(b)}</dd></div>`).join('')}</dl><p class="finance-amount-scope notice-meta">${esc(amountScope(p))}</p>${fundingHtml(p,profile)}${glossary}${applicationGuide(p)}<h3>현재 신청 안내</h3><p>${esc(p.status)}</p><div class="detail-actions">${action(p)}</div>${comparison}<h3>신청 시 확인할 조건</h3><ul>${p.conditions.map(c=>`<li>${esc(c)}</li>`).join('')}</ul><details class="more-conditions"><summary>추가로 확인할 항목</summary><ul>${p.unknowns.map(u=>`<li>${esc(u)}</li>`).join('')}</ul></details><p class="finance-caution">자금 배정·보증·대출 승인은 별도 심사합니다. 최신 금융조건과 접수 일정은 취급기관에서 확인하세요.</p><p>정보 확인일: <b>${esc(date(checkedAt))}</b> (한국시간)<br>자료 기준: ${esc(p.year)}</p><div class="cite"><b>${esc(p.source.publisher)}</b><p>${esc(p.source.location)}</p></div>`};
   }
-  const api={compare,filter,rank,card,detail,date,labels,comparisonView,fundingView,applicationGuide};root.MunongsaFinance=api;if(typeof module!=='undefined')module.exports=api;
+  const api={compare,filter,rank,card,detail,date,labels,comparisonView,fundingView,applicationGuide,interestAssumption,simpleInterest};root.MunongsaFinance=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -285,7 +285,7 @@
       const personalized=publicSupport?MunongsaPersonalization.support(publicSupport,x):[],query=document.getElementById('supportSearch').value.trim().toLocaleLowerCase();
       const seen=new Set(),official=personalized.filter(r=>r.discovery.matches).filter(r=>query||!r.decision.excluded).filter(r=>{const key=r.item.url+'|'+r.item.title.replace(/[^0-9a-z가-힣]/gi,'');if(seen.has(key))return false;seen.add(key);return true}).map(r=>({...r,display:MunongsaSupportReview.presentation(r.item)}));
       const refs=MunongsaSupportReview.publicRecords(supportReview,query).map(item=>({item,display:MunongsaSupportReview.presentation(item,Date.now(),true),reference:true}));
-      const all=official,labels={current:'현재 공고',confirmed:'\uBAA8\uC9D1 \uC548\uB0B4 \uD655\uC778',standing:'\uC0C1\uC2DC\u00B7\uC608\uC0B0 \uC870\uAC74',all:'전체 공고',window:'기재 모집기간 내',urgent:'마감 임박',review:'검토 중',unknown:'기간 확인 필요',elapsed:'지난 공고 보기',upcoming:'모집 예정'};
+      const all=official,labels={current:'현재 공고',confirmed:'\uBAA8\uC9D1 \uC548\uB0B4 \uD655\uC778',standing:'\uC0C1\uC2DC\u00B7\uC608\uC0B0 \uC870\uAC74',all:'전체 공고',window:'기재 모집기간 내',urgent:'마감 임박',unknown:'기간 확인 필요',elapsed:'지난 공고 보기',upcoming:'모집 예정'};
       const total=v=>v==='current'?all.filter(r=>r.display.state!=='elapsed').length:v==='all'?all.length:v==='review'?refs.length:v==='urgent'?all.filter(r=>r.display.urgent).length:v==='confirmed'?all.filter(r=>r.display.operator_notice).length:all.filter(r=>r.display.state===v).length;
       document.getElementById('supportStateFilter').hidden=true;document.querySelector('label[for="supportStateFilter"]').hidden=true;document.querySelector('#supportBrowseFields p').hidden=true;
       count.textContent=`공식 안내 ${official.length}건 · 검토 중 참고 ${refs.length}건`;
