@@ -5,6 +5,7 @@ const P=MunongsaPersonalization;
 const basic={title:'청년농업인 창업 지원',institution:'공식 기관',target:'unknown',support:'unknown'};
 const related=P.discovery(basic,{farmingSituation:'preparing'},'김제에서 토마토 농사를 시작하려고 해');
 assert(related.matches);assert(!related.eligibility_confirmed);
+assert(P.discovery(basic,{},'김제에서 토마토 재배하려고 해.').matches);
 assert(!P.discovery({title:'농업인 건강검진',institution:'청년농업인 포털'}, {},'창업').matches,'portal audience is not business purpose');
 assert(!P.discovery({title:'안전성 검사비 지원'}, {},'보험').matches,'inspection is not insurance');
 assert(P.discovery({title:'온실 시설현대화'}, {},'시설 설치 관련 사업').matches);

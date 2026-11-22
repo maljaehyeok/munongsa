@@ -9,6 +9,7 @@ class RelatedDiscoveryTests(unittest.TestCase):
     def test_topic_relevance_is_not_eligibility(self):
         score,hit=current.discovery_score('김제에서 토마토 농사를 시작하려고 해','청년농업인 창업 지원','청년농업인 창업 지원')
         self.assertTrue(hit);self.assertGreater(score,0)
+        self.assertTrue(current.discovery_score('김제에서 토마토 재배하려고 해.','청년농업인 창업 지원','청년농업인 창업 지원')[1])
         self.assertFalse(current.discovery_score('시설 설치 관련 사업','농업인 건강검진','농업인 건강검진')[1])
 
     def test_context_does_not_force_crop_and_region_into_topic(self):

@@ -108,7 +108,8 @@ def discovery_score(question,title,hay):
     terms=[re.sub(r'(?:으로|에서|관련|을|를|이|가|은|는)$','',t) for t in re.findall('[가-힣a-z0-9]+',q)]
     terms=[t for t in terms if len(t)>1 and t not in {'지원사업','지원','사업','공고','농사','농업','농업인','관련','어떤','있어','알려줘','보여줘','하려고','해요'}]
     hits=[t for t in terms if t in hay]
-    topical=sum(any(t in q for t in group) and any(t in hay for t in group) for group in TOPICS)
+    interest=q+' 창업' if re.search(r'재배하려|영농\s*준비|농사\s*준비',q) else q
+    topical=sum(any(t in interest for t in group) and any(t in hay for t in group) for group in TOPICS)
     return sum(20 if t in title else 8 for t in hits)+30*topical, bool(hits or topical)
 
 def matches(question,feed,context=None,now=None):
