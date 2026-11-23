@@ -21,6 +21,28 @@ class FinalP1(unittest.TestCase):
   self.assertTrue(n.concept_subject('거치기간은 무슨 뜻이야?'))
   self.assertTrue(n.concept_request('거치기간은 무슨 뜻이야?'))
 
+ def test_rejected_numeric_examples_keep_qualitative_glossary(self):
+  q='그럼 예를 들면?'
+  bad={'intent':'knowledge','facts':{},'reply':'거치기간이 2년이라면 이후 원금을 갚아요.'}
+  self.assertFalse(n.safe_conversation_reply(bad,q))
+  for topic in ['거치기간','농업경영체 등록']:
+   for question in [q,'그럼 왜 필요한 거야?']:
+    basic=n.basic_concept_reply(topic,question)
+    self.assertTrue(n.safe_conversation_reply({**bad,'reply':basic},question))
+  self.assertEqual(n.basic_concept_reply('올해 청년농 신청 조건',q),'')
+
+ def test_pipeline_recovers_without_second_gpt_or_profile_mutation(self):
+  c={'conversation_topic':'거치기간','farm_registered':'no','farm_area_ha':0.09}
+  corpus={'documents':{},'sync_generation':'synthetic','sync_verified':True}
+  value={'intent':'knowledge','facts':{},'hypothetical':False,'reference_previous':True,'uncertain':[],'reply':'','topic':'거치기간'}
+  question=d.PREFIX+json.dumps(c,ensure_ascii=False)+d.SEPARATOR+'그럼 예를 들면?'
+  with patch.object(api,'load_api_corpus',return_value=corpus),patch.object(n,'interpret',return_value=value) as call:
+   result=api.local_pipeline(question)
+  self.assertEqual(call.call_count,1)
+  self.assertEqual(result['understanding'],'rules');self.assertEqual(result['status'],'answered')
+  self.assertIn('초기에는',result['answer']);self.assertEqual(result['conversation']['farm_registered'],'no')
+  self.assertEqual(result['conversation']['farm_area_ha'],0.09)
+
  def test_new_context_fields_are_bounded_not_model_extracted(self):
   self.assertTrue(p.valid_context({'farm_area_ha':0.1,'export_activity':'no'},d.AREAS))
   for c in [{'farm_area_ha':-1},{'farm_area_ha':float('nan')},{'farm_area_ha':True},{'export_activity':'maybe'}]:

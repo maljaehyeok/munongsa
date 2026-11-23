@@ -196,6 +196,13 @@ def local_pipeline(question):
         interpreted_question=context['conversation_topic']+'에 대해, 후속 질문: '+original if referential else original
         understood=rag_nlu.interpret(interpreted_question,context)
         reply=rag_nlu.safe_conversation_reply(understood or {},original)
+        generated=bool(reply)
+        if not reply and understood and understood.get('intent')=='knowledge' and not understood.get('facts'):
+            # Rejected model examples must not weaken numeric/official-fact checks.
+            # Only these basic service concepts have a bounded qualitative fallback.
+            subject=context.get('conversation_topic') if referential else understood.get('topic')
+            basic=rag_nlu.basic_concept_reply(subject,original)
+            reply=rag_nlu.safe_conversation_reply({'intent':'knowledge','facts':{},'reply':basic},original)
         clean={k:v for k,v in context.items() if k not in ('casual_topic','conversation_topic')}
         live_ids={d['public']['id'] for d in corpus['documents'].values()}|{n['id'] for n in rag_catalogue.records(corpus.get('guidance_feed',{}))}
         if 'notice_ids' in clean:
@@ -205,7 +212,7 @@ def local_pipeline(question):
         if topic and rag_nlu.valid_topic(topic):clean['conversation_topic']=topic
         fallback='현재 AI 설명의 호출 한도에 도달했어요. 지원사업 검색·확인된 자격 비교·신청 준비와 금융·재배기술 자료 찾기는 계속 이용할 수 있어요.' if rag_nlu.failure_reason()=='budget_limit' else '지금은 AI 설명을 확인하지 못했어요. 질문은 유지되며, 지원사업 검색이나 금융·재배기술 자료 찾기는 계속 이용할 수 있어요.'
         out=rag_dialogue.response(reply or fallback,clean,'context',status='answered' if reply else 'needs_verification')
-        out['understanding']='gpt' if reply else 'rules'
+        out['understanding']='gpt' if generated else 'rules'
         return rag_dialogue.remember(out,corpus)
     # An explicit service switch takes precedence over a vague "then" follow-up.
     if re.search(r'대출|융자|정책자금|금융|자금\s*부족|자금이\s*부족|시설\s*(?:설치\s*)?자금',original) and not re.search(r'지원사업|보조금',original):
