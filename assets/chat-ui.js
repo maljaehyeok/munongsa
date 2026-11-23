@@ -385,7 +385,7 @@
     const selectedSearch=/(?:선택|입력|설정|저장)(?:한|된)?\s*(?:영농\s*)?조건/.test(question)&&/검색|찾|탐색|지원\s*사업/.test(question);
     const financeFollow=!conversation.search_action&&!selectedSearch&&(financeState?.active||conversation.service==='finance')&&!/지원사업|공고|보조금|초기화|지워|비워/.test(question)&&/그\s*(?:사업|제도)|신청|서류|접수|준비|등록|조건|빌리|이자|상환|첫\s*번째|두\s*번째|세\s*번째|^응[?？]?$|무슨\s*뜻|다시\s*설명/.test(question);
     const financeExcluded=/(?:융자|대출|금융)\s*(?:말고|제외|아닌)/.test(question);
-    const finance=!conversation.search_action&&!financeExcluded&&(!!financeFollow||/대출|융자|정책자금|금융|(?:돈|자금)(?:이|이\s*더)?\s*부족|시설\s*(?:설치\s*)?자금/.test(question));
+    const finance=!conversation.search_action&&!financeExcluded&&(!!financeFollow||/대출|융자|정책자금|금융|농신보|농지\s*매매|(?:돈|자금)(?:이|이\s*더)?\s*부족|시설\s*(?:설치\s*)?자금/.test(question));
     const mixed=finance&&/지원사업|보조금/.test(question);
     if(!finance&&!/^(?:응|네|무슨|다시)/.test(question))financeState=null;
     const requestRevision=stateRevision,controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
@@ -416,7 +416,7 @@
     if(/만약|가정|등록하면|이라면/.test(question))node.append(text('p','가정한 조건은 실제 프로필에 저장하지 않았어요. 아래 금융 후보는 현재 입력된 실제 조건 기준이며, 가정에 따른 대출 가능 여부를 확정한 결과가 아니에요.'));
     try{
       const r=await fetch('./data/finance-mvp.json',{cache:'no-cache'});if(!r.ok)throw Error('finance');const data=await r.json();
-      const p=typeof readProfile==='function'?readProfile():{},search=follow?financeState?.query||question:question,terms=['귀농','청년','후계','농지','시설'].filter(t=>search.includes(t));
+      const p=typeof readProfile==='function'?readProfile():{},search=follow?financeState?.query||question:question,terms=['귀농','청년','후계','농지','시설','농신보'].filter(t=>search.includes(t));
       const guide=/신청|서류|접수|준비/.test(question),ordinal=question.match(/(첫|두|세)\s*번째/),position=ordinal?{첫:0,두:1,세:2}[ordinal[1]]:null;
       const selected=follow?(position!==null?financeState?.ids[position]:financeState?.selected|| (financeState?.ids.length===1?financeState.ids[0]:null)):null;
       if(guide&&selected){const item=data.products.find(p=>p.id===selected);if(item){node.append(text('h3',item.title),text('p',MunongsaFinance.comparisonView(item,MunongsaFinance.compare(item,p)).scope));const content=text('section','','chat-finance-guide');content.innerHTML=MunongsaFinance.applicationGuide(item);node.append(content);const action=conditionButton('금융 상세정보에서 내 조건 확인',()=>{dialog.close();navigateTo('bank','',{kind:'financeMvp',key:item.id});});node.append(action);return;}}

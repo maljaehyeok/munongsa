@@ -88,6 +88,10 @@ def resolve(q,context,corpus):
  if cat.named_records(text,corpus.get('guidance_feed',{})):return None
  import rag_nlu
  if rag_nlu.concept_request(text,c):return None
+ if re.search(r'개인.*단체|단체.*개인',text) and re.search(r'차이|같은|다른',text) and not re.search(r'그\s*사업|공고명|찾아|검색',text):
+  return d.response('개인과 단체는 신청 주체가 달라요. 어떤 주체를 허용하는지는 사업마다 공식 신청 대상에서 확인해야 해요. 개인의 조건만으로 단체 전체의 자격을 판단하거나, 단체 구성원을 모두 같은 조건으로 보지는 않습니다. 확인할 사업을 골라 주세요.',c,'context')
+ if re.search(r'구성원|일부\s*회원|멤버',text) and re.search(r'등록|자격|조건',text) and re.search(r'이면|하면|경우|어떻게|가능',text):
+  return d.response('단체 구성원별 조건인지 대표자·단체의 조건인지 공식 공고에서 구분해야 해요. 구성원 한 명의 등록 여부를 단체 전체나 실제 영농정보에 대입하지 않았습니다. 어느 사업을 확인할지 순서나 사업명을 알려주세요.',c,'clarify')
  if re.search(r'아니.*(?:그게|내\s*말)|그게\s*아니',text):
   return d.response('어느 부분을 바꿀까요? 검색 지역·관심 작물·찾는 지원 분야 중 하나만 알려주세요. 실제 입력 조건은 그대로 유지했어요.',c,'clarify')
  crop=crops.find(text);area=d.area_in(text);selection=selection_request(text)
@@ -115,7 +119,7 @@ def resolve(q,context,corpus):
  if c.get('service')=='finance' and re.search(r'그(?:건|게|거).*무슨\s*뜻|다시\s*설명',text):
   c['conversation_topic']='농업금융 용어'
   return d.response('어떤 금융 용어가 궁금하세요? 융자·금리·거치·상환 중 하나를 알려주시면 쉽게 설명할게요. 이전 지원사업을 대신 설명하지 않겠습니다.',c,'clarify')
- finance=bool(re.search(r'금융|융자|대출|시설\s*자금|운영\s*자금|자금.*부족',text)) and not support
+ finance=bool(re.search(r'금융|융자|대출|농신보|농지\s*매매|시설\s*자금|운영\s*자금|자금.*부족',text)) and not support
  if finance or c.get('service')=='finance' and re.search(r'빌리|이자|상환',text) and not support:
   c.update(service='finance');c.pop('conversation_topic',None);c.pop('casual_topic',None)
   return d.response('기존 영농 조건으로 농업금융을 비교해 볼게요. 제도를 고른 뒤 공식 금리와 가정 대출금액으로 예상 이자를 확인할 수 있어요. 대출 승인·확정 금리·실제 상환액은 별도 확인이 필요합니다.',c,'context')

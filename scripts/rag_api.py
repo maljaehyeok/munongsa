@@ -217,6 +217,13 @@ def local_pipeline(question):
     if original.startswith(rag_catalogue.PAGE_PREFIX) or re.fullmatch(r'(?:전체|모든)\s*(?:공식|공개)?\s*(?:공고|지원사업)',original.strip()) or rag_catalogue.archive_requested(original) or re.search(r'신청기간.{0,8}남|기간.{0,5}남은|마감.{0,5}남은',original):
         listing=rag_catalogue.respond(question,corpus)
         return catalogue_response(listing,corpus) if listing else rag_dialogue.response('공개 목록이 변경됐어요. 같은 질문으로 다시 검색해 주세요.',context,'clarify',status='needs_verification')
+    def followup_evidence(query,key):
+        out=grounded_response(query,corpus,key)
+        decorate_cards(out,corpus)
+        return out
+    if not rag_catalogue.named_records(original,corpus.get('guidance_feed',{})):
+        public_followup=rag_catalogue.continuation(question,corpus,followup_evidence)
+        if public_followup:return catalogue_response(public_followup,corpus)
     listing=rag_catalogue.respond(question,corpus,explicit=True)
     if listing:return catalogue_response(listing,corpus)
     # A named public business must not be replaced by a generic profile/crop search.
@@ -242,12 +249,6 @@ def local_pipeline(question):
         response.update(kind='answer',conversation={**context,'notice_ids':[document['public']['id']]},suggestions=[],understanding='rules')
         decorate_cards(response,corpus)
         return rag_dialogue.remember(response,corpus)
-    def followup_evidence(query,key):
-        out=grounded_response(query,corpus,key)
-        decorate_cards(out,corpus)
-        return out
-    public_followup=rag_catalogue.continuation(question,corpus,followup_evidence)
-    if public_followup:return catalogue_response(public_followup,corpus)
     guidance=rag_dialogue.service_response(question,corpus) or rag_dialogue.continuation(question,corpus,lambda query,notice:grounded_response(query,corpus,notice))
     # Topic discovery is independent of eligibility. Reuse only the validated
     # profile parser; never infer residence from a notice or spend a model call.

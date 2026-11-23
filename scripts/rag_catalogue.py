@@ -282,7 +282,7 @@ def continuation(encoded,corpus,grounded=None):
         index={'첫':0,'두':1,'세':2,'1':0,'2':1,'3':2}[m[1]]
         if index not in ordinal:ordinal.append(index)
     if actual.get('conversation_topic') and not ordinal and not re.search(r'사업|공고|아까|앞서',question):return None
-    follow=bool(ordinal or re.search(r'그\s*(?:중|사업|공고|거|건|게)|아까|앞서|다시\s*설명|등록\s*(?:하면|한다면)|그럼|신청\s*(?:조건|서류)|필요한\s*서류',question))
+    follow=bool(ordinal or re.search(r'그\s*(?:중|사업|공고|거|건|게)|아까|앞서|다시\s*설명|등록\s*(?:하면|한다면)|그럼|신청\s*(?:조건|서류)|필요(?:한)?\s*서류|문의처|접수처|신청\s*방법',question) or actual.get('applicant') and rag_dialogue.rag_profile.hypothetical(question) and re.search(r'개인|단체|법인',question))
     if not follow:return None
     facts,error=rag_dialogue.rag_profile.extract(question,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
     if error:return rag_dialogue.response(error,actual,'clarify',status='needs_verification')
