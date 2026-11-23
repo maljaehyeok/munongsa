@@ -210,5 +210,7 @@ body[data-view="explore"] .support-discovery{display:none}
 .chat-ui .chat-notice-title{font-size:19px;line-height:1.55}
 .chat-ui .chat-notice :is(.notice-institution,.chat-notice-meta),.chat-ui .chat-answer-caution,.chat-ui #chatPrivacy{font-size:14px;line-height:1.75}
 .chat-ui .chat-condition-block :is(p,li){font-size:15px;line-height:1.8}
+/* Narrow condition summaries: keep Korean labels intact and values easy to scan. */
+@media(max-width:480px){.chat-ui .chat-condition-summary dl>div{grid-template-columns:minmax(0,1fr);gap:4px}.chat-condition-summary dt{font-size:14px;font-weight:650;word-break:keep-all}.chat-condition-summary dd{font-size:15px;line-height:1.7}}
 .chat-ui .chat-followups button{font-size:15px;min-height:44px;line-height:1.6}
 @media(max-width:600px){.chat-condition-panels{grid-template-columns:1fr;gap:12px}.chat-ui .chat-context{padding:0 12px}.chat-condition-summary{padding:14px}.chat-condition-summary dl>div{grid-template-columns:95px minmax(0,1fr)}.chat-ui .chat-header-condition{font-size:14px!important;min-height:44px;padding:8px!important}.chat-ui .chat-editor-heading{flex-wrap:wrap}.chat-ui .chat-notice-title{font-size:18px}.chat-ui .chat-condition-field :is(input,select){font-size:16px}.chat-ui .chat-answer-text{font-size:16px}.chat-ui .chat-condition-actions button{font-size:15px}}
