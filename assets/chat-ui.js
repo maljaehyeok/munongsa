@@ -120,7 +120,9 @@
     const str=v=>typeof v==='string',strings=v=>Array.isArray(v)&&v.length<=100&&v.every(str);
     const context=data?.conversation;
     const validContext=context===undefined||(context&&typeof context==='object'&&!Array.isArray(context)
-      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm','casual_topic','conversation_topic'].includes(k))
+      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm','casual_topic','conversation_topic','search_scope','search_query'].includes(k))
+      &&(context.search_scope===undefined||(typeof context.search_scope==='string'&&context.search_scope.length<=8))
+      &&(context.search_query===undefined||(typeof context.search_query==='string'&&context.search_query.length>0&&context.search_query.length<=300&&!/[<>\x00-\x1f]/.test(context.search_query)))
       &&(context.conversation_topic===undefined||(typeof context.conversation_topic==='string'&&context.conversation_topic.length<=80&&!/https?:\/\/|www\.|[\d<>\n\r@]|API[_ -]?KEY|sk-/i.test(context.conversation_topic)))
       &&(context.casual_topic===undefined||['meal','wellbeing','humor','scope'].includes(context.casual_topic))
       &&['age','group_size','farming_years','facility_sqm'].every(k=>context[k]===undefined||(typeof context[k]==='number'&&Number.isFinite(context[k])&&context[k]>=0&&context[k]<=100000000))
@@ -209,7 +211,9 @@
     const personal=fields.some(f=>data.conversation?.[f.key]!==undefined);
     const basic=data.programs.every(p=>p.evidence_level==='공식 공고 기본 안내');
     const heading=text('header','','chat-result-heading');
-    heading.append(text('h3',data.catalogue_scope==='past'?'지난 공고 검색 결과':basic?'공식 공고 검색 결과':personal?'맞춤 추천 결과':'지원사업 검색 결과'),text('p',(data.catalogue_total||data.programs.length)+'건 중 '+(data.catalogue_start?data.catalogue_start+'~'+(data.catalogue_start+data.programs.length-1)+'번째':data.programs.length+'건')+'를 안내합니다. '+(basic?'기본 안내와 일부 조건 비교이며, 신청 가능 판정이 아닙니다.':'모집기간과 내 조건 비교를 함께 확인하세요.')));
+    const countNote=data.catalogue_requested?'요청 최대 '+data.catalogue_requested+'건 · 관련 결과 '+data.catalogue_total+'건. ':'';
+    const scopeNote=data.catalogue_search_scope?data.catalogue_search_scope+' 탐색 · 실제 영농지역은 유지. ':'';
+    heading.append(text('h3',data.catalogue_scope==='past'?'지난 공고 검색 결과':basic?'공식 공고 검색 결과':personal?'맞춤 추천 결과':'지원사업 검색 결과'),text('p',scopeNote+countNote+(data.catalogue_total??data.programs.length)+'건 중 '+(data.catalogue_start?data.catalogue_start+'~'+(data.catalogue_start+data.programs.length-1)+'번째':data.programs.length+'건')+'를 안내합니다. '+(basic?'기본 안내와 일부 조건 비교이며, 신청 가능 판정이 아닙니다.':'모집기간과 내 조건 비교를 함께 확인하세요.')));
     node.replaceChildren(heading);node.className='chat-message chat-message-answer chat-result-message';
     const linkedRows=new Map((typeof approvedRows==='function'?approvedRows():[]).map(r=>[r.item.id,r]));
     for(const program of data.programs){

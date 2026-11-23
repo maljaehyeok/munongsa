@@ -7,6 +7,28 @@ import support_notice_review as review
 HOSTS={'www.rda.go.kr','www.buan.go.kr','www.gochang.go.kr','www.jinan.go.kr','www.imsil.go.kr','www.sunchang.go.kr','www.jeonbuk.go.kr','www.bizinfo.go.kr','bizinfo.go.kr','www.mafra.go.kr','global.at.or.kr','agriacademy.jeonbuk.go.kr','www.gunsan.go.kr','www.jeonju.go.kr','www.koat.or.kr','www.gimje.go.kr','www.oads.or.kr'}
 PAGE_PREFIX='[공식 공고 더 보기]\n'
 
+def requested_count(question):
+    match=re.search(r'(?<!\d)(\d{1,2})\s*(?:[~～〜\-–]\s*(\d{1,2}))?\s*개(?:\s*정도)?',question)
+    return min(10,max(1,int(match[2] or match[1]))) if match else None
+
+def scope_request(question):
+    text=rag_dialogue.normalized(question)
+    if not re.search(r'넓혀|확대|전체로|전국.*(?:사업|공고|찾|보여)',text):return None
+    return '전국' if '전국' in text else rag_dialogue.area_in(text)
+
+def scope_relevance(item,feed,now,scope):
+    """Published locality is a discovery signal, never an eligibility condition."""
+    if scope=='전국':return 0
+    hay=search_text(item,feed,now)
+    places={a for a in rag_dialogue.AREAS if a in hay}
+    if scope in places:return 2
+    parent=rag_dialogue.AREAS.get(scope,(scope,None))[1]
+    if not parent and any(p==scope and a in places for a,(_,p) in rag_dialogue.AREAS.items()):return 2
+    if parent and any(p==parent and a!=scope and a in places for a,(_,p) in rag_dialogue.AREAS.items()):return -1
+    if parent in places:return 1
+    # No known locality remains discoverable with its original unknown verdict.
+    return -1 if places else 0
+
 def archive_requested(question):
     return bool(re.search(r'지난\s*(?:사업|공고|지원)|과거|예전|종료된|마감된|기한\s*경과|기간\s*경과',question))
 
@@ -145,8 +167,14 @@ def matches(question,feed,context=None,now=None):
         quality=discovery_quality(text,title,hay.replace(raw['institution'],''),context,title+' '+str(shown.get('support','')));relevance,related=quality['score'],quality['matches']
         if (context.get('planned') is True or context.get('applicant')=='individual_farmer') and re.search(r'기업|수출업체|기관 모집',title) and not re.search(r'기업|수출',text):relevance-=45
         period_only=bool(re.search(r'신청기간.{0,8}남|기간.{0,5}남은|마감.{0,5}남은',text)) and not any(re.search(g[1],text) for g in TOPICS)
-        if not exact and not personal and not related and not re.fullmatch(r'(?:전체|공개|지난)?\s*(?:지원사업|공고)',text) and not period_only:continue
-        ranked.append((1000 if exact else relevance,raw))
+        broad=bool(re.fullmatch(r'(?:전체|공개|지난)?\s*(?:지원사업|공고)',text)) or bool(re.fullmatch(r'.{0,10}(?:지원사업|공고)\s*(?:알려줘|찾아줘|보여줘)[.!?]*',text))
+        if not exact and not personal and not related and not broad and not period_only:continue
+        scope=context.get('search_scope')
+        locality=scope_relevance(raw,feed,now,scope) if scope else 0
+        if not exact and scope and locality<0:continue
+        # Definite ineligibility cannot be repaired by relevance or wider search.
+        if scope and (comparison(raw,feed,context,now) or {}).get('decision',{}).get('excluded'):continue
+        ranked.append((1000 if exact else relevance+locality*30,raw))
     def order(pair):
         score,item=pair
         shown=review.project(review.fact_project(item,feed.get('verified_facts',{}).get(item['id']),now),feed.get('notice_observations',{}).get(item['id']),now)
@@ -234,7 +262,7 @@ def continuation(encoded,corpus,grounded=None):
         index={'첫':0,'두':1,'세':2,'1':0,'2':1,'3':2}[m[1]]
         if index not in ordinal:ordinal.append(index)
     if actual.get('conversation_topic') and not ordinal and not re.search(r'사업|공고|아까|앞서',question):return None
-    follow=bool(ordinal or re.search(r'그\s*(?:사업|공고|거|건|게)|아까|앞서|다시\s*설명|등록\s*(?:하면|한다면)|그럼|신청\s*(?:조건|서류)|필요한\s*서류',question))
+    follow=bool(ordinal or re.search(r'그\s*(?:중|사업|공고|거|건|게)|아까|앞서|다시\s*설명|등록\s*(?:하면|한다면)|그럼|신청\s*(?:조건|서류)|필요한\s*서류',question))
     if not follow:return None
     facts,error=rag_dialogue.rag_profile.extract(question,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
     if error:return rag_dialogue.response(error,actual,'clarify',status='needs_verification')
@@ -322,8 +350,11 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
         subjects=named_records(question,feed,now)
         if subjects:
             feed={**feed,'notices':subjects};named=True
+    limit=requested_count(question)
+    # Count words are presentation instructions, not business relevance terms.
+    search_question=re.sub(r'\d{1,2}\s*(?:[~～〜\-–]\s*\d{1,2})?\s*개(?:\s*정도)?','',question)
     strict={d['public']['id'] for d in corpus['documents'].values()}
-    found=records(feed,now) if named else matches(question,feed,context,now)
+    found=records(feed,now) if named else matches(search_question,feed,context,now)
     exact=[n for n in found if re.sub(r'[^0-9a-z가-힣]','',rag_dialogue.normalized(n['title']).lower()) in re.sub(r'[^0-9a-z가-힣]','',rag_dialogue.normalized(question).lower())]
     if explicit:
         found=[n for n in exact if include_approved or n['id'] not in strict]
@@ -336,11 +367,16 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
         found=[by_id[i] for i in previous if i in by_id]
         if not found:return rag_dialogue.response('앞서 본 공고를 최신 공개 목록에서 확인할 수 없어 안내를 보류했어요. 사업명으로 다시 찾아주세요.',{},'clarify',status='needs_verification')
     if not found:
+        if context.get('search_scope') and not explicit:
+            kept={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','last_kind')}
+            return {**rag_dialogue.response('현재 '+context['search_scope']+' 탐색 범위에서 질문과 관련된 공개 공고를 찾지 못했어요. 신청 자격이 없다는 뜻은 아닙니다. 검색 지역을 넓히거나 찾는 지원 목적을 바꿀 수 있어요.',kept,'catalogue',status='no_evidence'), 'catalogue_total':0,'catalogue_start':0,'catalogue_next':None,'catalogue_search_scope':context['search_scope'],'catalogue_requested':limit,'catalogue_available':0,'understanding':'rules'}
         if not explicit and not page and question=='선택한 조건으로 지원사업을 찾아주세요.':
             kept={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','last_kind')}
             return rag_dialogue.response('입력한 조건으로 안내할 수 있는 현재 공개 공고를 찾지 못했어요. 공고나 확인된 조건 정보가 부족할 수 있으며, 신청 자격이 없다는 뜻은 아닙니다. 조건을 수정하거나 전체 지원사업을 살펴보세요. 지난 공고는 현재 신청 정보와 구분하여 볼 수 있어요.',kept,'clarify',status='no_evidence',suggestions=('전체 지원사업','지난 공고'))
         return None
-    fingerprint=hashlib.sha256(json.dumps([{'id':n['id'],'title':n['title'],'url':n['url'],'conditions':[{k:c.get(k) for k in ('condition_id','kind','value')} for c in verified_conditions(n,feed,now)]} for n in found],sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+    available=len(found)
+    if limit:found=found[:limit]
+    fingerprint=hashlib.sha256(json.dumps({'scope':context.get('search_scope'),'profile':{k:v for k,v in context.items() if k in rag_dialogue.rag_profile.KEYS or k in ('region','crop','farm_registered')},'items':[{'id':n['id'],'version':listing_version(n,feed,now)} for n in found]},sort_keys=True,ensure_ascii=False).encode()).hexdigest()
     offset=page['offset'] if page else 0
     if page and (page['fingerprint']!=fingerprint or offset>=len(found)):
         return rag_dialogue.response('공고 목록이나 확인된 조건이 변경됐어요. 같은 질문으로 다시 검색해 주세요.',context,'clarify',status='needs_verification')
@@ -350,9 +386,12 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
         quality=discovery_quality(question,n['title'],search_text(n,feed,now).replace(n['institution'],''),context,n['title']+' '+str(shown.get('support','')))
         p['card']['discovery_reason']='사업명 일치' if n in exact else ' / '.join(quality['reasons'])[:160]
     conversation={**context,'notice_ids':[n['id'] for n in chosen],'list_ids':[n['id'] for n in chosen],'list_versions':[listing_version(n,feed,now) for n in chosen],'last_kind':'results'}
+    if len(question)<=300 and not re.search(r'[\x00-\x1f<>]',question):conversation['search_query']=question
     summary='\n\n'.join(p['name']+' — '+p['card']['label']+'\n확인할 조건: '+' / '.join(p['comparison']['checks']) for p in programs)
     intro='질문과 공개 정보의 관련성을 기준으로 탐색한 결과입니다. 관련성이 신청 자격 충족을 뜻하지 않습니다. 공식 조건 비교와 추가 확인 사항을 따로 확인하세요.' if question!='선택한 조건으로 지원사업을 찾아주세요.' else '공식 조건 비교와 참고 공고를 구분해 안내합니다. 전체 신청 자격과 실제 접수는 별도 확인이 필요합니다.'
+    if limit:intro=f'요청하신 최대 {limit}건 중 관련 공개 공고 {len(found)}건을 {min(3,len(found))}건씩 안내합니다. '+('관련 공고가 부족해 개수를 채우지 않았습니다. ' if available<limit else '')+intro
+    if context.get('search_scope'):intro=context['search_scope']+' 범위의 관련 공고 탐색입니다. 실제 영농지역·거주지는 유지했으며, 검색 지역이 신청 가능 지역을 뜻하지 않습니다. '+intro
     return {**rag_dialogue.response(f'공식 공고 {len(found)}건 중 {offset+1}~{offset+len(chosen)}번째를 안내합니다. '+intro+'\n\n'+summary,conversation,'catalogue',status='needs_verification',programs=programs),
             'sources':[{'url':p['source_url'],'location':'공식 제목·기관·원문 링크 확인','checked_at':p['checked_at']} for p in programs],
-            'catalogue_total':len(found),'catalogue_start':offset+1,'catalogue_scope':'past' if all(p['card']['period_state']=='elapsed' for p in programs) else 'current',
+            'catalogue_total':len(found),'catalogue_requested':limit,'catalogue_available':available,'catalogue_search_scope':context.get('search_scope'),'catalogue_start':offset+1,'catalogue_scope':'past' if all(p['card']['period_state']=='elapsed' for p in programs) else 'current',
             'catalogue_next':{'query':question,'offset':offset+len(chosen),'fingerprint':fingerprint} if offset+len(chosen)<len(found) and len(question)<=300 else None,'understanding':'rules'}

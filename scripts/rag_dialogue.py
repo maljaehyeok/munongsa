@@ -45,7 +45,9 @@ def decode(value):
         raw,question=value[len(PREFIX):].split(SEPARATOR,1)
         if len(raw)>1600:raise ValueError('context_too_long')
         context=json.loads(raw)
-        if not isinstance(context,dict) or set(context)-({'region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','casual_topic','conversation_topic'}|rag_profile.KEYS):raise ValueError('context_fields')
+        if not isinstance(context,dict) or set(context)-({'region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','casual_topic','conversation_topic','search_scope','search_query'}|rag_profile.KEYS):raise ValueError('context_fields')
+        if 'search_scope' in context and context['search_scope'] not in {*AREAS,'전국'}:raise ValueError('search_scope')
+        if 'search_query' in context and (not isinstance(context['search_query'],str) or not 1<=len(context['search_query'])<=300 or re.search(r'[\x00-\x1f<>]',context['search_query'])):raise ValueError('search_query')
         if 'conversation_topic' in context:
             import rag_nlu
             if not rag_nlu.valid_topic(context['conversation_topic']):raise ValueError('conversation_topic')

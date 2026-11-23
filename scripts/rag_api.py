@@ -152,6 +152,18 @@ def local_pipeline(question):
     if context.get('casual_topic')=='scope':
         context.pop('casual_topic',None)
         question=rag_dialogue.PREFIX+json.dumps(context,ensure_ascii=False)+rag_dialogue.SEPARATOR+original
+    search_scope=rag_catalogue.scope_request(original)
+    if search_scope:
+        # Search expansion is routing metadata, not a new residence/farm fact.
+        new_purpose=rag_catalogue.requested_count(original) or any(re.search(group[1],original) for group in rag_catalogue.TOPICS) or any(crop in original for crop in rag_dialogue.CROPS)
+        query=original if new_purpose else context.get('search_query','지원사업 알려줘')
+        query=rag_dialogue.normalized(query)
+        for area in sorted(rag_dialogue.AREAS,key=len,reverse=True):query=query.replace(area,'')
+        query=query.replace('전국','').strip() or '지원사업 알려줘'
+        kept={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','last_kind','conversation_topic','casual_topic')}
+        kept.update(search_scope=search_scope,search_query=query)
+        encoded=rag_dialogue.PREFIX+json.dumps(kept,ensure_ascii=False)+rag_dialogue.SEPARATOR+query
+        return catalogue_response(rag_catalogue.respond(encoded,corpus),corpus)
     # A new definition question or a follow-up to ordinary conversation must
     # not inherit an old crop/list as the subject. One existing NLU call only.
     explanation=bool(re.search(r'뭐야|무엇(?:이야|인가|인지)|무슨\s*(?:뜻|말)|뜻(?:이|은)|설명|풀어\s*(?:줘|줄)',original))
@@ -209,7 +221,10 @@ def local_pipeline(question):
     if discovery_intent and not rag_dialogue.rag_profile.hypothetical(original) and (not guidance or guidance.get('kind')=='help'):
         facts,error=rag_dialogue.rag_profile.extract(original,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
         if not error:
-            encoded=rag_dialogue.PREFIX+json.dumps({**context,**facts},ensure_ascii=False)+rag_dialogue.SEPARATOR+original
+            discovery_context={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','last_kind','search_query')}
+            area=rag_dialogue.area_in(original)
+            if area:discovery_context['search_scope']=area
+            encoded=rag_dialogue.PREFIX+json.dumps({**discovery_context,**facts},ensure_ascii=False)+rag_dialogue.SEPARATOR+original
             listing=rag_catalogue.respond(encoded,corpus)
             if listing:return catalogue_response(listing,corpus)
             if re.search(r'재배하려|농기계|하우스|시설|교육|수출',original):
