@@ -18,7 +18,7 @@
     return {state,label:labels[state],rows,unknowns:item.unknowns,notice:'입력값과 확인된 기본 조건만 비교한 결과입니다. 전체 신청 자격·선정·보증·대출 승인을 의미하지 않습니다.'};
   }
   function date(value){if(!value)return '확인 필요';const d=new Date(value.length===10?value+'T00:00:00+09:00':value);if(!Number.isFinite(+d))return '확인 필요';return new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(d)}
-  function filter(items,query='',purpose='all'){const q=query.trim().toLocaleLowerCase('ko-KR');return items.filter(p=>(purpose==='all'||p.purposes.includes(purpose))&&(!q||[p.title,p.institution,p.type,p.target,p.uses,...p.purposes].join(' ').toLocaleLowerCase('ko-KR').includes(q)))}
+  function filter(items,query='',purpose='all'){const q=query.trim().toLocaleLowerCase('ko-KR');return items.filter(p=>(purpose==='all'||p.purposes.includes(purpose))&&(!q||[p.title,p.institution,p.type,p.target,p.uses,...p.purposes,p.id==='guarantee'?'농신보':''].join(' ').toLocaleLowerCase('ko-KR').includes(q)))}
   function rank(items,profile){return items.map((item,index)=>({item,index,comparison:compare(item,profile)})).sort((a,b)=>({match:0,check:1,mismatch:2}[a.comparison.state]-{match:0,check:1,mismatch:2}[b.comparison.state])||a.index-b.index).map(r=>r.item)}
   // Funding guidance is separate from eligibility and ranking. Never sum distinct caps.
   function fundingView(p,profile){
