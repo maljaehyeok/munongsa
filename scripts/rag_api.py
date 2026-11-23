@@ -184,14 +184,18 @@ def local_pipeline(question):
     # A new definition question or a follow-up to ordinary conversation must
     # not inherit an old crop/list as the subject. One existing NLU call only.
     explanation=bool(re.search(r'뭐야|무엇(?:이야|인가|인지)|무슨\s*(?:뜻|말)|뜻(?:이|은)|설명|풀어\s*(?:줘|줄)',original))
-    knowledge_request=explanation and not re.search(r'지원|사업|공고|신청|자격|금액|대출|금융|경영체|서류|마감',original) and (bool(context.get('conversation_topic')) or bool(re.search(r'농업|농사|재배|작물|스마트팜',original)))
+    knowledge_request=rag_nlu.concept_request(original,context)
     if knowledge_request:
-        referential=bool(context.get('conversation_topic')) and bool(re.search(r'그게|그건|그거|다시|쉽게|풀어|무슨\s*(?:뜻|말)',original)) and not re.search(r'농업|농사|재배|작물|스마트팜',original)
+        referential=bool(context.get('conversation_topic')) and bool(re.search(r'그게|그건|그거|다시|쉽게|풀어|예를|예시|무슨\s*(?:뜻|말)',original)) and not re.search(r'농업|농사|재배|작물|스마트팜|윤작|연작|경영체|독립경영|청년후계농|보조금|융자',original)
         # Resolve the subject, not the answer. No second call or factual history.
-        interpreted_question=context['conversation_topic']+'에 대해 쉬운 말로 설명해 주세요.' if referential else original
+        interpreted_question=context['conversation_topic']+'에 대해, 후속 질문: '+original if referential else original
         understood=rag_nlu.interpret(interpreted_question,context)
         reply=rag_nlu.safe_conversation_reply(understood or {},original)
-        clean={k:v for k,v in context.items() if k not in ('notice_ids','casual_topic','conversation_topic')}
+        clean={k:v for k,v in context.items() if k not in ('casual_topic','conversation_topic')}
+        live_ids={d['public']['id'] for d in corpus['documents'].values()}|{n['id'] for n in rag_catalogue.records(corpus.get('guidance_feed',{}))}
+        if 'notice_ids' in clean:
+            clean['notice_ids']=[i for i in clean['notice_ids'] if i in live_ids]
+            if not clean['notice_ids']:clean.pop('notice_ids')
         topic=context['conversation_topic'] if referential else (understood or {}).get('topic') or (original if rag_nlu.valid_topic(original) else '')
         if topic and rag_nlu.valid_topic(topic):clean['conversation_topic']=topic
         out=rag_dialogue.response(reply or '일반 개념에 관한 질문으로 이해했어요. 지금은 설명을 확인하지 못해 이전 지원사업을 대신 추천하지 않았습니다. 궁금한 개념을 조금 더 구체적으로 알려주세요.',clean,'context',status='answered' if reply else 'needs_verification')

@@ -176,7 +176,7 @@
   }
   function renderAnswer(node,data){
     if(data.programs.length&&data.programs.every(p=>p.card)){renderResults(node,data);return;}
-    node.replaceChildren(text('p',data.programs.length?'무농사 · 공식 근거 안내':'무농사 · 상담 안내','chat-answer-label'));
+    node.replaceChildren(text('p',data.programs.length?'무농사 · 공식 근거 안내':data.conversation?.conversation_topic&&data.understanding==='gpt'?'일반 농업 개념 · 개별 공고의 자격 판정과 별개':'무농사 · 상담 안내','chat-answer-label'));
     const answer=text('div','','chat-answer-text');
     readableAnswer(data).split(/\n{2,}/).filter(Boolean).forEach(paragraph=>answer.append(text('p',paragraph)));
     node.append(answer);node.className='chat-message chat-message-answer';
