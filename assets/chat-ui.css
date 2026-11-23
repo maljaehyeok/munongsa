@@ -1,4 +1,6 @@
 /* Scoped consultation presentation. */
+.chat-ui.chat-editing #chatForm{display:none}.chat-ui.chat-editing{grid-template-rows:auto minmax(0,1fr)}
+.chat-context-values>strong{display:block;width:100%;margin-top:8px}.chat-context>details button{margin:4px;min-height:44px;white-space:normal}.chat-condition-field select{max-width:100%}
 .chat-entry{display:flex;align-items:flex-start;flex-direction:column;gap:10px;margin:4px 0 12px}
 .chat-entry-button{display:inline-flex;align-items:center;justify-content:space-between;gap:34px;background:#f5f5f5;color:#141414;border:1px solid #f5f5f5;border-radius:8px;padding:14px 20px;min-height:48px;font-size:16px;font-weight:750;transition:transform .18s}
 .chat-entry>span{color:#bdbdbd;font-size:13px;line-height:1.6}

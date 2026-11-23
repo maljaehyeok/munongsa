@@ -380,7 +380,9 @@
       applyNavigation(state);
     }
     function initializeNavigation(){
-      const previous=history.state;
+      let previous=history.state;
+      const savedProfile=MunongsaFarmProfile.saved(previous?.profile);
+      if(savedProfile)previous={...previous,munongsaNavigation:true,profile:savedProfile};
       // Neutral form defaults apply only to a new history entry; keep existing saved profiles.
       if(!previous?.munongsaNavigation||!previous.profile)document.getElementById('filterForm').reset();
       if(previous?.munongsaNavigation&&previous.profile){

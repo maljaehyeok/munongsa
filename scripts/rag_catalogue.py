@@ -130,7 +130,7 @@ TOPICS=(('startup',r'창업|귀농|처음|초보|정착|농사.{0,6}시작',r'�
 
 def discovery_crop(question,context):
     import rag_crops
-    return rag_crops.find(question) or context.get('search_crop') or (context.get('crop') if context.get('search_mode')!='regional' else None)
+    return rag_crops.find(question) or context.get('search_crop') or (context.get('crop') if context.get('search_mode') not in ('regional','custom') else None)
 
 def discovery_quality(question,title,hay,context=None,purpose=None):
     q=question.lower();title=title.lower();hay=hay.lower()
@@ -394,7 +394,7 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
         return None
     available=len(found)
     if limit:found=found[:limit]
-    fingerprint=hashlib.sha256(json.dumps({'scope':context.get('search_scope'),'profile':{k:v for k,v in context.items() if k in rag_dialogue.rag_profile.KEYS or k in ('region','crop','farm_registered','search_crop','search_mode')},'items':[{'id':n['id'],'version':listing_version(n,feed,now)} for n in found]},sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+    fingerprint=hashlib.sha256(json.dumps({'scope':context.get('search_scope'),'profile':{k:v for k,v in context.items() if k in rag_dialogue.rag_profile.KEYS or k in ('region','crop','farm_registered','search_crop','search_mode','search_purpose','search_period','search_limit')},'items':[{'id':n['id'],'version':listing_version(n,feed,now)} for n in found]},sort_keys=True,ensure_ascii=False).encode()).hexdigest()
     offset=page['offset'] if page else 0
     if page and (page['fingerprint']!=fingerprint or offset>=len(found)):
         return rag_dialogue.response('공고 목록이나 확인된 조건이 변경됐어요. 같은 질문으로 다시 검색해 주세요.',context,'clarify',status='needs_verification')
