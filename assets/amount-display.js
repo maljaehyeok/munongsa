@@ -11,8 +11,8 @@
  function wonText(won){
   const parts=[],uk=Math.floor(won/100000000),man=Math.floor(won%100000000/10000),rest=won%10000;
   if(uk)parts.push(uk.toLocaleString('ko-KR')+'억');if(man)parts.push(man.toLocaleString('ko-KR')+'만');
-  if(rest)parts.push(rest%1000===0?(rest/1000)+'천':rest.toLocaleString('ko-KR'));
-  return (parts.join(' ')||'0')+' 원';
+  if(rest)parts.push(rest.toLocaleString('ko-KR'));
+  return (parts.join(' ')||'0')+(rest?'원':' 원');
  }
  function analyse(value){
   const original=String(value??''),segments=[];let last=0,display='';

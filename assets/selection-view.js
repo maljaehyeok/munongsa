@@ -2,7 +2,11 @@
 (function(root){
  'use strict';
  const selected=v=>v!==undefined&&v!==null&&String(v).trim()!==''&&!['all','unknown'].includes(String(v));
- function money(won){if(!Number.isSafeInteger(won)||won<=0||won%10000)return '';const man=won/10000,uk=Math.floor(man/10000),rest=man%10000;return (uk?uk.toLocaleString('ko-KR')+'억':'')+(uk&&rest?' ':'')+(rest?rest.toLocaleString('ko-KR')+'만원':uk?'원':'');}
+ function money(won){if(!Number.isSafeInteger(won)||won<=0||won%10000)return '';return root.MunongsaAmounts.wonText(won);}
+ function currentAge(birth,today=new Date(Date.now()+9*3600000).toISOString().slice(0,10)){
+  if(!root.MunongsaInputUX.validBirth(birth,today))return null;
+  return Number(today.slice(0,4))-Number(birth.slice(0,4))-(today.slice(5)<birth.slice(5)?1:0);
+ }
  function regionFilter(item,p){
   const scope=String(item.region||'').trim();
   if(item.verification_status!=='verified'||!['approved','approved_reference'].includes(item.publication))return {state:'check',keep:true,text:'지역 적용 확인 필요'};
@@ -35,11 +39,12 @@
   add('crop','작물',p.customCrop||(selected(p.crop)?text('crop'):''));
   add('cultivation','재배방식',selected(p.cultivation)?text('cultivation'):'');
   add('residenceRegion','거주지',p.customResidence||[selected(p.residenceRegion)?p.residenceRegion:'',selected(p.residenceDistrict)?p.residenceDistrict:''].filter(Boolean).join(' '));
-  for(const [id,label]of [['birthDate','생년월일'],['experienceBasisDate','경력 기준일']])if(root.MunongsaInputUX.validBirth(p[id]||''))add(id,label,p[id]);
+  for(const [id,label]of [['birthDate','생년월일 · 현재 만 나이'],['experienceBasisDate','경력 기준일']])if(root.MunongsaInputUX.validBirth(p[id]||''))add(id,label,id==='birthDate'?p[id].replace(/-/g,'.')+' · 만 '+currentAge(p[id])+'세':p[id]);
   for(const [id,label]of [['farmRegistered','경영체 등록'],['experience','영농경력 구분'],['exporterStatus','수출 관련']])add(id,label,selected(p[id])?text(id):'');
   for(const [id,label,unit]of [['age','나이','세'],['farmingYears','영농경력','년'],['independentYears','독립경영','년'],['groupMemberCount','공동 신청','명'],['area','면적','ha'],['budget','예산','만원']])if(selected(p[id])&&Number.isFinite(Number(p[id]))&&Number(p[id])>=0&&(id!=='age'||Number(p[id])>=15&&Number(p[id])<=100))add(id,label,Number(p[id]).toLocaleString('ko-KR')+unit);
   add('requiredFundsWon','필요 자금',money(p.requiredFundsWon));
-  return rows;
+  const order=['region','residenceRegion','crop','cultivation','applicant','farmingSituation','experience','experienceBasisDate','farmingYears','independentYears','birthDate','age','farmRegistered','exporterStatus','groupMemberCount','area','budget','requiredFundsWon'];
+  return rows.sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
  }
- root.MunongsaSelection={money,regionFilter,chips};
+ root.MunongsaSelection={money,currentAge,regionFilter,chips};
 })(globalThis);

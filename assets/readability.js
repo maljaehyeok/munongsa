@@ -8,8 +8,9 @@
   return text.match(/[^\n]+?(?:[.!?。](?:[ \t]+|$)|(?=\n)|$)|\n+/g)?.filter(Boolean)||[text];
  }
  function paragraph(el){
-  if(el.dataset.readableText!==undefined||el.children.length||el.closest('script,style,textarea,output'))return;
-  const original=el.textContent,parts=segments(original);if(parts.length<2)return;
+  if(el.dataset.readableText!==undefined||el.children.length||el.closest('script,style,textarea,output,table'))return;
+  const original=el.textContent,display=root.MunongsaAmounts?.format(original)||original,parts=segments(display);if(parts.length<2&&display===original)return;
+  if(display!==original)el.dataset.amountDisplayOriginal=original;
   const fragment=document.createDocumentFragment();
   for(const part of parts){const span=document.createElement('span');span.className='readable-paragraph';span.textContent=part;fragment.append(span);}
   el.replaceChildren(fragment);el.dataset.readableText='';
