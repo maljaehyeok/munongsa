@@ -13,7 +13,7 @@ for(const crop of guide.crops){const s=guide.select(crop,3,'open').find(s=>s.id=
 for(const [crop,topic,hash] of [['고추',1,'#sectionCrop02'],['오이',3,'#sectionCrop06'],['벼',2,'#sectionCrop05'],['딸기',4,'#sectionCrop05']]){
  const s=guide.select(crop,topic,'open').find(s=>s.overview);assert.equal(new URL(s.url).hash,hash);assert.ok(s.url.includes('stdPrdlstCode='));
 }
-assert.equal(guide.select('벼',3,'open').find(s=>s.id==='pest').crop,undefined,'unmapped official crop name must require selection');
+assert.equal(guide.select('난류',3,'open').find(s=>s.id==='pest').crop,undefined,'unmapped official crop name must require selection');
 assert.ok(guide.select('고추',1,'open').some(s=>s.id==='pepper'&&s.url.includes('cntntsNo=30600')),'existing precise link preserved');
 assert.ok(!guide.select('오이',2,'facility').some(s=>s.id==='water'),'open-field prescription must not apply to facilities');
 for(const topic of [0,1,4])assert.ok(guide.select('난류',topic,'open').some(s=>s.id==='guide'),'unmapped crop keeps official fallback');

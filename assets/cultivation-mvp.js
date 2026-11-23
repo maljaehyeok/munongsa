@@ -19,24 +19,37 @@
  for(const item of directLinks)sources.push({id:'overview-'+item.code,crop:item.crop,officialName:item.officialName,title:item.crop+' 작목별 종합정보',institution:'농촌진흥청 · 농사로',type:'작물별 종합정보',overview:true,topics:item.topics,conditions:'작물 선택값만 전달합니다. 페이지 안의 자료마다 지역·노지/시설·품종·작형을 확인하세요. 주제·지역·작형이 자동으로 검색되거나 처방된 결과는 아닙니다.',checked:'2026.10.30',url:item.url});
  for(const s of sources)s.topics=[...new Set(s.topics.map(t=>[0,1,1,2,3,4,5][t]))];
  const pestCrops={"배추":{"code":"VC021001","route":"VegitablesPhotoListR"},"양배추":{"code":"VC021004","route":"VegitablesPhotoListR"},"상추":{"code":"VC021005","route":"VegitablesPhotoListR"},"시금치":{"code":"VC021008","route":"VegitablesPhotoListR"},"부추":{"code":"VC021010","route":"VegitablesPhotoListR"},"미나리":{"code":"VC021009","route":"VegitablesPhotoListR"},"쑥갓":{"code":"VC021012","route":"VegitablesPhotoListR"},"토마토":{"code":"VC010803","route":"VegitablesPhotoListR"},"오이":{"code":"VC010901","route":"VegitablesPhotoListR"},"딸기":{"code":"VC010804","route":"VegitablesPhotoListR"},"수박":{"code":"VC010801","route":"VegitablesPhotoListR"},"참외":{"code":"VC010802","route":"VegitablesPhotoListR"},"멜론":{"code":"VC010805","route":"VegitablesPhotoListR"},"호박":{"code":"VC010902","route":"VegitablesPhotoListR"},"가지":{"code":"VC010903","route":"VegitablesPhotoListR"},"파프리카":{"code":"VC019998","route":"VegitablesPhotoListR"},"무":{"code":"VC031101","route":"VegitablesPhotoListR"},"당근":{"code":"VC031103","route":"VegitablesPhotoListR"},"고추":{"code":"VC011205","route":"VegitablesPhotoListR"},"마늘":{"code":"VC041209","route":"VegitablesPhotoListR"},"양파":{"code":"VC041201","route":"VegitablesPhotoListR"},"생강":{"code":"VC041210","route":"VegitablesPhotoListR"},"우엉":{"code":"VC031104","route":"VegitablesPhotoListR"},"보리":{"code":"FC020201","route":"FoodPhotoListR"},"밀":{"code":"FC020203","route":"FoodPhotoListR"},"콩":{"code":"FC030301","route":"FoodPhotoListR"},"팥":{"code":"FC030302","route":"FoodPhotoListR"},"녹두":{"code":"FC030303","route":"FoodPhotoListR"},"옥수수":{"code":"FC040401","route":"FoodPhotoListR"},"조":{"code":"FC040402","route":"FoodPhotoListR"},"수수":{"code":"FC040403","route":"FoodPhotoListR"},"감자":{"code":"FC050501","route":"FoodPhotoListR"},"고구마":{"code":"FC050502","route":"FoodPhotoListR"},"사과":{"code":"FT010601","route":"FruitPhotoListR"},"배":{"code":"FT010602","route":"FruitPhotoListR"},"포도":{"code":"FT040603","route":"FruitPhotoListR"},"감귤":{"code":"FT060614","route":"FruitPhotoListR"},"복숭아":{"code":"FT020604","route":"FruitPhotoListR"},"자두":{"code":"FT020608","route":"FruitPhotoListR"},"매실":{"code":"FT020625","route":"FruitPhotoListR"},"감":{"code":"FT060605","route":"FruitPhotoListR"},"블루베리":{"code":"FT050659","route":"FruitPhotoListR"},"무화과":{"code":"FT040627","route":"FruitPhotoListR"},"황기":{"code":"IC031924","route":"SpecialPhotoListR"},"구기자":{"code":"IC031928","route":"SpecialPhotoListR"},"참깨":{"code":"IC011601","route":"SpecialPhotoListR"},"들깨":{"code":"IC011602","route":"SpecialPhotoListR"},"땅콩":{"code":"IC011603","route":"SpecialPhotoListR"}}; // Official visible crop-list names/codes; no cross-site code inference.
+ // The existing directory explicitly lists 논벼 as a rice alias; use NCPMS's own code.
+ pestCrops['벼']={code:'FC010101',route:'FoodPhotoListR',officialName:'논벼'};
+ sources.splice(sources.findIndex(s=>s.id==='soil'),0,{id:'soil-standard',title:'흙토람 작물별 비료 표준사용량',institution:'농촌진흥청 국립농업과학원',type:'작물별 표준정보 · 직접 선택',topics:[1,2],conditions:'작물·작형·면적을 선택하는 표준사용량 경로입니다. 토양검정에 따른 개별 필지 처방과 다르며 무농사에서 사용량을 계산하지 않습니다.',checked:'2026.11.23',url:'https://soil.rda.go.kr/sibi/cropSibiPrescript.do'});
+ Object.assign(sources.find(s=>s.id==='soil'),{title:'흙토람 필지별 토양검정 비료처방',conditions:'실제 필지·토양검정 결과·작물·면적 등 추가 입력이 필요합니다. 작물 선택만으로 개인별 처방이 완료되지 않습니다.'});
  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  let selectedTopic=0;
  function choose(value){if(Number.isInteger(value)&&value>=0&&value<topics.length)selectedTopic=value}
  function destination(source,crop,topic){
   const out={...source,connection:source.crop?'작물 자료 직접 연결':'외부에서 추가 선택 필요',button:source.crop?source.title+' 보기':'공식 서비스 열기'};
   if(source.overview){
-   const sections={고추:true,오이:true,벼:true,딸기:true},section=sections[crop]?({1:'sectionCrop02',2:'sectionCrop05',3:'sectionCrop06',4:'sectionCrop05'}[topic]||''):'';
+   const sections={고추:true,오이:true,벼:true,딸기:true,배추:true},section=sections[crop]?({1:'sectionCrop02',2:'sectionCrop05',3:'sectionCrop06',4:'sectionCrop05'}[topic]||''):'';
    out.url=source.url+(section?'#'+section:'');out.checked=sections[crop]?'2026.11.23':source.checked;
    out.connection=section?'작물·관련 자료 영역 직접 연결':'작물 직접 연결 · 주제는 이동 후 확인';
    out.button=crop+(section==='sectionCrop06'?' 병해충 정보':section==='sectionCrop05'?' 농작업일정':section==='sectionCrop02'?' 생산기술':' 종합 재배정보')+' 보기';
    out.conditions=section==='sectionCrop05'?'농작업일정 영역입니다. 해당 작형의 물·비료 관리 또는 수확·저장 항목을 확인하세요. 개별 처방이나 해당 주제만 모은 상세 문서는 아닙니다.':'작물은 선택되어 열립니다. 자료의 지역·품종·작형과 선택한 주제의 적용 범위를 확인하세요.';
-   out.overviewSection=section;return out;
+   out.overviewSection=section;out.nextSteps=crop+' 선택됨 · '+(section?'열린 자료 영역에서 세부 주제·작형을 확인하세요.':'공식 페이지에서 주제를 선택하세요.');return out;
   }
   if(source.id==='pest'&&pestCrops[crop]){
    const p=pestCrops[crop];out.url='https://ncpms.rda.go.kr/npms/'+p.route+'.np?kncrCode='+encodeURIComponent(p.code);out.crop=crop;out.connection='작물·병해충 도감 직접 연결';out.button=crop+' 병해충 도감 보기';out.conditions='선택한 작물의 병·해충 도감으로 연결합니다. 증상과 발생 조건을 대조하고, 의심 증상만으로 병명을 확정하지 마세요.';out.checked='2026.11.23';
   }else if(source.id==='pesticide'){
    out.url=source.url+'&sAgCropsNm1='+encodeURIComponent(crop)+'&sAgCropsYn1=Y';out.searchCrop=true;out.connection='작물 검색어 전달 · 등록·사용기준 별도 확인';out.button=crop+' 등록농약 검색';out.checked='2026.11.23';out.conditions='작물명 검색값을 전달합니다. 검색 결과의 정확한 적용 작물·병해충·사용시기·횟수·희석배수를 확인하세요. 등록 여부나 사용 적합성을 무농사가 판정하지 않습니다. 결과가 없거나 세부 작물이 다르면 검색어를 확인하세요.';
   }
+  if(source.id==='pest'&&out.crop)out.nextSteps=(pestCrops[crop].officialName?crop+'(공식 도감명 '+pestCrops[crop].officialName+')':crop)+' 선택됨 · 증상·발생 조건을 대조하세요.';
+  else if(source.id==='pesticide'){out.nextSteps=crop+' 검색어 전달 · 결과의 적용 작물·병해충·안전사용기준을 확인하세요.';out.conditions='작물명 검색이며 등록 여부·사용 적합성·개별 농약 처방을 확정하지 않습니다. 결과가 없거나 세부 작물이 다르면 검색어를 확인하세요.';}
+  else if(source.id==='soil-standard'){out.connection='작물·작형·면적 추가 선택 필요';out.button='작물별 비료 표준사용량 확인';out.nextSteps='선택 작물: '+crop+' · 공식 사이트에서 작물·작형·면적을 선택하세요.';}
+  else if(source.id==='soil'){out.connection='필지·토양검정 등 추가 입력 필요';out.button='내 필지의 토양검정 처방 확인';out.nextSteps='선택 작물: '+crop+' · 공식 사이트에서 실제 필지·검정 결과·작물·면적을 확인하세요.';}
+  else if(source.id==='water'){out.connection='지역·작물·재배조건 추가 선택 필요';out.nextSteps='선택 작물: '+crop+' · 노지용 서비스에서 지역·작물·재배조건을 선택하세요.';}
+  else if(source.id==='consult'){out.connection='공식 상담 목록 · 작물 자동 선택 안 됨';out.nextSteps='선택 작물: '+crop+' · 상담 검색·신청 시 작물과 증상을 알려주세요. 로그인은 공식 사이트에서 확인하세요.';}
+  else if(source.id==='guide'){out.nextSteps='선택 작물: '+crop+' · 공식 사이트에서 작물과 주제를 선택하세요.';out.button='공식 작목 매뉴얼에서 선택하기';out.conditions='이 작물의 고정 상세 연결은 확인되지 않았습니다. 공식 매뉴얼에서 작물·주제를 선택하고 적용 범위를 확인하세요.';}
+  else if(source.crop)out.nextSteps=crop+' 자료 직접 연결 · 지역·작형과 주제의 적용 범위를 확인하세요.';
+  else out.nextSteps='선택 작물: '+crop+' · 공식 사이트에서 작물과 필요한 검색 조건을 선택하세요.';
   return out;
  }
  function select(crop,topic,mode){const name=directory.find(crop)?.name;if(!name)return [];let rows=sources.filter(s=>(!s.crop||s.crop===name)&&(s.overview?topic<=4:s.topics.includes(topic))&&!(s.mode==='open'&&mode==='facility'));if(topic===0&&rows.some(s=>s.overview))rows=rows.filter(s=>s.overview);return rows.filter(s=>s.id!=='guide'||!rows.some(d=>d.crop)).map(s=>destination(s,name,topic))}
@@ -47,6 +60,7 @@
  let currentCrop='';
  function refresh(){const box=document.getElementById('cropDirectoryOptions');if(!box)return;const o=options();box.innerHTML=o.html;document.getElementById('cropDirectoryCount').textContent=o.limited?'먼저 찾기 쉬운 대표 작물 · 서비스 선정, 재배면적 순위 아님':`검색 결과 ${o.matches.length}종`;document.getElementById('cropDirectoryAll').hidden=!o.limited}
  function reason(source,crop,topic){
+  if(source.id==='soil-standard')return crop+'의 표준사용량을 조회하는 공식 화면입니다. 작물·작형·면적은 이동 후 선택하세요.';
   if(source.overviewSection)return crop+'의 '+(source.overviewSection==='sectionCrop06'?'병해충 방제':source.overviewSection==='sectionCrop05'?'농작업일정':'생산기술')+' 영역으로 바로 이동합니다. '+topics[topic]+'의 세부 항목과 작형은 원문에서 확인하세요.';
   if(source.searchCrop)return crop+'의 등록농약 검색 결과입니다. 병해충 증상·방제 도감과 다르며, 최신 등록 및 안전사용기준을 확인하는 용도입니다.';
   if(source.overview)return crop+'의 종합 재배정보'+(topic===0?'를 확인할 수 있습니다.':'와 농작업 일정에서 '+topics[topic]+' 내용을 찾아볼 수 있습니다. 주제는 페이지에서 선택하세요.');
@@ -55,6 +69,7 @@
   return topics[topic]+'에 필요한 '+(source.id==='consult'?'전문가 상담':source.id==='pest'?'병해충 정보':source.id==='pesticide'?'등록농약과 안전사용기준':'작물별 처방 조건')+'을 확인할 수 있습니다.';
  }
  function inputGuide(source,crop,profile={}){
+  if(source.nextSteps)return source.nextSteps;
   const place=profile.customFarmRegion||[profile.region,profile.district].filter(v=>v&&!['all','unknown'].includes(v)).join(' '),mode={openfield:'\uB178\uC9C0',open:'노지',facility:'시설'}[profile.cultivation],context=[place,mode].filter(Boolean).join(' · ');
   if(source.searchCrop)return '작물명 '+crop+'을 검색어로 전달합니다. 세부 작물·품목·병해충과 등록 조건은 결과에서 확인하세요. 개별 농약을 추천하거나 처방한 것이 아닙니다.';
   if(source.crop)return (source.overview?'작물 '+crop+'은 공식 페이지에 전달했습니다. ':'해당 작물의 자료로 연결합니다. ')+(context?'입력한 '+context+' 조건은 외부에 자동 전달되지 않습니다. 자료의 적용 범위를 확인하세요.':'지역·작형은 해당 자료에서 확인하세요.');
