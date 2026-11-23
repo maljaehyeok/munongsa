@@ -73,8 +73,8 @@ def resolve(q,context,corpus):
  previous=c.get('search_query','')
  # Rebuild only known search slots; never carry an obsolete crop/area in free text.
  wanted=[g[3] for g in cat.TOPICS if re.search(g[1],text) and not re.search('(?:'+g[1]+r')\s*(?:말고|아닌|제외)',text)]
- if not wanted:wanted=[g[3] for g in cat.TOPICS if re.search(g[1],previous) and not re.search('(?:'+g[1]+r')\s*(?:말고|아닌|제외)',text)]
  if plan and not wanted:wanted=[cat.TOPICS[0][3]]
+ if not wanted:wanted=[g[3] for g in cat.TOPICS if re.search(g[1],previous) and not re.search('(?:'+g[1]+r')\s*(?:말고|아닌|제외)',text)]
  selected=c.get('search_crop') or c.get('crop')
  query=' '.join(filter(None,[c.get('search_scope'),selected,' '.join(wanted),'지원사업 알려줘']))
  if '보조금' in text:query+=' 보조금'

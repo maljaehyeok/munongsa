@@ -54,7 +54,7 @@
     "scripts/support_http_projection.py": "f3f0b358c0aa7cb3161ecf38951f10683fc2e1bfb67aef24d1aa70f42e152011",
     "assets/crop-directory.js": "0caceea922520f3065219596bc2f4de245149bebace918045fc297cbf91017d7",
     "deploy/chatbot/chat_wsgi.py": "fffbce60eaf37274bc533335f128d82901d38051deee935dc48fb6b754a9fcf5",
-    "scripts/rag_turn.py": "a8f13e4ab3aee0f94c75ff227b86c571d338cf790f8838c759157f03f71000c1"
+    "scripts/rag_turn.py": "a744b074434db39361dbdaa6a61448fca9dd347cce612bad09abb1e09850ae6c"
   },
   "private_corpus": {
     "assets/support-details.json": "01a3d2eb61ab8ea6d70b1514eddafaf60b107e3a777c5df342991ac5c6e72c62",

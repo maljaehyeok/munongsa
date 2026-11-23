@@ -11,6 +11,8 @@ class StateTests(unittest.TestCase):
   for k,v in c.items():self.assertEqual(out['conversation'][k],v)
   self.assertEqual(out['conversation']['search_crop'],'딸기');self.assertEqual(out['conversation']['search_scope'],'익산');self.assertNotIn('cultivating',out['conversation'])
   out,_=self.ask('충남은요?',out['conversation']);self.assertEqual(out['conversation']['search_scope'],'충남');self.assertEqual(out['conversation']['region'],'전주')
+  out,_=self.ask('수출 지원사업 찾아줘',c);out,_=self.ask('익산에서 딸기 농사를 준비 중이야',out['conversation'])
+  self.assertNotIn('수출',out['conversation']['search_query']);self.assertIn('창업',out['conversation']['search_query'])
  def test_hard_relevance_boundaries(self):
   template=copy.deepcopy(self.items[0]);self.items[:]=[]
   for i,title in enumerate(('딸기 시설하우스 설치 지원사업','마늘 농작물재해보험','대일수출가공식품 사전등록 지원사업','농식품 기업 수출 지원사업','귀농 정착 지원사업','시설 담당자 간담회')):
