@@ -41,7 +41,7 @@
     "scripts/rag_dialogue.py": "424eca840dce99fb56ccdce7b8a259e3c88035393934f51c03e5d01f6bf28f75",
     "scripts/rag_profile.py": "621b3d620a017782f09bdf009f1f54a8b08e79fe90d5cbcbd6da5b3b4c408cc2",
     "scripts/rag_nlu.py": "e5b2c767e428e78d3b99756f8636e8574338c559430696effb4bae97ed7df029",
-    "scripts/rag_catalogue.py": "67b554266c0d3270d3488853eb6100770c903d50afe4be8a7188dfa63568b8ff",
+    "scripts/rag_catalogue.py": "210e798ff711fee0167d1157b26bf0925e401b5fc8cd9765afe114627819728a",
     "scripts/support_notice_review.py": "a04d3b5bb2e9558eddc019b7153cd79674c02847966b20ecefb6eba616d45d56",
     "scripts/support_recommendation_readiness.py": "fb86b08cd4af6266eb38bb42eefa46666353c651188f52e5cb52d8d0dc2228a7",
     "scripts/support_runtime/api_core.py": "7331af6d2bab977d38e90edb815fccb02024186654a450c0fb282df0eaf07254",
@@ -54,7 +54,7 @@
     "scripts/support_http_projection.py": "f3f0b358c0aa7cb3161ecf38951f10683fc2e1bfb67aef24d1aa70f42e152011",
     "assets/crop-directory.js": "0caceea922520f3065219596bc2f4de245149bebace918045fc297cbf91017d7",
     "deploy/chatbot/chat_wsgi.py": "fffbce60eaf37274bc533335f128d82901d38051deee935dc48fb6b754a9fcf5",
-    "scripts/rag_turn.py": "5e96a6601bf0a883d5ea694e45ed3f6165e2c0212b1fda9dc0d13d6c9646c59a"
+    "scripts/rag_turn.py": "a8f13e4ab3aee0f94c75ff227b86c571d338cf790f8838c759157f03f71000c1"
   },
   "private_corpus": {
     "assets/support-details.json": "01a3d2eb61ab8ea6d70b1514eddafaf60b107e3a777c5df342991ac5c6e72c62",

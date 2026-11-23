@@ -19,10 +19,13 @@ def scope_request(question):
 def scope_relevance(item,feed,now,scope):
     """Published locality is a discovery signal, never an eligibility condition."""
     if scope=='전국':return 0
+    parts=rag_dialogue.normalized(scope).split()
+    explicit_parent=parts[0] if len(parts)==2 else None
+    if explicit_parent:scope=re.sub(r'[시군구]$','',parts[-1])
     hay=search_text(item,feed,now)
     places={a for a in rag_dialogue.AREAS if a in hay}
     if scope in places:return 2
-    parent=rag_dialogue.AREAS.get(scope,(scope,None))[1]
+    parent=rag_dialogue.AREAS.get(scope,(scope,None))[1] or explicit_parent
     if not parent and any(p==scope and a in places for a,(_,p) in rag_dialogue.AREAS.items()):return 2
     if parent and any(p==parent and a!=scope and a in places for a,(_,p) in rag_dialogue.AREAS.items()):return -1
     if parent in places:return 1

@@ -25,7 +25,7 @@ def resolve(q,context,corpus):
  crop=crops.find(text);area=d.area_in(text)
  short_area=bool(area and re.fullmatch(r'(?:그럼|그러면|아니)?\s*'+re.escape(area)+r'(?:\s*지역)?\s*(?:은|는|으로|로)?(?:요)?\s*[?？.!]*',text))
  short_national=bool(re.fullmatch(r'(?:그럼\s*)?전국(?:은|으로|도)?[?？.!\s]*',text))
- return_support=bool(re.search(r'(?:아까|다시|말고|돌아).*(?:지원사업|보조금)|(?:지원사업|보조금).*(?:돌아|복귀)',text))
+ return_support=bool(re.search(r'(?:아까|다시|말고|돌아).*(?:지원사업|보조금)|(?:지원사업|보조금).*(?:돌아|복귀)|아까.*사업.*(?:돌아|복귀)',text))
  support=bool(re.search(r'지원\s*사업|보조금|관련\s*공고',text)) or return_support
  plan=bool(crop and re.search(r'지으려|재배.*(?:싶|준비|계획|예정|하려)|농사.*(?:준비|생각|시작|싶)|키우.*(?:싶|계획)',text)) and not rag_profile.hypothetical(text)
  crop_change=bool(crop and re.search(r'바꿔|변경|그런데|그럼|은[?？]?$|는[?？]?$',text))
@@ -73,8 +73,8 @@ def resolve(q,context,corpus):
  previous=c.get('search_query','')
  # Rebuild only known search slots; never carry an obsolete crop/area in free text.
  wanted=[g[3] for g in cat.TOPICS if re.search(g[1],text) and not re.search('(?:'+g[1]+r')\s*(?:말고|아닌|제외)',text)]
- if not wanted and (short_area or short_national or crop_change or return_support):wanted=[g[3] for g in cat.TOPICS if re.search(g[1],previous)]
- if plan and not wanted:wanted=['영농 시작']
+ if not wanted:wanted=[g[3] for g in cat.TOPICS if re.search(g[1],previous) and not re.search('(?:'+g[1]+r')\s*(?:말고|아닌|제외)',text)]
+ if plan and not wanted:wanted=[cat.TOPICS[0][3]]
  selected=c.get('search_crop') or c.get('crop')
  query=' '.join(filter(None,[c.get('search_scope'),selected,' '.join(wanted),'지원사업 알려줘']))
  if '보조금' in text:query+=' 보조금'

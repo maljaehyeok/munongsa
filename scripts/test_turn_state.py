@@ -29,6 +29,13 @@ class StateTests(unittest.TestCase):
  def test_state_validation_and_pesticide_continuation(self):
   out,_=self.ask('선택한 조건으로 지원사업을 찾아주세요.',{'farm_region':'전북 김제시','crop':'마늘'})
   self.assertEqual(out['conversation']['search_scope'],'전북 김제시')
+  item={**self.items[0],'title':'김제시 귀농 정착 지원사업'}
+  self.assertEqual(cat.scope_relevance(item,{},__import__('datetime').datetime.now(__import__('datetime').timezone.utc),'전북 김제시'),2)
+  self.assertEqual(cat.scope_relevance({**item,'title':'익산시 귀농 정착 지원사업'},{},__import__('datetime').datetime.now(__import__('datetime').timezone.utc),'전북 김제시'),-1)
+  out,_=self.ask('익산에서 딸기 농사를 준비 중이야',{});out,_=self.ask('충남은?',out['conversation'])
+  self.assertIn('창업',out['conversation']['search_query'])
+  out,_=self.ask('농업금융 알려줘',out['conversation']);out,_=self.ask('아까 말한 사업으로 돌아가자.',out['conversation'])
+  self.assertEqual(out['conversation']['service'],'support');self.assertEqual(out['conversation']['search_scope'],'충남')
   self.assertFalse(rag_turn.valid({'service':'arbitrary'}));self.assertFalse(rag_turn.valid({'tech_topic':True}));self.assertFalse(rag_turn.valid({'tech_resource':'prescription'}))
   out,_=self.ask('딸기 농약 정보 알려줘',{'crop':'마늘'});out,_=self.ask('그런데 토마토는?',out['conversation'])
   self.assertEqual(out['cultivation'],{'crop':'토마토','topic':3,'resource':'pesticide'});self.assertEqual(out['conversation']['crop'],'마늘')
