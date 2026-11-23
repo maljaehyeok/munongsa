@@ -32,7 +32,7 @@
   "runtime": {
     "scripts/rag_search.py": "a724c7d6a113a10b2dcfa24dc64fa9fc457bf8e253f9c065edc888615d3f2407",
     "scripts/rag_answer.py": "6b9a573cdc7fc2bdadabef09ab7524b76c39c5a6818f4574d6dc7962e7c37186",
-    "scripts/rag_api.py": "74723acfae0e81a7edd7874ac782a49b752f44832a6ec89ccd5b0b5a2641481c",
+    "scripts/rag_api.py": "f3040f022304a61a0798d8504d34068791d8a56c372df3710acaeb719f0c642a",
     "scripts/chat_wsgi.py": "3360cc48becc6a2279c4bd8a9a3f5827bdbc999a22401e8f0c0f27710047e292",
     "scripts/host_proxy_entry.py": "0af6b39819cabd9215924cd29b38e196046c1fc1bb0e64871b8f8c2c3710b97d",
     "scripts/host_socket_entry.py": "076623b171e962812b279d0268408281d1893981374702ced3ed3b776cf00b45",

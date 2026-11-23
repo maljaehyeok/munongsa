@@ -23,6 +23,8 @@ class Concepts53(unittest.TestCase):
   for q in ('그게 왜 필요한데?','쉽게 예를 들어 설명해 줘.'):
    self.assertTrue(n.concept_request(q,out['conversation']))
    out,calls=self.ask(q,out['conversation'],self.knowledge());self.assertEqual(calls,1);self.assertFalse(out['programs'])
+  out,calls=self.ask('그럼 농업금융도 알려줘.',out['conversation'])
+  self.assertEqual(calls,0);self.assertFalse(out['programs']);self.assertIn('농업금융',out['answer']);self.assertNotIn('conversation_topic',out['conversation']);self.assertEqual(out['conversation']['notice_ids'],before['notice_ids'])
  def test_diagnostic_and_guard(self):
   for e,code in [(subprocess.TimeoutExpired('private',5),'timeout'),(urllib.error.HTTPError('private',429,'private',{},None),'rate_limit'),(n.NluFailure('output_limit'),'output_limit'),(ValueError('schema'),'schema_validation')]:self.assertEqual(n.failure_code(e,'validation'),code)
   for r in ('지원금은 백만원입니다','금리는 연 삼 퍼센트','독립경영 삼년 이내가 대상입니다','신청 가능해요','농약을 희석하세요','https://example.org'):

@@ -201,6 +201,13 @@ def local_pipeline(question):
         out=rag_dialogue.response(reply or '일반 개념에 관한 질문으로 이해했어요. 지금은 설명을 확인하지 못해 이전 지원사업을 대신 추천하지 않았습니다. 궁금한 개념을 조금 더 구체적으로 알려주세요.',clean,'context',status='answered' if reply else 'needs_verification')
         out['understanding']='gpt' if reply else 'rules'
         return rag_dialogue.remember(out,corpus)
+    # An explicit service switch takes precedence over a vague "then" follow-up.
+    if re.search(r'대출|융자|정책자금|금융|자금\s*부족|자금이\s*부족|시설\s*(?:설치\s*)?자금',original) and not re.search(r'지원사업|보조금',original):
+        clean={k:v for k,v in context.items() if k not in ('conversation_topic','casual_topic')}
+        guidance=rag_dialogue.service_response(rag_dialogue.PREFIX+json.dumps(clean,ensure_ascii=False)+rag_dialogue.SEPARATOR+original,corpus)
+        if guidance:
+            guidance['understanding']='rules'
+            return rag_dialogue.remember(guidance,corpus)
     if original.startswith(rag_catalogue.PAGE_PREFIX) or re.fullmatch(r'(?:전체|모든)\s*(?:공식|공개)?\s*(?:공고|지원사업)',original.strip()) or rag_catalogue.archive_requested(original) or re.search(r'신청기간.{0,8}남|기간.{0,5}남은|마감.{0,5}남은',original):
         listing=rag_catalogue.respond(question,corpus)
         return catalogue_response(listing,corpus) if listing else rag_dialogue.response('공개 목록이 변경됐어요. 같은 질문으로 다시 검색해 주세요.',context,'clarify',status='needs_verification')
