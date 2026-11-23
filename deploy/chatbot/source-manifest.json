@@ -4,7 +4,7 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "de6118238dd9c3ee47459aa9c1bcb36c7f6348bfbe2505ff3783a3ff819fea3a",
+    "index.html": "287da8da65c510357c27a496be33364aacfaf9b9f1f824c3f0603a383f8db514",
     "assets/chat-ui.js": "367f6f55683f7b0c193d07aa1a4537def0fe73fb4f93a06cd2bd2d66a6e85ef5",
     "assets/chat-ui.css": "fc7256a00d207a422aa3b6107638f0950694b69bc41955f1f606ca7822c3c5aa",
     "assets/support-public.js": "2ded1c4458e71a5deb7cdb974df9e8172e602298f12767e5c5525bbb9f83d8a2",
@@ -16,7 +16,7 @@
     "assets/personalization.js": "82fc8d7fe800d115157f8166c7afdb4137e46119fd1536ea4bcbbc048271a6ab",
     "assets/notice-review.js": "e7266cd2cec28f4e64d4c44526cd01c193ec2715c64f5b7f49f1fcd928ee4261",
     "assets/support-details.js": "6f2dd7d66c23fb64f4b794536e28af783b4b776eb3d768105fc53d57556343e8",
-    "assets/user-display.js": "d9632619289623c2a4bfe59b82fe05996a6e105b4894480083e4a3b2d030aada",
+    "assets/user-display.js": "9e6ced617d2b987556d9a403da4954954bb66e86707910f632947ec59a948fe2",
     "assets/support-details.json": "c01a7e6a4dd298621bcfa22e840fa849e7b4d8b9d6d02ea58f898aa997f0b451",
     "assets/farm-profile.js": "1fecf3126796647b0a4639fe665247fcce603a1229847da34fceb4a5f5816d73",
     "assets/application-journey.js": "96f16d0f9f9807083aba72451743b9ed426f5c9bfeb36f4a96ce0bd69337606d",
@@ -25,7 +25,7 @@
     "assets/finance-mvp.css": "cc0e8070c99d944abfb5fabb2601f27f067af73cdd785014e8527a42b117077a",
     "assets/cultivation-mvp.js": "030e925ba55bcd341aab33d490f5f88de9e996b9d94bb81123f6df3b81bbc390",
     "assets/readability.js": "6d0f1dd500c30d1a3e0308e585f6a34616a056727003c6368ce9fa4dfae56673",
-    "assets/readability.css": "6895fc15d5d69ed054316f491ee7045ad54cbb1714fe916bb25bf7ffe07a9a7a"
+    "assets/readability.css": "8c16426872bbca37c1fe0088aefbf8e3f23e9a4ed279136b6f49d1fab74520c6"
   },
   "runtime": {
     "scripts/rag_search.py": "a724c7d6a113a10b2dcfa24dc64fa9fc457bf8e253f9c065edc888615d3f2407",
