@@ -340,7 +340,8 @@
       updateContext(data.conversation);
       if(data.catalogue_total!==undefined){lastNext=data.catalogue_next||null;lastDiscovery=true;}
       else if(data.kind==='condition_edit'||finance||data.kind==='cultivation'||data.conversation?.conversation_topic){lastNext=null;lastDiscovery=false;}
-      if(finance&&!mixed&&!data.programs.length)await financeAnswer(status,question,false,financeFollow);else{if(data.programs.length)financeState=null;renderAnswer(status,data);offerConditions(status,data);if(mixed)await financeAnswer(status,question,true,false);}if(question!==selectionQuestion)input.value='';
+        if(data.kind==='context'&&data.conversation?.conversation_topic){financeState=null;renderAnswer(status,data);offerConditions(status,data);}
+        else if(finance&&!mixed&&!data.programs.length)await financeAnswer(status,question,false,financeFollow);else{if(data.programs.length)financeState=null;renderAnswer(status,data);offerConditions(status,data);if(mixed)await financeAnswer(status,question,true,false);}if(question!==selectionQuestion)input.value='';
     }catch(error){
       const value=error.name==='AbortError'?'응답 대기 시간이 초과됐어요. 잠시 후 다시 보내주세요.':error instanceof Error&&error.name==='Error'?error.message:'서버에 연결하지 못했어요. 잠시 후 다시 보내주세요.';
       status.className='chat-message chat-message-error';status.replaceChildren(text('p','다시 시도해 주세요','chat-message-label'),text('p',value),text('p',question===selectionQuestion?'선택한 조건은 유지돼요. 내 조건 선택·수정에서 다시 검색해 주세요.':'작성한 질문은 입력창에 그대로 남아 있어요.'));
