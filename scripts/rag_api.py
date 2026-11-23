@@ -152,6 +152,11 @@ def local_pipeline(question):
     if context.get('casual_topic')=='scope':
         context.pop('casual_topic',None)
         question=rag_dialogue.PREFIX+json.dumps(context,ensure_ascii=False)+rag_dialogue.SEPARATOR+original
+    import rag_turn
+    turn=rag_turn.resolve(original,context,corpus)
+    if turn:
+        turn.setdefault('understanding','rules')
+        return catalogue_response(turn,corpus) if turn.get('programs') else rag_dialogue.remember(turn,corpus)
     count=rag_catalogue.requested_count(original)
     count_only=bool(count and re.fullmatch(r'(?:그럼\s*|그러면\s*)?\d{1,2}\s*(?:[~～〜\-–]\s*\d{1,2})?\s*개(?:로|\s*정도)?\s*(?:추천|보여|알려|찾아|보고)[가-힣\s.!?]*',original))
     more=bool(re.fullmatch(r'(?:조금\s*)?더\s*(?:보여|알려|찾아)[가-힣\s.!?]*',original))
@@ -186,7 +191,7 @@ def local_pipeline(question):
     explanation=bool(re.search(r'뭐야|무엇(?:이야|인가|인지)|무슨\s*(?:뜻|말)|뜻(?:이|은)|설명|풀어\s*(?:줘|줄)',original))
     knowledge_request=rag_nlu.concept_request(original,context)
     if knowledge_request:
-        referential=bool(context.get('conversation_topic')) and bool(re.search(r'그게|그건|그거|다시|쉽게|풀어|예를|예시|무슨\s*(?:뜻|말)',original)) and not re.search(r'농업|농사|재배|작물|스마트팜|윤작|연작|경영체|독립경영|청년후계농|보조금|융자',original)
+        referential=bool(context.get('conversation_topic')) and bool(re.search(r'그게|그건|그거|그걸|그것|왜|다시|쉽게|풀어|예를|예시|무슨\s*(?:뜻|말)',original)) and not re.search(r'농업|농사|재배|작물|스마트팜|윤작|연작|경영체|독립경영|청년후계농|보조금|융자',original)
         # Resolve the subject, not the answer. No second call or factual history.
         interpreted_question=context['conversation_topic']+'에 대해, 후속 질문: '+original if referential else original
         understood=rag_nlu.interpret(interpreted_question,context)

@@ -45,10 +45,12 @@ def decode(value):
         raw,question=value[len(PREFIX):].split(SEPARATOR,1)
         if len(raw)>1600:raise ValueError('context_too_long')
         context=json.loads(raw)
-        if not isinstance(context,dict) or set(context)-({'region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','casual_topic','conversation_topic','search_scope','search_query','search_offset','search_fingerprint'}|rag_profile.KEYS):raise ValueError('context_fields')
+        import rag_turn
+        if not isinstance(context,dict) or set(context)-({'region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','casual_topic','conversation_topic','search_scope','search_query','search_offset','search_fingerprint'}|rag_profile.KEYS|rag_turn.KEYS):raise ValueError('context_fields')
+        if not rag_turn.valid(context):raise ValueError('search_state')
         if ('search_offset' in context)!=('search_fingerprint' in context):raise ValueError('search_cursor')
         if 'search_offset' in context and (type(context['search_offset']) is not int or not 3<=context['search_offset']<=1998 or context['search_offset']%3 or not re.fullmatch('[a-f0-9]{64}',str(context['search_fingerprint']))):raise ValueError('search_cursor')
-        if 'search_scope' in context and context['search_scope'] not in {*AREAS,'전국'}:raise ValueError('search_scope')
+        if 'search_scope' in context and context['search_scope']!='전국' and not rag_profile.valid_area(context['search_scope'],AREAS):raise ValueError('search_scope')
         if 'search_query' in context and (not isinstance(context['search_query'],str) or not 1<=len(context['search_query'])<=300 or re.search(r'[\x00-\x1f<>]',context['search_query'])):raise ValueError('search_query')
         if 'conversation_topic' in context:
             import rag_nlu

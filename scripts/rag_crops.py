@@ -15,7 +15,7 @@ SAFE_ALIASES={'키위':'참다래','쌀':'벼','논벼':'벼'}
 
 def find(question):
     names=sorted((*CROPS,*SAFE_ALIASES),key=len,reverse=True)
-    matches=list(re.finditer(r'(?<![가-힣])('+'|'.join(map(re.escape,names))+r')(?=\s|[?!.,]|$|은|는|이|가|을|를|에|로|과|와|의|도)',question))
+    matches=list(re.finditer(r'(?:(?<![가-힣])|(?<=에서)|(?<=에서는)|(?<=말고))('+'|'.join(map(re.escape,names))+r')(?=\s|[?!.,]|$|은|는|이|가|을|를|에|로|과|와|의|도|농사|재배|농작물|보험|육묘|지원)',question))
     return SAFE_ALIASES.get(matches[-1][1],matches[-1][1]) if matches else None
 
 def technology(question):

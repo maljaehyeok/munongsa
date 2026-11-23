@@ -120,9 +120,13 @@
     const str=v=>typeof v==='string',strings=v=>Array.isArray(v)&&v.length<=100&&v.every(str);
     const context=data?.conversation;
     const validContext=context===undefined||(context&&typeof context==='object'&&!Array.isArray(context)
-      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm','casual_topic','conversation_topic','search_scope','search_query','search_offset','search_fingerprint'].includes(k))
+      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm','casual_topic','conversation_topic','search_scope','search_query','search_offset','search_fingerprint','search_crop','service','tech_crop','tech_topic','tech_resource'].includes(k))
+      &&(context.tech_resource===undefined||['general','pesticide'].includes(context.tech_resource))
+      &&(['search_crop','tech_crop'].every(k=>context[k]===undefined||crops.includes(context[k])))
+      &&(context.service===undefined||['support','finance','cultivation'].includes(context.service))
+      &&(context.tech_topic===undefined||(Number.isInteger(context.tech_topic)&&context.tech_topic>=0&&context.tech_topic<6))
       &&(context.search_offset===undefined||(Number.isInteger(context.search_offset)&&context.search_offset>=3&&context.search_offset<=1998&&context.search_offset%3===0&&/^[a-f0-9]{64}$/.test(context.search_fingerprint||'')))
-      &&(context.search_scope===undefined||(typeof context.search_scope==='string'&&context.search_scope.length<=8))
+      &&(context.search_scope===undefined||(typeof context.search_scope==='string'&&context.search_scope.length<=24))
       &&(context.search_query===undefined||(typeof context.search_query==='string'&&context.search_query.length>0&&context.search_query.length<=300&&!/[<>\x00-\x1f]/.test(context.search_query)))
       &&(context.conversation_topic===undefined||(typeof context.conversation_topic==='string'&&context.conversation_topic.length<=80&&!/https?:\/\/|www\.|[\d<>\n\r@]|API[_ -]?KEY|sk-/i.test(context.conversation_topic)))
       &&(context.casual_topic===undefined||['meal','wellbeing','humor','scope'].includes(context.casual_topic))
@@ -287,7 +291,7 @@
     const paragraphs=text('div','','chat-answer-text');readableAnswer(data).split(/\n{2,}/).filter(Boolean).forEach(p=>paragraphs.append(text('p',p)));explanation.append(paragraphs);node.append(explanation);
   }
   function message(label,value,kind){const node=text('article','','chat-message chat-message-'+kind);node.append(text('p',label,'chat-message-label'),text('p',value));history.append(node);return node;}
-  function pullProfile(){if(typeof readProfile==='function'&&globalThis.MunongsaFarmProfile){const p=readProfile();if(p.requiredFundsWon)MunongsaFarmProfile.money.required=p.requiredFundsWon;else delete MunongsaFarmProfile.money.required;updateContext(MunongsaFarmProfile.toConversation(p,conversation),false);}}
+  function pullProfile(){if(typeof readProfile==='function'&&globalThis.MunongsaFarmProfile){const p=readProfile();if(p.requiredFundsWon)MunongsaFarmProfile.money.required=p.requiredFundsWon;else delete MunongsaFarmProfile.money.required;const next=MunongsaFarmProfile.toConversation(p,conversation);if(conversation.list_ids&&!next.list_ids){lastNext=null;lastDiscovery=false;financeState=null;}updateContext(next,false);}}
   document.addEventListener('munongsa:profile-reset',()=>updateContext({},false));
   document.addEventListener('munongsa:profile-change',()=>{if(!pending&&!globalThis.MunongsaFarmProfile?.isApplying())pullProfile();});
   function openChat(event){pullProfile();opener=event.currentTarget;dialog.showModal();document.documentElement.classList.add('chat-ui-open');input.focus({preventScroll:true});resizeInput();}
@@ -324,8 +328,9 @@
     if(funding?.kind==='required'&&globalThis.MunongsaInputUX?.setFunds(funding.won))message('입력 확인','필요 자금 '+MunongsaAmounts.wonText(funding.won)+'으로 반영했어요. 보유 자금이나 대출 승인액을 뜻하지 않아요.','answer');
     if(funding?.kind==='own')message('입력 확인','말씀하신 보유 자금은 '+MunongsaAmounts.wonText(funding.won)+'이에요. 필요 사업비·희망 대출금과 달라 자동으로 대입하지 않았어요.','answer');
     if(funding&&['loan','project'].includes(funding.kind))message('입력 확인',(funding.kind==='loan'?'희망 대출금: ':'필요 사업비: ')+MunongsaAmounts.wonText(funding.won)+'으로 따로 기억했어요. 필요 자금과 같은 금액으로 비교하려면 농업금융의 필요 자금에 입력해 주세요.','answer');
-    const financeFollow=financeState?.active&&!/지원사업|공고/.test(question)&&/그\s*(?:사업|제도)|신청|서류|접수|준비|등록|조건|첫\s*번째|두\s*번째|세\s*번째|^응[?？]?$|무슨\s*뜻|다시\s*설명/.test(question);
-    const finance=!!financeFollow||/대출|융자|정책자금|금융|(?:돈|자금)(?:이|이\s*더)?\s*부족|시설\s*(?:설치\s*)?자금/.test(question);
+    const financeFollow=(financeState?.active||conversation.service==='finance')&&!/지원사업|공고|보조금/.test(question)&&/그\s*(?:사업|제도)|신청|서류|접수|준비|등록|조건|빌리|이자|상환|첫\s*번째|두\s*번째|세\s*번째|^응[?？]?$|무슨\s*뜻|다시\s*설명/.test(question);
+    const financeExcluded=/(?:융자|대출|금융)\s*(?:말고|제외|아닌)/.test(question);
+    const finance=!financeExcluded&&(!!financeFollow||/대출|융자|정책자금|금융|(?:돈|자금)(?:이|이\s*더)?\s*부족|시설\s*(?:설치\s*)?자금/.test(question));
     const mixed=finance&&/지원사업|보조금/.test(question);
     if(!finance&&!/^(?:응|네|무슨|다시)/.test(question))financeState=null;
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);

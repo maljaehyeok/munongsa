@@ -48,10 +48,10 @@ INSTRUCTIONS+=' General agricultural concepts include rotation, independent farm
 def concept_request(question,context=None):
     """Only educational explanations; specific scheme facts stay in the evidence engine."""
     context=context or {}
-    if re.search(r'올해|현재|접수|마감|공고|그\s*사업|아까.*지원사업|지원사업|관련.*사업|찾아|추천|신청할|신청\s*가능|선정될|필수|몇\s*년|몇\s*세|한도|금액|금리|서류|법적|법률|기준일|\d',question):return False
-    explanation=bool(re.search(r'이란|이?뭐야|무엇|무슨\s*(?:뜻|말)|뜻|설명|차이|같은|다른|왜.*필요|예를|예시|쉽게|다시',question))
+    if re.search(r'올해|현재|접수|마감|공고|그\s*사업|아까.*지원사업|지원사업|관련.*사업|찾아|추천|신청|자격|선정될|필수|몇\s*년|몇\s*세|한도|금액|금리|서류|법적|법률|기준일|\d',question):return False
+    explanation=bool(re.search(r'이란|이?뭐야|무엇|무슨\s*(?:뜻|말)|뜻|설명|차이|같은|다른|달라|왜|예를|예시|쉽게|다시',question))
     subject=bool(re.search(r'농업|농사|영농|재배|작물|스마트팜|윤작|연작|독립경영|경영체|청년후계농|청년농업인|보조금|융자|시설재배',question))
-    follow=bool(context.get('conversation_topic')) and bool(re.search(r'그게|그건|그거|그럼|다시|쉽게|예를|예시',question))
+    follow=bool(context.get('conversation_topic')) and bool(re.search(r'그게|그건|그거|그걸|그것|그럼|왜|다시|쉽게|예를|예시',question))
     return explanation and (subject or follow)
 
 def valid_topic(value):
@@ -63,7 +63,7 @@ def safe_conversation_reply(value,question):
     if not isinstance(reply,str) or not 1<=len(reply)<=220:return ''
     forbidden=r'등록|지원|사업|공고|신청|자격|금액|보조|융자|대출|금융|금리|이자|보험|경영체|모집|접수|서류|출처|정책|예산|기간|법률|진단|약물|약품|치료|통증|질병|농약|살포|투여|투자|수익|주식|세금|계약|법적|날씨|기온|예보|https?://|www\.|[0-9<>]'
     if value.get('intent')=='knowledge':
-        follow=bool(re.search(r'그게|그건|그거|그럼|다시|쉽게|예를|예시',question))
+        follow=bool(re.search(r'그게|그건|그거|그걸|그것|그럼|왜|다시|쉽게|예를|예시',question))
         if not concept_request(question) and not (follow and concept_request(question,{'conversation_topic':'농업 개념'})):return ''
         forbidden=r'https?://|www\.|\d|[<>%]|[일이삼사오육칠팔구십백천만억]+\s*원|[일이삼사오육칠팔구십백천]+\s*(?:년|개월|세)|퍼센트|법률|법적|확정|보장|신청\s*가능|선정\s*(?:가능|됩니다)|자격\s*충족|모집\s*중|접수\s*중|살포|투여|희석|농약|약품|치료|진단|날씨|예보|금리|한도'
     if value.get('intent')=='other':forbidden=r'농업|농민|농가|농사|'+forbidden

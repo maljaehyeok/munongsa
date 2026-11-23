@@ -20,6 +20,10 @@
   const crop=root.MunongsaCropDirectory?.find(document.getElementById('crop')?.selectedOptions[0]?.textContent||p.crop);
   if(crop)out.crop=crop.name;
   if(previous.crop!==undefined&&previous.crop!==out.crop||previous.planned!==undefined&&previous.planned!==out.planned)delete out.cultivating;
+  const changed=['region','farm_region','crop','farm_registered','applicant','planned','farming_years','group_size'].some(k=>previous[k]!==out[k]);
+  if(changed)for(const k of ['notice_ids','list_ids','list_versions','last_kind','search_offset','search_fingerprint'])delete out[k];
+  if(previous.crop!==out.crop)for(const k of ['search_crop','search_query','tech_crop','tech_topic','tech_resource'])delete out[k];
+  if(previous.farm_region!==out.farm_region)for(const k of ['search_scope','search_query'])delete out[k];
   return out;
  }
  let applying=false;
@@ -34,11 +38,11 @@
    const set=(id,value)=>{const e=document.getElementById(id);if(e&&e.value!==value){e.value=value;e.dispatchEvent(new Event('change',{bubbles:true}));}};
    set('farmRegistered',context.farm_registered||'unknown');
    for(const [key,field]of [['farming_years','farmingYears'],['group_size','groupMemberCount']])if(context[key]!==before[key])set(field,context[key]===undefined?'':String(context[key]));
+   if(context.applicant!==toConversation(readProfile()).applicant)set('applicant',Object.keys(applicant).find(k=>applicant[k]===context.applicant)||'all');
    if(context.planned===true)set('farmingSituation','preparing');
    else if(p.farmingSituation==='preparing')set('farmingSituation','unknown');
    // A chat statement about starting does not establish independent management.
    explicitStage=typeof context.planned==='boolean'?{value:context.planned,situation:readProfile().farmingSituation}:null;
-   if(context.applicant!==toConversation(readProfile()).applicant)set('applicant',Object.keys(applicant).find(k=>applicant[k]===context.applicant)||'all');
    if(typeof draw==='function')draw();
   }finally{applying=false;}
  }

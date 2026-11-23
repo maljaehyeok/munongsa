@@ -134,7 +134,8 @@ def discovery_quality(question,title,hay,context=None,purpose=None):
     wanted=[g for g in TOPICS if re.search(g[1],q)]
     installation=bool(re.search(r'설치|하우스|온실|현대화',q))
     thematic=[g for g in wanted if re.search(g[2],purpose) and (g[0]!='facility' or not installation or re.search(r'시설원예|시설현대화|시설지원|시설\s*지원|온실|하우스|스마트팜|시설.{0,8}(?:설치|신축|개보수|현대화)',purpose))]
-    crop=next((c for c in ('토마토','딸기','감귤','마늘','벼','사과','포도','상추','고추','배추','콩','오이') if c in q),None)
+    import rag_crops
+    crop=rag_crops.find(question) or (context or {}).get('search_crop') or (context or {}).get('crop')
     broadened=not wanted and bool(crop) and (context or {}).get('planned') is True and bool(re.search(TOPICS[0][2],purpose))
     related=len(thematic)==len(wanted) if wanted else bool(crop in hay or broadened) if crop else bool(hits)
     reasons=[' · '.join(g[3] for g in thematic)+' 분야의 공개 정보 일치'] if thematic else ['영농 준비 관련 대안 · 작물 전용 사업 아님'] if broadened else ['공개 정보에 '+crop+' 명시'] if crop and crop in hay else ['검색어가 공개 정보에 포함'] if hits else []
@@ -151,7 +152,8 @@ def matches(question,feed,context=None,now=None):
     text=re.sub(r'지난|과거|예전|종료된|마감된|기한\s*경과|기간\s*경과|보여줘|포함','',text)
     compact=re.sub(r'[^0-9a-z가-힣]','',text.lower())
     area=rag_dialogue.area_in(text) or context.get('farm_region') or context.get('region')
-    crop=next((v for v in rag_dialogue.CROPS if v in text),None) or context.get('crop')
+    import rag_crops
+    crop=rag_crops.find(text) or context.get('search_crop') or context.get('crop')
     generic={'지원사업','지원','공고','사업','안내','신청','모집','농업','농업인','관련','알려줘','확인','조건','자격','해주세요','현재','전체','공개','있나요','있는','에서','찾아줘'}
     terms=[re.sub(r'(?:으로|에서|관련|을|를|이|가|은|는)$','',v) for v in re.findall(r'[가-힣A-Za-z0-9]+',text)]
     terms=[v for v in terms if len(v)>=2 and v not in generic and v not in rag_dialogue.AREAS and v not in {'농사짓는데','농사짓고','찾고','싶어요','받을','있을까요','알고','싶어','해주세요','시작하려는데','재배해요','키워요','있어요','알려주세요','등록했어요','등록해야','어떤','해당하는','가능한'}]
@@ -160,11 +162,20 @@ def matches(question,feed,context=None,now=None):
     for raw in records(feed,now):
         title=rag_dialogue.normalized(raw['title']);hay=search_text(raw,feed,now);nt=re.sub(r'[^0-9a-z가-힣]','',title.lower())
         exact=len(nt)>=6 and nt in compact
+        title_crop=rag_crops.find(title)
+        full_catalogue=bool(re.fullmatch(r'(?:전체|모든|공개)\s*(?:지원사업|공고)',text))
+        if not exact and not full_catalogue:
+            if '보조금' in text and not re.search(r'융자|대출|금융',text) and re.search(r'융자|대출|신용보증|이차보전',title):continue
+            if crop and title_crop and title_crop!=crop:continue
+            farm_intent=bool(crop or context.get('planned') or context.get('applicant')=='individual_farmer')
+            if farm_intent and re.search(r'수출|가공식품|기업|업체|기관\s*모집',title) and not re.search(r'수출|가공|기업|업체|기관',text):continue
         shown=review.project(review.fact_project(raw,feed.get('verified_facts',{}).get(raw['id']),now),feed.get('notice_observations',{}).get(raw['id']),now)
         past=review.notice_state(shown,now)=='elapsed'
         if not exact and past!=archive:continue
         if re.search(r'신청기간.{0,8}남|기간.{0,5}남은|마감.{0,5}남은',text) and review.notice_state(shown,now) not in ('window','upcoming'):continue
         quality=discovery_quality(text,title,hay.replace(raw['institution'],''),context,title+' '+str(shown.get('support','')));relevance,related=quality['score'],quality['matches']
+        constrained=bool(crop or any(re.search(g[1],text) for g in TOPICS))
+        if not exact and constrained and not full_catalogue and not related:continue
         if (context.get('planned') is True or context.get('applicant')=='individual_farmer') and re.search(r'기업|수출업체|기관 모집',title) and not re.search(r'기업|수출',text):relevance-=45
         period_only=bool(re.search(r'신청기간.{0,8}남|기간.{0,5}남은|마감.{0,5}남은',text)) and not any(re.search(g[1],text) for g in TOPICS)
         broad=bool(re.fullmatch(r'(?:전체|공개|지난)?\s*(?:지원사업|공고)',text)) or bool(re.fullmatch(r'.{0,10}(?:지원사업|공고)\s*(?:알려줘|찾아줘|보여줘)[.!?]*',text))
@@ -173,7 +184,7 @@ def matches(question,feed,context=None,now=None):
         locality=scope_relevance(raw,feed,now,scope) if scope else 0
         if not exact and scope and locality<0:continue
         # Definite ineligibility cannot be repaired by relevance or wider search.
-        if scope and (comparison(raw,feed,context,now) or {}).get('decision',{}).get('excluded'):continue
+        if not full_catalogue and (comparison(raw,feed,context,now) or {}).get('decision',{}).get('excluded'):continue
         ranked.append((1000 if exact else relevance+locality*30,raw))
     def order(pair):
         score,item=pair
@@ -376,7 +387,7 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
         return None
     available=len(found)
     if limit:found=found[:limit]
-    fingerprint=hashlib.sha256(json.dumps({'scope':context.get('search_scope'),'profile':{k:v for k,v in context.items() if k in rag_dialogue.rag_profile.KEYS or k in ('region','crop','farm_registered')},'items':[{'id':n['id'],'version':listing_version(n,feed,now)} for n in found]},sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+    fingerprint=hashlib.sha256(json.dumps({'scope':context.get('search_scope'),'profile':{k:v for k,v in context.items() if k in rag_dialogue.rag_profile.KEYS or k in ('region','crop','farm_registered','search_crop')},'items':[{'id':n['id'],'version':listing_version(n,feed,now)} for n in found]},sort_keys=True,ensure_ascii=False).encode()).hexdigest()
     offset=page['offset'] if page else 0
     if page and (page['fingerprint']!=fingerprint or offset>=len(found)):
         return rag_dialogue.response('공고 목록이나 확인된 조건이 변경됐어요. 같은 질문으로 다시 검색해 주세요.',context,'clarify',status='needs_verification')
