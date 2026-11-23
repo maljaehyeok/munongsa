@@ -49,4 +49,12 @@ class Practical52(unittest.TestCase):
   self.assertEqual(run([{**item,'publication':'pending'}])['records'],[])
   self.assertEqual(run([])['withheld_ids'],[])
 
+ def test_explicit_farming_change_without_gpt(self):
+  context={'farm_region':'익산','crop':'마늘','planned':True,'farm_registered':'no','list_ids':['NOTICE-stale'],'list_versions':['0'*64],'notice_ids':['NOTICE-stale']}
+  out,calls=self.ask('마늘 농사를 이미 짓고 있어.',context)
+  self.assertEqual(calls,0);self.assertTrue(out['conversation']['cultivating']);self.assertFalse(out['conversation']['planned'])
+  self.assertFalse(out['conversation'].get('list_ids'));self.assertNotIn('farming_years',out['conversation'])
+  for q in ('마늘을 재배하고 있나요?','마늘 농사를 이미 짓고 있어?','만약 마늘 농사를 짓고 있다면?','마늘 재배 방법 알려줘.','관심 작물은 마늘','마늘을 재배하고 싶어.'):
+   facts,_=p.extract(q,d.AREAS,d.CROPS,d.normalized);self.assertNotIn('cultivating',facts,q);self.assertNotIn('planned',facts,q)
+
 if __name__=='__main__':unittest.main()

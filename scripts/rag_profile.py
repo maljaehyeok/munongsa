@@ -95,15 +95,17 @@ def extract(q,areas,crops,normalize):
     if re.search(r'(?:영농|농사|농업|재배)\s*(?:경력)?\s*(\d+(?:\.\d+)?)\s*년',q):
         out['farming_years']=float(re.search(r'(?:영농|농사|농업|재배)\s*(?:경력)?\s*(\d+(?:\.\d+)?)\s*년',q)[1])
     if re.search(r'(?:영농|농사|농업|재배|시작).*?(?:시작\s*)?예정|시작하려|시작할\s*(?:계획|생각)',q):out['planned']=True
-    if re.search(r'(?:영농|농사).*이미|시작했|농사짓고|재배하고',q):out['planned']=False
+    if re.search(r'(?:영농|농사).*이미|시작했|농사짓고|재배하고',q) and not hypothetical(q) and not re.search(r'[?？]|인가요|하나요|있나요|방법|어떻게|예정|계획|싶',q):out['planned']=False
     import rag_crops
     selected=rag_crops.find(q)
     # A topic/question does not establish the user's crop or actual production.
-    stated=bool(re.search(r'재배(?:하고\s*있|하고|중|해요|합니다)|농사(?:를)?\s*짓(?:고|습니다|어요)|키우(?:고\s*있|고|는\s*중)|(?:관심|재배)\s*작물\s*[:：은는]',q))
+    production=bool(re.search(r'재배(?:하고\s*있|중|해요|합니다)|농사(?:를)?\s*(?:이미\s*)?짓(?:고\s*있|습니다|어요)|키우(?:고\s*있|는\s*중)',q))
+    stated=production or bool(re.search(r'(?:관심|재배)\s*작물\s*[:：은는]',q))
     if selected and (stated or out.get('planned') is True):out['crop']=selected
-    if selected and stated and not hypothetical(q) and not re.search(r'인가요|하나요|중인가|있나요|재배\s*방법|어떻게|하려|할\s*(?:예정|계획)|만약|이라면|이면|한다면',q):
+    if selected and production and not hypothetical(q) and not re.search(r'[?？]|인가요|하나요|중인가|있나요|재배\s*방법|어떻게|하고\s*싶|하려|할\s*(?:예정|계획)|만약|이라면|이면|한다면',q):
         out['cultivating']=not out.get('planned',False)
         if re.search(r'재배하고\s*있지\s*않|재배하지\s*않|재배\s*안\s*해',q):out['cultivating']=False
+        if out['cultivating']:out['planned']=False
     m=re.search(r'(?:시설\s*면적|비가림(?:하우스)?|하우스)\s*(?:은|는|이|가|:)?\s*(\d[\d,]*(?:\.\d+)?)\s*(㎡|제곱미터|m2|평)',q,re.I)
     if m:
         value=float(m[1].replace(',',''));out['facility_sqm']=round(value*(400/121 if m[2]=='평' else 1),4)

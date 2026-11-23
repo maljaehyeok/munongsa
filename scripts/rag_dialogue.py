@@ -219,6 +219,11 @@ def service_response(encoded,corpus,intent=None):
         crop=selected or (None if unknown else actual.get('crop'))
         intro='질문한 작물은 현재 목록에서 확인되지 않았어요. 기존 영농 작물로 바꾸어 안내하지 않으며, 메뉴에서 작물을 선택해 주세요. ' if unknown else ''
         return {**response(intro+'질문한 작물·주제의 공식 자료로 안내합니다. 관심 작물은 실제 재배 사실로 저장하지 않으며, 농약 등록·사용 적합성이나 개인별 처방은 확정하지 않습니다.',actual,'cultivation'), 'cultivation':{'crop':crop,'topic':rag_crops.topic(question),'resource':'pesticide' if '농약' in question else None}}
+    if 'cultivating' in facts and not rag_profile.hypothetical(question) and not re.search(r'[?？]|알려|방법|조건|자격|신청|서류|지원사업|공고',question):
+        actual={**context,**facts}
+        for key in ('notice_ids','list_ids','list_versions','last_kind','search_offset','search_fingerprint'):actual.pop(key,None)
+        state='현재 재배 중' if facts['cultivating'] else '현재 재배하지 않음'
+        return response(f"{facts.get('crop',context.get('crop','작물'))} · {state}으로 영농 조건을 반영했어요. 독립경영 여부나 영농 경력은 이 말만으로 확정하지 않습니다. 바뀐 조건으로 관련 지원사업을 다시 비교할 수 있어요.",actual,'context',suggestions=('선택한 조건으로 지원사업을 찾아주세요.',))
     if re.search(r'처음.*(?:농사|농업)|(?:농사|농업).*처음',question) and re.search(r'뭐부터|무엇부터|어떻게|시작',question):
         actual=context if rag_profile.hypothetical(question) else {**context,**facts}
         missing=[]
