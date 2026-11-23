@@ -2,7 +2,7 @@
 .brand-home .discovery-cue{color:#eee;border:1px solid #777;border-radius:8px;padding:13px 20px;gap:14px;line-height:1.6;text-align:center}
 .brand-home .discovery-cue span{display:inline-block;font-size:22px;animation:readable-cue 2.8s ease-in-out 3}
 @keyframes readable-cue{0%,70%,100%{transform:translateY(0)}35%{transform:translateY(5px)}}
-.discovery-card .discovery-example{font-size:14px;line-height:1.75;padding-top:12px;border-top:1px solid #777;color:#ddd;font-weight:400}
+.discovery-card .discovery-example{font-size:14px;line-height:1.75;padding-top:12px;border-top:1px solid #aaa;color:#505050;font-weight:400}
 .readable-paragraph{display:block;line-height:1.85;overflow-wrap:anywhere;white-space:pre-line}
 .readable-paragraph+.readable-paragraph{margin-top:9px}
 .notice-card .compact-open>strong,.cultivation-material h3{font-size:21px;line-height:1.5;margin-bottom:5px;letter-spacing:-.02em}

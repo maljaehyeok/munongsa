@@ -25,7 +25,7 @@
     "assets/finance-mvp.css": "cc0e8070c99d944abfb5fabb2601f27f067af73cdd785014e8527a42b117077a",
     "assets/cultivation-mvp.js": "c0403e996b3fcd41c2ac592b058f9b0570e21634a83f583a1d3c92258ccd8e30",
     "assets/readability.js": "6d0f1dd500c30d1a3e0308e585f6a34616a056727003c6368ce9fa4dfae56673",
-    "assets/readability.css": "6e53673b7e56f5e960ba27feb1e57b8acf61d70d8817cfcf147ea3a05b4446c0"
+    "assets/readability.css": "6895fc15d5d69ed054316f491ee7045ad54cbb1714fe916bb25bf7ffe07a9a7a"
   },
   "runtime": {
     "scripts/rag_search.py": "a724c7d6a113a10b2dcfa24dc64fa9fc457bf8e253f9c065edc888615d3f2407",

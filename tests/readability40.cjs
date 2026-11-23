@@ -16,4 +16,5 @@ const html=fs.readFileSync('index.html','utf8');const hero=html.slice(html.index
 assert.ok(!hero.includes('data-start-chat')&&!hero.includes('data-home-service'));
 assert.ok(html.includes('id="openChat"')&&html.includes('data-start-conditions')&&hero.includes('href="#supportDiscovery"'));
 const css=fs.readFileSync('assets/readability.css','utf8');assert.ok(css.includes('prefers-reduced-motion:reduce')&&css.includes('animation:none'));
+assert.ok(css.includes('border-top:1px solid #aaa;color:#505050;font-weight:400'),'examples need dark text on light cards');
 console.log('표시 문자·단위·부정·예외 보존과 홈 탐색·움직임 최소화 검사 통과');
