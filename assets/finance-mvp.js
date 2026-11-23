@@ -18,7 +18,17 @@
     return {state,label:labels[state],rows,unknowns:item.unknowns,notice:'입력값과 확인된 기본 조건만 비교한 결과입니다. 전체 신청 자격·선정·보증·대출 승인을 의미하지 않습니다.'};
   }
   function date(value){if(!value)return '확인 필요';const d=new Date(value.length===10?value+'T00:00:00+09:00':value);if(!Number.isFinite(+d))return '확인 필요';return new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(d)}
-  function filter(items,query='',purpose='all'){const q=query.trim().toLocaleLowerCase('ko-KR');return items.filter(p=>(purpose==='all'||p.purposes.includes(purpose))&&(!q||[p.title,p.institution,p.type,p.target,p.uses,...p.purposes,p.id==='guarantee'?'농신보':''].join(' ').toLocaleLowerCase('ko-KR').includes(q)))}
+  function filter(items,query='',purpose='all'){
+    const normalize=value=>String(value??'').normalize('NFKC').toLocaleLowerCase('ko-KR');
+    const terms=normalize(query).trim().split(/\s+/u).filter(Boolean);
+    return items.filter(p=>{
+      if(purpose!=='all'&&!p.purposes.includes(purpose))return false;
+      // Search approved public fields only. All entered words must be present;
+      // searching is independent of eligibility and never expands to review data.
+      const hay=normalize([p.title,p.institution,p.type,p.target,p.uses,...p.purposes,p.id==='guarantee'?'농신보':''].join(' '));
+      return terms.every(term=>hay.includes(term));
+    });
+  }
   function rank(items,profile){return items.map((item,index)=>({item,index,comparison:compare(item,profile)})).sort((a,b)=>({match:0,check:1,mismatch:2}[a.comparison.state]-{match:0,check:1,mismatch:2}[b.comparison.state])||a.index-b.index).map(r=>r.item)}
   // Funding guidance is separate from eligibility and ranking. Never sum distinct caps.
   function fundingView(p,profile){
@@ -47,7 +57,7 @@
   function amountLabel(p){return p.id==='farmland'?'지원단가':p.type==='신용보증'?'보증한도':'대출한도'}
   function amountScope(p){return p.id==='farmland'?'면적당 지원 기준이며 실제 토지 매입가격이나 개인별 확정 대출금액이 아닙니다.':p.type==='신용보증'?'보증금액·보증료와 대출금리는 다릅니다. 보증 승인과 은행 대출 승인은 별도 심사합니다.':'제도상 최대 한도입니다. 개인별 실제 대출금액은 자금 배정·담보·신용심사에 따라 달라집니다.'}
   function terms(p){return [['자금 용도',p.purposes.join(' · ')],[amountLabel(p),p.limit],['금리·비용',p.interest],[p.type==='신용보증'?'이용 대출':'거치·상환',p.type==='신용보증'?p.repayment:(p.grace==='확인 필요'?'거치기간 확인 필요':p.grace+' 거치')+' / '+p.repayment]]}
-  function card(p,profile){const m=compare(p,profile),view=comparisonView(p,m),chips=view.rows.length?view.rows:[{text:view.label,state:'check'}];return `<article class="card notice-card finance-card" data-finance-id="${esc(p.id)}"><div class="notice-status"><span class="notice-chip">${esc(p.type)}</span>${chips.map(r=>`<span class="notice-chip ${r.state==='mismatch'?'elapsed':'check'}">${esc(r.text)}</span>`).join('')}</div><button class="compact-open" type="button" data-info-kind="financeMvp" data-info-key="${esc(p.id)}"><strong>${esc(p.title)}</strong><span class="notice-institution">${esc(p.institution)}</span><dl class="finance-card-terms"><div><dt>지원 대상</dt><dd>${esc(p.target)}</dd></div>${terms(p).map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl><span class="finance-amount-scope notice-meta">${esc(amountScope(p))}</span><span class="notice-meta">${esc(p.type==='\uC2E0\uC6A9\uBCF4\uC99D'?view.scope:'\uAE30\uBCF8 \uC785\uB825\uB9CC \uBE44\uAD50\uD574\uC694. \uC804\uCCB4 \uC790\uACA9\uACFC \uB300\uCD9C \uC2B9\uC778\uC740 \uBCC4\uB3C4 \uD655\uC778\uC774 \uD544\uC694\uD574\uC694.')}</span><span class="compact-hint">신청 방법·세부 조건 보기 ↗</span></button>${fundingHtml(p,profile)}<div class="notice-footer">${action(p)}</div></article>`}
+  function card(p,profile){const m=compare(p,profile),view=comparisonView(p,m),chips=view.rows.length?view.rows:[{text:view.label,state:'check'}];return `<article class="card notice-card finance-card" data-finance-id="${esc(p.id)}"><div class="notice-status"><span class="notice-chip">${esc(p.type)}</span>${chips.map(r=>`<span class="notice-chip ${r.state==='mismatch'?'mismatch':r.state==='match'?'match':'check'}">${esc(r.text)}</span>`).join('')}</div><button class="compact-open" type="button" data-info-kind="financeMvp" data-info-key="${esc(p.id)}"><strong>${esc(p.title)}</strong><span class="notice-institution">${esc(p.institution)}</span><dl class="finance-card-terms"><div><dt>지원 대상</dt><dd>${esc(p.target)}</dd></div>${terms(p).map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl><span class="finance-amount-scope notice-meta">${esc(amountScope(p))}</span><span class="notice-meta">${esc(p.type==='\uC2E0\uC6A9\uBCF4\uC99D'?view.scope:'\uAE30\uBCF8 \uC785\uB825\uB9CC \uBE44\uAD50\uD574\uC694. \uC804\uCCB4 \uC790\uACA9\uACFC \uB300\uCD9C \uC2B9\uC778\uC740 \uBCC4\uB3C4 \uD655\uC778\uC774 \uD544\uC694\uD574\uC694.')}</span><span class="compact-hint">신청 방법·세부 조건 보기 ↗</span></button>${fundingHtml(p,profile)}<div class="notice-footer">${action(p)}</div></article>`}
   // Descriptive guidance only; never used by comparison or ranking.
   function applicationGuide(p){
     const g=p.applicationGuide;if(!g)return '';

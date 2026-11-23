@@ -31,3 +31,26 @@
 /* Readable supporting facts without hiding conditions or changing layout. */
 .notice-meta,.hint,.data-note,.notice-footnote,.comparison-summary .notice-meta,.cultivation-guide .plain-help,.cultivation-guide .notice-meta,.no-save,.chat-ui .chat-condition-note{font-size:14px;line-height:1.75}
 .selection-summary button,.chat-ui .chat-context button{font-size:14px;min-height:44px}
+
+/* Shared interaction and notice semantics; does not change eligibility/status. */
+:root{--ui-info:#164c78;--ui-info-bg:#edf5fc;--ui-check:#705000;--ui-check-bg:#fff5d6;--ui-error:#942c2c;--ui-error-bg:#fff0ef;--ui-match:#1c633e;--ui-match-bg:#eaf6ed;--ui-border:#b7b7b0;--ui-control-height:44px}
+:is(.filters,.support-search-toolbar,.crop-directory-controls,.finance-interest) :is(input,select){min-height:var(--ui-control-height);border-radius:6px;box-sizing:border-box;font-size:16px}
+:is(.filters,.support-search-toolbar,.cultivation-options,.preparation-actions,.detail-actions) button,.source-action{min-height:var(--ui-control-height);border-radius:6px;line-height:1.5}
+.secondary-action{padding:10px 14px;border:1px solid var(--ui-border);background:#f7f7f3;color:#252525;font:inherit;cursor:pointer}
+.finance-toolbar .secondary-action{justify-self:start;grid-column:1/-1}
+:is(.source-action,.secondary-action,.notice-filters button,.cultivation-options button){transition:background-color .15s,border-color .15s}
+:is(button,a,input,select,summary):focus-visible{outline:3px solid #3975a5;outline-offset:3px}
+.notice-card,.cultivation-material,.chat-notice,.modal-box{overflow-wrap:anywhere}
+:is(.notice-empty,.data-note,.detail-caution,.finance-amount-scope){background:var(--ui-info-bg);color:var(--ui-info);border-left:3px solid var(--ui-info);line-height:1.75}
+:is(.finance-caution,.chat-ui .chat-answer-caution){background:var(--ui-check-bg);color:var(--ui-check);border-left:3px solid var(--ui-check);padding:10px 13px}
+.condition-result,.notice-card .notice-status .notice-chip.check{background:var(--ui-check-bg);color:var(--ui-check);border-left:3px solid var(--ui-check)}
+.condition-result.match,.notice-card .notice-status .notice-chip.match{background:var(--ui-match-bg);color:var(--ui-match);border-left:3px solid var(--ui-match)}
+.condition-result.mismatch,.notice-card .notice-status .notice-chip.mismatch{background:var(--ui-error-bg);color:var(--ui-error);border-left:3px solid var(--ui-error)}
+.condition-result::before,.notice-card .notice-status .notice-chip.check::before{content:'? ';font-weight:800}
+.condition-result.match::before,.notice-card .notice-status .notice-chip.match::before{content:'✓ ';font-weight:800}
+.condition-result.mismatch::before,.notice-card .notice-status .notice-chip.mismatch::before{content:'! ';font-weight:800}
+.notice-card .notice-status :is(.notice-chip.check,.notice-chip.match,.notice-chip.mismatch){padding:5px 8px;border-radius:4px}
+.chat-ui :is(.chat-error,[role=alert]),.finance-interest [aria-invalid=true]{border-color:var(--ui-error)}
+.more-conditions summary{min-height:var(--ui-control-height);box-sizing:border-box}
+@media(max-width:600px){.support-search-toolbar input,.support-search-toolbar select{max-width:100%;min-width:0}.finance-toolbar .secondary-action{width:100%;justify-self:stretch}.detail-actions{gap:10px}}
+@media(prefers-reduced-motion:reduce){:is(.source-action,.secondary-action,.notice-filters button,.cultivation-options button){transition:none}}

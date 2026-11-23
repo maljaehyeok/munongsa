@@ -69,7 +69,6 @@
     // Presentation only: existing inputs and matching semantics stay unchanged.
     const support=activeCategory==='support';
     byId('interestField').hidden=true;
-    byId('profileAvatar').hidden=support||activeCategory==='bank';
     byId('profileStatus').hidden=support||activeCategory==='bank';
     byId('farmingSituationField').hidden=homeView||!['support','bank'].includes(activeCategory);
     byId('supportNeedField').hidden=homeView||!support;
