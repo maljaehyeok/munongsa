@@ -386,6 +386,8 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
         quality=discovery_quality(question,n['title'],search_text(n,feed,now).replace(n['institution'],''),context,n['title']+' '+str(shown.get('support','')))
         p['card']['discovery_reason']='사업명 일치' if n in exact else ' / '.join(quality['reasons'])[:160]
     conversation={**context,'notice_ids':[n['id'] for n in chosen],'list_ids':[n['id'] for n in chosen],'list_versions':[listing_version(n,feed,now) for n in chosen],'last_kind':'results'}
+    for key in ('search_offset','search_fingerprint'):conversation.pop(key,None)
+    if offset+len(chosen)<len(found):conversation.update(search_offset=offset+len(chosen),search_fingerprint=fingerprint)
     if len(question)<=300 and not re.search(r'[\x00-\x1f<>]',question):conversation['search_query']=question
     summary='\n\n'.join(p['name']+' — '+p['card']['label']+'\n확인할 조건: '+' / '.join(p['comparison']['checks']) for p in programs)
     intro='질문과 공개 정보의 관련성을 기준으로 탐색한 결과입니다. 관련성이 신청 자격 충족을 뜻하지 않습니다. 공식 조건 비교와 추가 확인 사항을 따로 확인하세요.' if question!='선택한 조건으로 지원사업을 찾아주세요.' else '공식 조건 비교와 참고 공고를 구분해 안내합니다. 전체 신청 자격과 실제 접수는 별도 확인이 필요합니다.'

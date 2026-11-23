@@ -27,3 +27,7 @@
 .preparation-shortcuts{padding:12px;border:1px solid #c5c5be;border-radius:5px;background:#f5f5f3;color:#222;margin:12px 0}.preparation-shortcuts p{line-height:1.7;margin:4px 0 10px}.preparation-actions{display:flex;flex-wrap:wrap;gap:8px}.preparation-actions button{min-height:44px;padding:9px 12px;border:1px solid #777;border-radius:4px;background:#fff;color:#222;font:inherit;cursor:pointer}.preparation-actions button:focus-visible,[data-preparation-section]:focus{outline:2px solid #333;outline-offset:3px}[data-preparation-section]{scroll-margin-top:85px}@media(max-width:480px){.preparation-actions button{flex:1 1 100%;text-align:left}}
 
 .preparation-status{display:grid;gap:10px;margin:12px 0 18px}.preparation-status>div{padding:10px 12px;border-left:3px solid #777;background:#f5f5f3;color:#222}.preparation-status dt{font-weight:700;font-size:13px;margin-bottom:4px}.preparation-status dd{margin:0;font-size:14px;line-height:1.75;overflow-wrap:anywhere}
+
+/* Readable supporting facts without hiding conditions or changing layout. */
+.notice-meta,.hint,.data-note,.notice-footnote,.comparison-summary .notice-meta,.cultivation-guide .plain-help,.cultivation-guide .notice-meta,.no-save,.chat-ui .chat-condition-note{font-size:14px;line-height:1.75}
+.selection-summary button,.chat-ui .chat-context button{font-size:14px;min-height:44px}

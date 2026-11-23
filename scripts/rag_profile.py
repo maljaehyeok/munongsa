@@ -96,16 +96,22 @@ def extract(q,areas,crops,normalize):
         out['farming_years']=float(re.search(r'(?:영농|농사|농업|재배)\s*(?:경력)?\s*(\d+(?:\.\d+)?)\s*년',q)[1])
     if re.search(r'(?:영농|농사|농업|재배|시작).*?(?:시작\s*)?예정|시작하려|시작할\s*(?:계획|생각)',q):out['planned']=True
     if re.search(r'(?:영농|농사).*이미|시작했|농사짓고|재배하고',q):out['planned']=False
-    selected=[(q.rfind(c),c) for c in crops if c in q]
-    if selected:
-        out['crop']=max(selected)[1]
-        if re.search(re.escape(out['crop'])+r'.{0,12}(?:재배|농사|키우)',q):out['cultivating']=not out.get('planned',False)
+    import rag_crops
+    selected=rag_crops.find(q)
+    # A topic/question does not establish the user's crop or actual production.
+    stated=bool(re.search(r'재배(?:하고\s*있|하고|중|해요|합니다)|농사(?:를)?\s*짓(?:고|습니다|어요)|키우(?:고\s*있|고|는\s*중)|(?:관심|재배)\s*작물\s*[:：은는]',q))
+    if selected and (stated or out.get('planned') is True):out['crop']=selected
+    if selected and stated and not hypothetical(q) and not re.search(r'인가요|하나요|중인가|있나요|재배\s*방법|어떻게|하려|할\s*(?:예정|계획)|만약|이라면|이면|한다면',q):
+        out['cultivating']=not out.get('planned',False)
+        if re.search(r'재배하고\s*있지\s*않|재배하지\s*않|재배\s*안\s*해',q):out['cultivating']=False
     m=re.search(r'(?:시설\s*면적|비가림(?:하우스)?|하우스)\s*(?:은|는|이|가|:)?\s*(\d[\d,]*(?:\.\d+)?)\s*(㎡|제곱미터|m2|평)',q,re.I)
     if m:
         value=float(m[1].replace(',',''));out['facility_sqm']=round(value*(400/121 if m[2]=='평' else 1),4)
     elif re.search(r'시설\s*면적\s*(?:은|는|이|가|:)?\s*\d',q):
         return {},'시설면적은 숫자와 단위를 함께 알려주세요. 예: 시설면적 400㎡ 또는 하우스 150평. 이전 면적을 새 값으로 변경하지 않았어요.'
     # Bounds reject implausible extraction instead of silently retaining stale values.
+    if rag_crops.technology(q) and not re.search(r'에서.{0,15}농사.{0,10}시작하려|재배하고|농사짓고|살고|거주하고|등록했|(?:내|제)\s*(?:영농지|농지|거주지)',q):
+        out={}
     if not valid_context(out,areas):return {},'숫자의 범위를 확인해 주세요. 나이는 0~120세, 인원은 1명 이상으로 알려주세요.'
     return out,None
 

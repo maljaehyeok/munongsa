@@ -13,7 +13,7 @@
   const selectionQuestion='선택한 조건으로 지원사업을 찾아주세요.';
   // Reuse the API's bounded conversation fields; no separate profile or engine.
   const areas=['전주','부안','고창','안산','김제','군산','익산','정읍','남원','완주','진안','무주','장수','임실','순창','파주','포항','부산','서울','전북','전남','경북','경남','경기','충남','충북','강원','제주','인천','대전','대구','광주','울산','세종'];
-  const crops=['마늘','고추','배추','딸기','토마토','상추','감자','벼','쌀','사과','포도','콩','오이','버섯'];
+  const crops=globalThis.MunongsaCropDirectory?.entries.map(e=>e.name)||[];
   const fields=[
     {key:'farm_region',label:'영농지·예정지',hint:'농사짓는 곳 또는 시작할 곳',options:areas},
     {key:'region',label:'현재 거주지',hint:'지금 살고 있는 곳',options:areas},
@@ -120,7 +120,8 @@
     const str=v=>typeof v==='string',strings=v=>Array.isArray(v)&&v.length<=100&&v.every(str);
     const context=data?.conversation;
     const validContext=context===undefined||(context&&typeof context==='object'&&!Array.isArray(context)
-      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm','casual_topic','conversation_topic','search_scope','search_query'].includes(k))
+      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm','casual_topic','conversation_topic','search_scope','search_query','search_offset','search_fingerprint'].includes(k))
+      &&(context.search_offset===undefined||(Number.isInteger(context.search_offset)&&context.search_offset>=3&&context.search_offset<=1998&&context.search_offset%3===0&&/^[a-f0-9]{64}$/.test(context.search_fingerprint||'')))
       &&(context.search_scope===undefined||(typeof context.search_scope==='string'&&context.search_scope.length<=8))
       &&(context.search_query===undefined||(typeof context.search_query==='string'&&context.search_query.length>0&&context.search_query.length<=300&&!/[<>\x00-\x1f]/.test(context.search_query)))
       &&(context.conversation_topic===undefined||(typeof context.conversation_topic==='string'&&context.conversation_topic.length<=80&&!/https?:\/\/|www\.|[\d<>\n\r@]|API[_ -]?KEY|sk-/i.test(context.conversation_topic)))
@@ -180,7 +181,12 @@
     readableAnswer(data).split(/\n{2,}/).filter(Boolean).forEach(paragraph=>answer.append(text('p',paragraph)));
     node.append(answer);node.className='chat-message chat-message-answer';
     if(data.kind==='cultivation'){
-      node.append(conditionButton('선택 작물의 공식 재배기술 보기',()=>{dialog.close();if(typeof navigateTo==='function')navigateTo('cultivation');}));
+      node.append(conditionButton('질문한 작물·주제의 공식 자료 보기',()=>{
+        const c=data.cultivation;
+        if(c&&Number.isInteger(c.topic)&&c.topic>=0&&c.topic<6&&(c.crop==null||globalThis.MunongsaCropDirectory?.entries.some(e=>e.name===c.crop)))globalThis.MunongsaCultivation?.explore(c.crop,c.topic,c.resource==='pesticide'?'pesticide':null);
+        dialog.close();if(typeof navigateTo==='function')navigateTo('cultivation');
+        if(c?.resource==='pesticide')requestAnimationFrame(()=>document.querySelector('[data-cultivation-source="pesticide"]')?.scrollIntoView({block:'start',behavior:'instant'}));
+      }));
     }
     if(['help','condition_edit'].includes(data.kind)){
       const actions=text('div','','chat-followups');
@@ -306,7 +312,7 @@
     if(!question||question.length>1000||/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(question)){input.setCustomValidity('질문을 1~1,000자로 입력하고 사용할 수 없는 특수문자는 지워주세요.');input.reportValidity();return;}
     if(editor?.isConnected)editor.remove();
     pullProfile();
-    const another=/^(?:다른|다음|나머지)\s*(?:관련\s*)?(?:지원)?사업(?:도)?\s*(?:보여줘|알려줘)[.!?\s]*$|그거\s*말고\s*다른\s*(?:거|건|사업)|아까\s*보여준\s*사업\s*말고\s*다른/.test(question);
+    const another=/^(?:(?:조금\s*)?더\s*(?:보여줘|알려줘)|(?:다른|다음|나머지)\s*(?:관련\s*)?(?:지원)?사업(?:도)?\s*(?:보여줘|알려줘))[.!?\s]*$|그거\s*말고\s*다른\s*(?:거|건|사업)|아까\s*보여준\s*사업\s*말고\s*다른/.test(question);
     if(another&&lastNext)question='[공식 공고 더 보기]\n'+JSON.stringify(lastNext);
     else if(another&&lastDiscovery){message('무농사','같은 검색에서 추가로 보여드릴 관련 공고가 없어요. 앞서 본 공고의 공식 조건을 확인하거나, 시설·교육 등 찾는 목적을 바꿔 주세요. 입력한 영농 조건은 그대로 유지합니다.','answer');input.value='';sync();return;}
     showConversation(true);byId('chatFormStatus').textContent='';message('내 질문',label,'user');

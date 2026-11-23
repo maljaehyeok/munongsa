@@ -18,7 +18,8 @@
   else if(p.farmingSituation==='independent')out.planned=false;
   else if(explicitStage&&explicitStage.situation===p.farmingSituation)out.planned=explicitStage.value;
   const crop=root.MunongsaCropDirectory?.find(document.getElementById('crop')?.selectedOptions[0]?.textContent||p.crop);
-  if(crop&&['마늘','고추','배추','딸기','토마토','상추','감자','벼','쌀','사과','포도','콩','오이','버섯'].includes(crop.name))out.crop=crop.name;
+  if(crop)out.crop=crop.name;
+  if(previous.crop!==undefined&&previous.crop!==out.crop||previous.planned!==undefined&&previous.planned!==out.planned)delete out.cultivating;
   return out;
  }
  let applying=false;

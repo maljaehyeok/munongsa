@@ -33,7 +33,7 @@ AREAS={'전주':('전주','전북'),'부안':('부안','전북'),'고창':('고�
        '인천':('인천',None),'대전':('대전',None),'대구':('대구',None),'광주':('광주',None),'울산':('울산',None),'세종':('세종',None)}
 ALIASES={'전북특별자치도':'전북','전라북도':'전북','전라남도':'전남','경상북도':'경북',
          '경상남도':'경남','경기도':'경기','충청남도':'충남','충청북도':'충북','강원특별자치도':'강원'}
-CROPS=('마늘','고추','배추','딸기','토마토','상추','감자','벼','쌀','사과','포도','콩','오이','버섯')
+from rag_crops import CROPS
 
 def normalized(value):
     for old,new in ALIASES.items():value=value.replace(old,new)
@@ -45,7 +45,9 @@ def decode(value):
         raw,question=value[len(PREFIX):].split(SEPARATOR,1)
         if len(raw)>1600:raise ValueError('context_too_long')
         context=json.loads(raw)
-        if not isinstance(context,dict) or set(context)-({'region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','casual_topic','conversation_topic','search_scope','search_query'}|rag_profile.KEYS):raise ValueError('context_fields')
+        if not isinstance(context,dict) or set(context)-({'region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','casual_topic','conversation_topic','search_scope','search_query','search_offset','search_fingerprint'}|rag_profile.KEYS):raise ValueError('context_fields')
+        if ('search_offset' in context)!=('search_fingerprint' in context):raise ValueError('search_cursor')
+        if 'search_offset' in context and (type(context['search_offset']) is not int or not 3<=context['search_offset']<=1998 or context['search_offset']%3 or not re.fullmatch('[a-f0-9]{64}',str(context['search_fingerprint']))):raise ValueError('search_cursor')
         if 'search_scope' in context and context['search_scope'] not in {*AREAS,'전국'}:raise ValueError('search_scope')
         if 'search_query' in context and (not isinstance(context['search_query'],str) or not 1<=len(context['search_query'])<=300 or re.search(r'[\x00-\x1f<>]',context['search_query'])):raise ValueError('search_query')
         if 'conversation_topic' in context:
@@ -209,9 +211,14 @@ def service_response(encoded,corpus,intent=None):
     context['notice_ids']=[v for v in context.get('notice_ids',[]) if v in live]
     facts,error=rag_profile.extract(question,AREAS,CROPS,normalized)
     if error:return None
-    if re.search(r'재배기술|재배\s*방법|병해충|농약\s*안전|비료\s*사용\s*처방',question) and not re.search(r'지원사업|보조금|공고',question):
+    import rag_crops
+    if rag_crops.technology(question):
         actual=context if rag_profile.hypothetical(question) else {**context,**facts}
-        return response('선택한 작물의 공식 재배기술 자료를 확인할 수 있어요. 병해충 정보와 등록농약·안전사용기준은 구분하며, 개인별 농약·비료 처방은 확정하지 않습니다.',actual,'cultivation')
+        selected=rag_crops.find(question)
+        unknown=re.search(r'([가-힣]{1,12})\s*(?:재배\s*방법|병해충)',question) if not selected else None
+        crop=selected or (None if unknown else actual.get('crop'))
+        intro='질문한 작물은 현재 목록에서 확인되지 않았어요. 기존 영농 작물로 바꾸어 안내하지 않으며, 메뉴에서 작물을 선택해 주세요. ' if unknown else ''
+        return {**response(intro+'질문한 작물·주제의 공식 자료로 안내합니다. 관심 작물은 실제 재배 사실로 저장하지 않으며, 농약 등록·사용 적합성이나 개인별 처방은 확정하지 않습니다.',actual,'cultivation'), 'cultivation':{'crop':crop,'topic':rag_crops.topic(question),'resource':'pesticide' if '농약' in question else None}}
     if re.search(r'처음.*(?:농사|농업)|(?:농사|농업).*처음',question) and re.search(r'뭐부터|무엇부터|어떻게|시작',question):
         actual=context if rag_profile.hypothetical(question) else {**context,**facts}
         missing=[]
@@ -283,8 +290,8 @@ def basic_response(encoded,corpus,grounded):
     if any(v in compact for v in ('무엇을할수','뭘할수','어떻게사용','사용방법','도움말','어떤기능')):
         return response('공개된 농업 지원사업을 지역·작물·사업명으로 찾고, 확인된 신청 조건과 서류를 안내해요.\n\n예: “전주 관련 공고”, “부안 사업의 신청 조건은?”, “마늘 재배 지원”\n\n이번 대화에서 알려주신 지역·작물은 다음 질문에 참고하고 새 대화를 시작하면 지워요. 간단한 규칙과 저장된 공식 근거로 안내하며, 모든 일상 대화를 이해하거나 신청 자격을 확정하지는 않아요.',context,'help')
     explicit_area=area_in(question)
-    crops=[(question.rfind(v),v) for v in CROPS if v in question]
-    explicit_crop=max(crops)[1] if crops else None
+    import rag_crops
+    explicit_crop=rag_crops.find(question)
     mentioned,_=rag_profile.extract(question,AREAS,CROPS,normalized)
     residence='region' in mentioned
     registration=None

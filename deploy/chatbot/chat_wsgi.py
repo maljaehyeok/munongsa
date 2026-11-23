@@ -54,6 +54,13 @@ class Application:
         path, method = env.get('PATH_INFO'), env.get('REQUEST_METHOD')
         if path == '/healthz' and method == 'GET' and env.get('HTTP_HOST') in ('127.0.0.1:8765', 'localhost:8765'):
             return (200 if self.ready else 503), {'ready': self.ready, 'mode': 'local'}
+        if path in ('/api/public-support/details','/api/public-support/review'):
+            if env.get('HTTP_HOST')!='munongsa.duckdns.org' or env.get('HTTP_ORIGIN') not in (None,'',ORIGIN):return 403,fail('허용된 공식 서비스 주소로 이용해 주세요.')
+            if method!='GET':return 405,fail('공개 안내는 GET 방식으로 이용해 주세요.')
+            if env.get('QUERY_STRING'):return 400,fail('공개 안내에는 조회 인자를 사용하지 않습니다.')
+            if not self.ready:return 503,fail('공개 자료를 확인 중입니다.')
+            import support_http_projection
+            return 200,support_http_projection.payload(path.rsplit('/',1)[-1])
         if path != '/api/chat':
             return 404, fail('요청한 경로를 찾지 못했습니다.')
         if env.get('HTTP_HOST') != 'munongsa.duckdns.org' or env.get('HTTP_ORIGIN') != ORIGIN:

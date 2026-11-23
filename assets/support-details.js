@@ -1,7 +1,7 @@
 /* Reviewed explanatory facts only. Never changes eligibility, ranking or dates. */
 (function(root){
  'use strict';
- let records=[],linkReviews=[],localPreview=false;
+ let records=[],linkReviews=[],localPreview=false,withheldIds=[];
  const fields=['summary','funding','conditions','method','office','documents_required','documents_conditional','documents_bonus','contact','warnings','unconfirmed','target','region','age','experience','period','subsidy','self_payment','documents_listed'];
  const canonical=v=>Array.isArray(v)?'['+v.map(canonical).join(',')+']':v&&typeof v==='object'?'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}':JSON.stringify(v);
  function basis(n){
@@ -11,9 +11,10 @@
    eligibility:{conditions:(n.eligibility?.conditions||[]).map(c=>({condition_id:c.condition_id,kind:c.kind,presence:c.presence,status:c.status,value:c.value})),logic:n.eligibility?.logic||null}};
  }
  function install(data){
-  records=[];linkReviews=[];localPreview=false;
+  records=[];linkReviews=[];localPreview=false;withheldIds=[];
   const preview=data?.preview===true&&['localhost','127.0.0.1'].includes(root.location?.hostname)&&new URLSearchParams(root.location.search).get('support-details-preview')==='1';
   if(data?.schema!=='munongsa-support-details-v1'||!Array.isArray(data.records)||data.preview&&!preview)return;
+  if(Array.isArray(data.withheld_ids))withheldIds=data.withheld_ids.filter(v=>typeof v==='string'&&/^NOTICE-[A-Za-z0-9_-]{1,70}$/.test(v));
   localPreview=preview;
   records=data.records.filter(r=>(r.approval?.state==='approved'||preview&&r.approval?.state==='preview')&&r.approval?.reviewer&&r.approval?.reference&&r.approval?.checked_at&&r.rights?.facts_only===true&&r.basis&&r.fields&&Object.keys(r.fields).every(k=>fields.includes(k)&&validField(r.fields[k])));
   records=records.map(r=>{
@@ -46,7 +47,7 @@
  function availability(item){
   if(!item||typeof item.id!=='string')return {state:'unavailable',message:''};
   if(get(item))return {state:'available',message:''};
-  if(item?.local_review_only===true||!records.some(r=>r.basis.id===item?.id))return {state:'unavailable',message:''};
+  if(item?.local_review_only===true||!records.some(r=>r.basis.id===item?.id)&&!withheldIds.includes(item.id))return {state:'unavailable',message:''};
   if(item.publication==='official_guidance'&&item.verification_status==='basics_only')return {state:'scope_review',message:'이 공고는 현재 제목·기관·공식 링크 중심의 기본 안내입니다. 상세정보는 현재 공고와 공개 범위를 다시 확인해야 하므로 표시하지 않습니다. 원문에서 신청 대상·기간·서류를 확인해 주세요.'};
   return {state:'basis_review',message:'현재 공고와 기존 상세정보의 확인 기준이 달라 상세 안내를 보류했습니다. 원문의 변경·정정 여부와 신청 조건을 확인해 주세요.'};
  }

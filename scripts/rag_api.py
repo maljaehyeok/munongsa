@@ -144,7 +144,7 @@ def local_pipeline(question):
         raise VerificationError()
     import rag_dialogue,rag_nlu
     original,context=rag_dialogue.decode(question)
-    import rag_catalogue
+    import rag_catalogue,rag_crops
     scoped=rag_dialogue.scope_response(question)
     if scoped:
         scoped['understanding']='rules'
@@ -152,10 +152,27 @@ def local_pipeline(question):
     if context.get('casual_topic')=='scope':
         context.pop('casual_topic',None)
         question=rag_dialogue.PREFIX+json.dumps(context,ensure_ascii=False)+rag_dialogue.SEPARATOR+original
+    count=rag_catalogue.requested_count(original)
+    count_only=bool(count and re.fullmatch(r'(?:그럼\s*|그러면\s*)?\d{1,2}\s*(?:[~～〜\-–]\s*\d{1,2})?\s*개(?:로|\s*정도)?\s*(?:추천|보여|알려|찾아|보고)[가-힣\s.!?]*',original))
+    more=bool(re.fullmatch(r'(?:조금\s*)?더\s*(?:보여|알려|찾아)[가-힣\s.!?]*',original))
+    if (count_only or more) and context.get('search_query'):
+        if more and not context.get('search_offset'):
+            return rag_dialogue.response('같은 검색에서 추가로 안내할 관련 공고가 없어요. 검색 지역이나 지원 목적을 바꿀 수 있으며 실제 영농 조건은 유지합니다.',context,'clarify',status='no_evidence')
+        query=context['search_query']
+        if count_only:
+            query=re.sub(r'\d{1,2}\s*(?:[~～〜\-–]\s*\d{1,2})?\s*개(?:로|\s*정도)?','',query).strip()+f' {count}개 추천해 줘'
+            if len(query)>300:return rag_dialogue.response('검색 목적을 짧게 알려주시면 요청한 개수로 다시 찾을게요.',context,'clarify')
+        kept={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','last_kind','search_offset','search_fingerprint')}
+        request=rag_catalogue.PAGE_PREFIX+json.dumps({'query':query,'offset':context['search_offset'],'fingerprint':context['search_fingerprint']},ensure_ascii=False) if more else query
+        return catalogue_response(rag_catalogue.respond(rag_dialogue.PREFIX+json.dumps(kept,ensure_ascii=False)+rag_dialogue.SEPARATOR+request,corpus),corpus)
+    import rag_crops
+    if rag_crops.technology(original):
+        result=rag_dialogue.service_response(question,corpus)
+        if result:result['understanding']='rules';return result
     search_scope=rag_catalogue.scope_request(original)
     if search_scope:
         # Search expansion is routing metadata, not a new residence/farm fact.
-        new_purpose=rag_catalogue.requested_count(original) or any(re.search(group[1],original) for group in rag_catalogue.TOPICS) or any(crop in original for crop in rag_dialogue.CROPS)
+        new_purpose=rag_catalogue.requested_count(original) or any(re.search(group[1],original) for group in rag_catalogue.TOPICS) or rag_crops.find(original)
         query=original if new_purpose else context.get('search_query','지원사업 알려줘')
         query=rag_dialogue.normalized(query)
         for area in sorted(rag_dialogue.AREAS,key=len,reverse=True):query=query.replace(area,'')

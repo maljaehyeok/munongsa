@@ -60,3 +60,6 @@ Thumbs.db
 *.sqlite3-wal
 *.sqlite3-shm
 publication-rights.json
+# Generated HTTP projections; approval originals remain separate.
+/data/support-details-public.json
+/data/support-review-public.json

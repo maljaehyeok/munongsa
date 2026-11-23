@@ -13,6 +13,9 @@ import uuid
 from datetime import datetime,timezone,timedelta
 import urllib.request
 import urllib.error
+import rag_crops,rag_dialogue
+# The worker reads the same directory as the web/API, including all 67 crops.
+rag_dialogue.CROPS=rag_crops.CROPS
 
 MODEL='gpt-6-luna'
 QUEUE=Path('/run/munongsa-nlu')
@@ -100,11 +103,15 @@ def validate(value,question):
             if stated.get(name)!=v:continue  # A place in a business query is not the user's address.
         elif name=='crop':
             if v not in rag_dialogue.CROPS or v not in quote:raise ValueError('crop')
+            stated,_=rag_profile.extract(question,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
+            if stated.get(name)!=v:continue
         elif name=='farm_registered':
             if v not in ('yes','no'):raise ValueError('registration')
         elif name in ('planned','cultivating'):
             if v not in ('true','false'):raise ValueError('boolean')
             v=v=='true'
+            stated,_=rag_profile.extract(question,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
+            if stated.get(name)!=v:continue
         elif name in ('age','group_size'):
             if not re.fullmatch(r'\d{1,6}',v):raise ValueError('integer')
             v=int(v)
