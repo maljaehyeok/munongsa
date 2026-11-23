@@ -22,7 +22,8 @@
     "assets/application-journey.js": "96f16d0f9f9807083aba72451743b9ed426f5c9bfeb36f4a96ce0bd69337606d",
     "assets/finance-mvp.js": "3fbdc01f7c670d1bd6b14b11b8efc541f23f37d3d98cf6260aa3c850a7073ef1",
     "assets/profile-matching.js": "e28410a516c9a4f8b6e4b1d9d7ddec408db794f11f6d281963a156ddd1a768f4",
-    "assets/finance-mvp.css": "cc0e8070c99d944abfb5fabb2601f27f067af73cdd785014e8527a42b117077a"
+    "assets/finance-mvp.css": "cc0e8070c99d944abfb5fabb2601f27f067af73cdd785014e8527a42b117077a",
+    "assets/cultivation-mvp.js": "c0403e996b3fcd41c2ac592b058f9b0570e21634a83f583a1d3c92258ccd8e30"
   },
   "runtime": {
     "scripts/rag_search.py": "a724c7d6a113a10b2dcfa24dc64fa9fc457bf8e253f9c065edc888615d3f2407",
