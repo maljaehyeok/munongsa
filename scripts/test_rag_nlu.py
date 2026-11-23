@@ -46,7 +46,7 @@ class NluSafety(unittest.TestCase):
     def test_daily_budget_is_reserved_before_call_and_survives_restart(self):
         with tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parent) as tmp:
             budget=Path(tmp)/'budget.json'
-            for i in range(30):self.assertIsNotNone(nlu.reserve(budget,[],'2026-11-12',i*61))
+            for i in range(nlu.DAILY_CALLS):self.assertIsNotNone(nlu.reserve(budget,[],'2026-11-12',i*61))
             self.assertIsNone(nlu.reserve(budget,[],'2026-11-12',9999))
             self.assertIsNone(nlu.reserve(budget,[1]*6,'2026-11-13',10000))
 

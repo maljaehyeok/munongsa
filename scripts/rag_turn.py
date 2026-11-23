@@ -119,10 +119,10 @@ def resolve(q,context,corpus):
  if c.get('service')=='finance' and re.search(r'그(?:건|게|거).*무슨\s*뜻|다시\s*설명',text):
   c['conversation_topic']='농업금융 용어'
   return d.response('어떤 금융 용어가 궁금하세요? 융자·금리·거치·상환 중 하나를 알려주시면 쉽게 설명할게요. 이전 지원사업을 대신 설명하지 않겠습니다.',c,'clarify')
- finance=bool(re.search(r'금융|융자|대출|농신보|농지\s*매매|시설\s*자금|운영\s*자금|자금.*부족',text)) and not support
+ finance=bool(re.search(r'금융|융자|대출|농신보|농지연금|귀산촌|농업인행복|농업종합자금|농촌주택개량|식품가공원료|농촌융복합.*자금|사료.*자금|태양광.*자금|경영회생.*농지|농지\s*매매|시설\s*자금|운영\s*자금|자금.*부족',text)) and not support
  if finance or c.get('service')=='finance' and re.search(r'빌리|이자|상환',text) and not support:
   c.update(service='finance');c.pop('conversation_topic',None);c.pop('casual_topic',None)
-  return d.response('기존 영농 조건으로 농업금융을 비교해 볼게요. 제도를 고른 뒤 공식 금리와 가정 대출금액으로 예상 이자를 확인할 수 있어요. 대출 승인·확정 금리·실제 상환액은 별도 확인이 필요합니다.',c,'context')
+  return d.response('기존 영농 조건으로 농업금융을 비교해 볼게요. 제도별 대상·용도·공식 신청 안내를 확인해 보세요. 예상 이자는 계산 근거가 확인된 제도에서만 제공해요. 대출 승인·확정 금리·실제 상환액은 별도 확인이 필요합니다.',c,'context')
  more=bool(re.fullmatch(r'(?:좀\s*)?(?:더\s*(?:찾아|보여|알려)(?:줘|주세요)?|다른\s*(?:관련\s*)?(?:것|거|사업)?(?:도)?\s*(?:있어|있나|보여줘)|그거\s*말고\s*다른\s*(?:거|건|사업))[?？.!\s]*',text))
  if more and c.get('search_query'):
   if not c.get('search_offset'):return finish_search(d.response('같은 검색에서 추가로 확인할 관련 공고가 없어요. 아래에서 바꿀 탐색 조건을 선택해 주세요. 실제 영농 조건과 신청 자격은 그대로 유지합니다.',c,'clarify',status='no_evidence'),c)

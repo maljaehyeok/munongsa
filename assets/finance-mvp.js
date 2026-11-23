@@ -30,6 +30,12 @@
     });
   }
   function rank(items,profile){return items.map((item,index)=>({item,index,comparison:compare(item,profile)})).sort((a,b)=>({match:0,check:1,mismatch:2}[a.comparison.state]-{match:0,check:1,mismatch:2}[b.comparison.state])||a.index-b.index).map(r=>r.item)}
+  function discoveryQuery(items,question){
+    const q=String(question).replace(/\s/g,'');
+    const named=[...items].sort((a,b)=>b.title.length-a.title.length).find(p=>q.includes(p.title.replace(/\s/g,'')));
+    if(named)return named.title;
+    return ['농업인행복','식품가공원료','농촌융복합','농지연금','경영회생','귀산촌','농촌주택개량','우수후계','농업종합','태양광','사료','귀농','청년','후계','농지','시설','농신보','운영'].find(t=>q.includes(t))||'';
+  }
   // Funding guidance is separate from eligibility and ranking. Never sum distinct caps.
   function fundingView(p,profile){
     const need=profile.requiredFundsWon;if(need==null||need==='')return null;
@@ -49,18 +55,19 @@
   const action=p=>`<a class="source-link source-action" href="${esc(p.source.url)}" target="_blank" rel="noopener">공식 금융 안내 보기 ↗</a>`;
   // Presentation only: explain the exact rows already produced by compare().
   function comparisonView(p,m){
+    if(p.comparisonNote)return {label:'추가 확인 필요',rows:[],scope:p.comparisonNote};
     if(p.type==='신용보증')return {label:'금융기관·농신보 상담 필요',rows:[],scope:'현재 입력정보로 보증 자격을 자동 비교하지 않습니다. 직접 대출상품이 아닌 신용보증제도이며 금융기관·농신보 상담과 별도 심사가 필요합니다.'};
     const states={match:'일치',mismatch:'불일치',check:'확인 필요'};
     const rows=m.rows.map((r,i)=>({state:r.state,text:(i===0&&p.applicants?'개인 신청자 유형':'일반 후계농 2026년 출생연도 범위')+' '+(states[r.state]||states.check),detail:r.detail}));
     return {label:rows.map(r=>r.text).join(' · ')||'비교할 입력 항목 확인 필요',rows,scope:'귀농 여부·교육·영농경력·선정 여부 등은 이 비교로 확인하지 않았습니다. 전체 신청 자격과 실제 대출 승인은 별도 확인이 필요합니다.'};
   }
-  function amountLabel(p){return p.id==='farmland'?'지원단가':p.type==='신용보증'?'보증한도':'대출한도'}
-  function amountScope(p){return p.id==='farmland'?'면적당 지원 기준이며 실제 토지 매입가격이나 개인별 확정 대출금액이 아닙니다.':p.type==='신용보증'?'보증금액·보증료와 대출금리는 다릅니다. 보증 승인과 은행 대출 승인은 별도 심사합니다.':'제도상 최대 한도입니다. 개인별 실제 대출금액은 자금 배정·담보·신용심사에 따라 달라집니다.'}
+  function amountLabel(p){return p.id==='farmland'?'지원단가':p.type==='신용보증'?'보증한도':p.type==='농지연금'?'월지급금 기준':p.type==='농지매입·임대'?'매입 지원상한':'대출한도'}
+  function amountScope(p){return p.type==='농지연금'?'농지를 담보로 생활자금을 지급하는 제도입니다. 월지급금은 일반 대출한도·연간 지원금과 다릅니다.':p.type==='농지매입·임대'?'공사의 농지 매입·임대·환매 구조입니다. 지원상한은 개인별 확정 지급액이나 일반 대출한도가 아닙니다.':p.id==='farmland'?'면적당 지원 기준이며 실제 토지 매입가격이나 개인별 확정 대출금액이 아닙니다.':p.type==='신용보증'?'보증금액·보증료와 대출금리는 다릅니다. 보증 승인과 은행 대출 승인은 별도 심사합니다.':'제도상 한도 안내입니다. 개인별 실제 대출금액은 자금 배정·담보·신용심사에 따라 달라집니다.'}
   function terms(p){return [['자금 용도',p.purposes.join(' · ')],[amountLabel(p),p.limit],['금리·비용',p.interest],[p.type==='신용보증'?'이용 대출':'거치·상환',p.type==='신용보증'?p.repayment:(p.grace==='확인 필요'?'거치기간 확인 필요':p.grace+' 거치')+' / '+p.repayment]]}
   function card(p,profile){const m=compare(p,profile),view=comparisonView(p,m),chips=view.rows.length?view.rows:[{text:view.label,state:'check'}];return `<article class="card notice-card finance-card" data-finance-id="${esc(p.id)}"><div class="notice-status"><span class="notice-chip">${esc(p.type)}</span>${chips.map(r=>`<span class="notice-chip ${r.state==='mismatch'?'mismatch':r.state==='match'?'match':'check'}">${esc(r.text)}</span>`).join('')}</div><button class="compact-open" type="button" data-info-kind="financeMvp" data-info-key="${esc(p.id)}"><strong>${esc(p.title)}</strong><span class="notice-institution">${esc(p.institution)}</span><dl class="finance-card-terms"><div><dt>지원 대상</dt><dd>${esc(p.target)}</dd></div>${terms(p).map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl><span class="finance-amount-scope notice-meta">${esc(amountScope(p))}</span><span class="notice-meta">${esc(p.type==='\uC2E0\uC6A9\uBCF4\uC99D'?view.scope:'\uAE30\uBCF8 \uC785\uB825\uB9CC \uBE44\uAD50\uD574\uC694. \uC804\uCCB4 \uC790\uACA9\uACFC \uB300\uCD9C \uC2B9\uC778\uC740 \uBCC4\uB3C4 \uD655\uC778\uC774 \uD544\uC694\uD574\uC694.')}</span><span class="compact-hint">신청 방법·세부 조건 보기 ↗</span></button>${fundingHtml(p,profile)}<div class="notice-footer">${action(p)}</div></article>`}
   // Descriptive guidance only; never used by comparison or ranking.
   function applicationGuide(p){
-    const g=p.applicationGuide;if(!g)return '';
+    const g=p.applicationGuide;if(!g)return p.comparisonNote?`<section class="finance-application-guide"><h3>신청·문의할 곳</h3><p>${esc(p.application)}</p><p>제출서류 전체 목록과 현재 접수 여부는 공식 안내·취급기관에서 확인하세요.</p><a href="${esc(p.source.url)}" target="_blank" rel="noopener">${esc(p.source.publisher)} · 공식 안내 보기 ↗</a></section>`:'';
     const list=items=>items.map(v=>`<li>${esc(v)}</li>`).join('');
     return `<section class="finance-application-guide"><h3>신청 방법·접수처</h3><p>${esc(g.scope)}</p><ol>${list(g.steps)}</ol><dl class="support-detail-list"><div><dt>접수처</dt><dd>${esc(g.reception)}</dd></div></dl><details class="more-conditions finance-documents"><summary>준비서류 확인하기</summary>${g.documents.length?`<h4>공식 안내의 주요 서류</h4><ul>${list(g.documents)}</ul>`:''}${g.conditionalDocuments.length?`<h4>해당자만 확인할 서류</h4><ul>${list(g.conditionalDocuments)}</ul>`:''}<p>${esc(g.documentNote)}</p></details><p class="notice-meta">신청·서류 정보 확인일: ${esc(date(g.checkedAt))}</p><div class="cite"><a href="${esc(g.source.url)}" target="_blank" rel="noopener">${esc(g.source.publisher)} · 신청·서류 근거 보기 ↗</a><p>${esc(g.source.location)}</p></div></section>`;
   }
@@ -97,10 +104,10 @@
     });
     document.addEventListener('input',event=>{if(!event.target.matches?.('[data-interest-principal]'))return;const box=event.target.closest('[data-interest-product]');box.querySelector('[data-interest-result]').textContent='';event.target.removeAttribute('aria-invalid');});
   }
-  function detail(p,profile,checkedAt){const m=compare(p,profile),view=comparisonView(p,m);const fields=[['지원 대상',p.target],['적용 지역',p.region],['자금 용도',p.uses],[p.id==='farmland'?'지원단가·개인별 총한도':amountLabel(p),p.limit],['금리·보증료',p.interest],[p.type==='신용보증'?'이용 대출 거치기간':'거치기간',p.grace],[p.type==='신용보증'?'이용 대출 상환조건':'상환기간·방식',p.repayment],['신청 방법·취급기관',p.application]];
+  function detail(p,profile,checkedAt){checkedAt=p.checkedAt||checkedAt;const m=compare(p,profile),view=comparisonView(p,m);const fields=[['지원 대상',p.target],['적용 지역',p.region],['자금 용도',p.uses],[p.id==='farmland'?'지원단가·개인별 총한도':amountLabel(p),p.limit],['금리·보증료',p.interest],[p.type==='신용보증'?'이용 대출 거치기간':'거치기간',p.grace],[['농지연금','농지매입·임대'].includes(p.type)?'지급·이용 방식':p.type==='신용보증'?'이용 대출 상환조건':'상환기간·방식',p.repayment],['신청 방법·취급기관',p.application]];
     const glossary=p.type==='신용보증'?'':`<details class="more-conditions finance-glossary"><summary>거치·상환 용어 알아보기</summary><dl><dt>거치기간</dt><dd>원금 상환을 미루는 기간입니다. 이자 납부 여부는 해당 제도 조건에 따릅니다.</dd><dt>원금균등분할상환</dt><dd>매번 갚는 원금은 같고, 이자는 남은 대출 잔액에 따라 달라지는 방식입니다.</dd></dl></details>`;
     const comparison=interestHtml(p,checkedAt)+(p.type==='신용보증'?`<h3>보증 상담 안내</h3><p>${esc(view.scope)}</p>`:`<h3>실제로 비교한 입력 항목</h3><ul>${view.rows.map(r=>`<li><b>${esc(r.text)}</b><br>${esc(r.detail)}</li>`).join('')}</ul><p class="finance-caution">${esc(view.scope)}</p>`);
     return {match:m,label:view.label,html:`<h3>주요 조건</h3><dl class="support-detail-list finance-facts">${fields.map(([a,b])=>`<div><dt>${esc(a)}</dt><dd>${esc(b)}</dd></div>`).join('')}</dl><p class="finance-amount-scope notice-meta">${esc(amountScope(p))}</p>${fundingHtml(p,profile)}${glossary}${applicationGuide(p)}<h3>현재 신청 안내</h3><p>${esc(p.status)}</p><div class="detail-actions">${action(p)}</div>${comparison}<h3>신청 시 확인할 조건</h3><ul>${p.conditions.map(c=>`<li>${esc(c)}</li>`).join('')}</ul><details class="more-conditions"><summary>추가로 확인할 항목</summary><ul>${p.unknowns.map(u=>`<li>${esc(u)}</li>`).join('')}</ul></details><p class="finance-caution">자금 배정·보증·대출 승인은 별도 심사합니다. 최신 금융조건과 접수 일정은 취급기관에서 확인하세요.</p><p>정보 확인일: <b>${esc(date(checkedAt))}</b> (한국시간)<br>자료 기준: ${esc(p.year)}</p><div class="cite"><b>${esc(p.source.publisher)}</b><p>${esc(p.source.location)}</p></div>`};
   }
-  const api={compare,filter,rank,card,detail,date,labels,comparisonView,fundingView,applicationGuide,interestAssumption,simpleInterest};root.MunongsaFinance=api;if(typeof module!=='undefined')module.exports=api;
+  const api={compare,filter,rank,discoveryQuery,card,detail,date,labels,comparisonView,fundingView,applicationGuide,interestAssumption,simpleInterest};root.MunongsaFinance=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

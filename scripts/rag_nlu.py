@@ -26,8 +26,37 @@ QUEUE=Path('/run/munongsa-nlu')
 WAIT=6.5
 TIMEOUT=5.5
 MAX_OUTPUT=512
-DAILY_CALLS=30
-MINUTE_CALLS=6
+def bounded_setting(name,default,upper):
+    try:value=int(os.environ.get(name,str(default)))
+    except ValueError:return default
+    return value if 1<=value<=upper else default
+
+DAILY_CALLS=bounded_setting('MUNONGSA_NLU_DAILY_CALLS',120,500)
+MINUTE_CALLS=bounded_setting('MUNONGSA_NLU_MINUTE_CALLS',6,30)
+DAILY_INPUT_TOKENS=bounded_setting('MUNONGSA_NLU_INPUT_TOKENS',1500000,6000000)
+DAILY_OUTPUT_TOKENS=bounded_setting('MUNONGSA_NLU_OUTPUT_TOKENS',65000,256000)
+DAILY_COST_CENTS=bounded_setting('MUNONGSA_NLU_COST_CENTS',25,500)
+# Standard, uncached USD / million tokens, checked against the pinned model page.
+# Reservations deliberately charge the full byte/token upper bound even on failure.
+INPUT_MICRO_USD_PER_MILLION=100000
+OUTPUT_MICRO_USD_PER_MILLION=500000
+MAX_INPUT_TOKENS=12000
+CACHE_TTL=1800
+
+class ConceptCache:
+    """Broker RAM only: standalone educational replies, never profiles/business facts."""
+    def __init__(self):self.items={}
+    def key(self,q):
+        if not concept_request(q) or re.search(r'그게|그건|그거|그럼|아까|이전|나는|저는|내가|제가|우리|나의|내\s',q):return None
+        return digest((MODEL+INSTRUCTIONS+re.sub(r'\s+',' ',q).strip()).encode())
+    def get(self,q,now):
+        key=self.key(q);entry=self.items.get(key)
+        return json.loads(entry[1]) if entry and now-entry[0]<CACHE_TTL else None
+    def put(self,q,value,now):
+        key=self.key(q)
+        if not key or value.get('intent')!='knowledge' or value.get('facts') or value.get('hypothetical') or value.get('reference_previous') or not safe_conversation_reply(value,q):return
+        if len(self.items)>=128:self.items.pop(next(iter(self.items)))
+        self.items[key]=(now,json.dumps(value,ensure_ascii=False))
 FIELDS=('region','farm_region','age','applicant','group_size','farm_registered','farming_years','planned','cultivating','facility_sqm','crop')
 INTENTS=('discover','eligibility','deadline','documents','funding','greeting','thanks','help','context','independent_management','rephrase','correction','next_step','compare','open_notices','knowledge','other')
 SCHEMA={'type':'object','additionalProperties':False,'properties':{
@@ -167,10 +196,10 @@ def failure_code(error,stage='model'):
 
 def diagnostic(queue,outcome,started):
     """Bounded private counters only: never questions, answers, IDs or secrets."""
-    if outcome not in FAILURES|{'success'}:outcome='internal'
+    if outcome not in FAILURES|{'success','cache_hit'}:outcome='internal'
     try:
         path=queue/'diagnostics.json';data=read_safe(path,4096) if path.exists() else {'counts':{}}
-        counts={k:min(v,1000000) for k,v in data.get('counts',{}).items() if k in FAILURES|{'success'} and type(v) is int and v>=0}
+        counts={k:min(v,1000000) for k,v in data.get('counts',{}).items() if k in FAILURES|{'success','cache_hit'} and type(v) is int and v>=0}
         counts[outcome]=counts.get(outcome,0)+1
         atomic(path,{'counts':counts,'last':outcome,'at':datetime.now(timezone.utc).isoformat(),'duration_ms':round((time.monotonic()-started)*1000)},0o640)
     except (OSError,ValueError,TypeError):pass
@@ -265,7 +294,7 @@ def broker(queue,budget,client_uid):
     key=os.environ.get('OPENAI_API_KEY','');ready=bool(key) and model_available(key)
     queue.mkdir(exist_ok=True);queue.chmod(0o2770)
     atomic(queue/'status.json',{'ready':ready,'model':MODEL})
-    recent=[]
+    recent=[];cache=ConceptCache()
     while True:
         for path in sorted(queue.glob('q-*.json'))[:4]:
             identity=path.stem[2:]
@@ -286,16 +315,22 @@ def broker(queue,budget,client_uid):
                 rag_dialogue.decode(rag_dialogue.PREFIX+json.dumps(context,ensure_ascii=False)+rag_dialogue.SEPARATOR+q)
                 if topic is not None:context['conversation_topic']=topic
                 request=make_request(q,context)
+                # A standalone definition must not be personalized from another topic.
+                if cache.key(q):request=make_request(q,{})
                 if request:
-                    hints=json.loads(request['input']);hints['previous_count']=count;request['input']=packed(hints).decode()
+                    hints=json.loads(request['input']);hints['previous_count']=0 if cache.key(q) else count;request['input']=packed(hints).decode()
                 reply['question_sha']=digest(q.encode())
                 now=time.monotonic();recent=[t for t in recent if now-t<60]
                 day=datetime.now(timezone(timedelta(hours=9))).date().isoformat()
-                ledger=reserve(budget,recent,day,now) if ready and request else None
-                if ledger:
+                cached=cache.get(q,now)
+                ledger=reserve(budget,recent,day,now) if not cached and ready and request else None
+                if cached:
+                    reply.update(ok=True,result=cached);outcome='cache_hit'
+                elif ledger:
                     stage='model';value,usage=bounded_call(request,key);stage='validation';checked=validate(value,q)
                     for k,v in usage.items():ledger[k]+=v
                     atomic(budget,ledger,0o600);reply.update(ok=True,result=value)
+                    cache.put(q,value,now)
                     outcome='reply_blocked' if value.get('reply') and not checked.get('reply') else 'knowledge_empty' if value.get('intent')=='knowledge' and not checked.get('reply') else 'success'
                 else:outcome='budget_limit' if ready and request else 'worker_failure'
             except Exception as error:outcome=failure_code(error,stage)
@@ -321,7 +356,11 @@ def reserve(budget,recent,day,now):
     if set(ledger)!={'day','calls','input_tokens','output_tokens'} or any(type(ledger[k]) is not int or ledger[k]<0 for k in ('calls','input_tokens','output_tokens')):raise ValueError('budget_invalid')
     if not re.fullmatch(r'\d{4}-\d{2}-\d{2}',ledger['day']):raise ValueError('budget_day')
     if ledger['day']!=day:ledger={'day':day,'calls':0,'input_tokens':0,'output_tokens':0}
-    if ledger['calls']>=DAILY_CALLS or len(recent)>=MINUTE_CALLS:return None
+    calls=ledger['calls']+1
+    inputs=max(ledger['input_tokens'],calls*MAX_INPUT_TOKENS)
+    outputs=max(ledger['output_tokens'],calls*MAX_OUTPUT)
+    cost=(inputs*INPUT_MICRO_USD_PER_MILLION+outputs*OUTPUT_MICRO_USD_PER_MILLION+999999)//1000000
+    if ledger['calls']>=DAILY_CALLS or len(recent)>=MINUTE_CALLS or inputs>DAILY_INPUT_TOKENS or outputs>DAILY_OUTPUT_TOKENS or cost>DAILY_COST_CENTS*10000:return None
     ledger['calls']+=1;atomic(budget,ledger,0o600);recent.append(now)
     return ledger
 

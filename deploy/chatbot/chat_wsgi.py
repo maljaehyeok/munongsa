@@ -2,6 +2,7 @@
 from collections import deque
 import json
 import logging
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -28,6 +29,9 @@ class Application:
     def __init__(self, pipeline=rag_api.run_pipeline, ready=False):
         self.pipeline, self.ready = pipeline, ready
         self.lock, self.requests = threading.Lock(), deque()
+        self.slots=threading.BoundedSemaphore(4)
+        try:self.rate_limit=max(10,min(600,int(os.environ.get('MUNONGSA_CHAT_RATE_LIMIT','120'))))
+        except ValueError:self.rate_limit=120
 
     def __call__(self, environ, start_response):
         started = time.monotonic()
@@ -42,8 +46,8 @@ class Application:
                    429: 'Too Many Requests', 503: 'Service Unavailable', 504: 'Gateway Timeout'}
         headers = [('Content-Type', 'application/json; charset=utf-8'), ('Content-Length', str(len(body))),
                    ('Cache-Control', 'no-store'), ('X-Content-Type-Options', 'nosniff')]
-        if status == 429:
-            headers.append(('Retry-After', '60'))
+        if status in (429,503):
+            headers.append(('Retry-After', '60' if status==429 else '5'))
         if environ.get('PATH_INFO') != '/healthz':
             LOG.info('request_complete status=%d duration_ms=%d', status, int((time.monotonic()-started)*1000))
         start_response(f'{status} {phrases[status]}', headers)
@@ -75,7 +79,7 @@ class Application:
             now = time.monotonic()
             while self.requests and now-self.requests[0] >= 60:
                 self.requests.popleft()
-            if len(self.requests) >= 10:
+            if len(self.requests) >= self.rate_limit:
                 return 429, fail('요청이 많습니다. 1분 후 다시 시도해 주세요.')
             self.requests.append(now)
         if env.get('CONTENT_TYPE', '').split(';')[0].strip() != 'application/json':
@@ -90,6 +94,8 @@ class Application:
             question = rag_api.validate_input(json.loads(raw.decode('utf-8')))
         except (ValueError, UnicodeError, RecursionError):
             return 400, fail('질문만 포함한 JSON을 보내 주세요. 질문은 1~1,000자여야 합니다.')
+        if not self.slots.acquire(blocking=False):
+            return 503,fail('현재 다른 질문을 처리 중입니다. 5초 후 다시 보내 주세요. 입력 조건은 유지됩니다.')
         try:
             result = self.pipeline(question)
             if result.get('mode') != 'local':
@@ -99,6 +105,7 @@ class Application:
             return 504, fail('처리 시간이 초과됐습니다. 질문을 짧게 바꿔 주세요.')
         except Exception:
             return 503, fail('공고 근거를 검증하지 못해 답변을 보류합니다.')
+        finally:self.slots.release()
 
 
 def main(inherited_socket=None, application_wrapper=None):
@@ -115,8 +122,8 @@ def main(inherited_socket=None, application_wrapper=None):
     for handler in logging.getLogger().handlers:
         handler.addFilter(SafeServerLog())
     try:
-        serve(application_wrapper(Application(ready=True)), sockets=[inherited_socket], threads=2,
-              connection_limit=8, backlog=8, channel_timeout=10, cleanup_interval=1,
+        serve(application_wrapper(Application(ready=True)), sockets=[inherited_socket], threads=4,
+              connection_limit=48, backlog=48, channel_timeout=10, cleanup_interval=1,
               max_request_header_size=8192, max_request_body_size=8192,
               inbuf_overflow=16384, outbuf_overflow=262144, channel_request_lookahead=0,
               expose_tracebacks=False, ident='Munongsa', clear_untrusted_proxy_headers=True)

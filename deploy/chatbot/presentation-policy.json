@@ -1,0 +1,20 @@
+{
+  "chat_requests_per_minute_global": 120,
+  "chat_workers": 4,
+  "http_connections": 48,
+  "nginx_requests_per_shared_ip": "60r/m",
+  "nginx_burst": 20,
+  "nginx_connections_per_shared_ip": 8,
+  "html_cache": "no-cache",
+  "versioned_assets_cache": "public, max-age=86400, immutable",
+  "unversioned_assets_cache": "no-cache",
+  "asset_version": "first 12 hexadecimal characters of content SHA-256",
+  "gpt_model": "gpt-6-luna",
+  "gpt_daily_calls": 120,
+  "gpt_minute_calls": 6,
+  "gpt_daily_input_token_reservation": 1500000,
+  "gpt_daily_output_token_reservation": 65000,
+  "gpt_daily_usd_cents_reservation": 25,
+  "pricing_source": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+  "scope": "Only standalone validated concept replies cached in broker RAM; no profiles or official scheme facts. No IP-based personal identity. Actual billing can differ from reservations."
+}

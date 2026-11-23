@@ -383,9 +383,10 @@
     if(funding?.kind==='own')message('입력 확인','말씀하신 보유 자금은 '+MunongsaAmounts.wonText(funding.won)+'이에요. 필요 사업비·희망 대출금과 달라 자동으로 대입하지 않았어요.','answer');
     if(funding&&['loan','project'].includes(funding.kind))message('입력 확인',(funding.kind==='loan'?'희망 대출금: ':'필요 사업비: ')+MunongsaAmounts.wonText(funding.won)+'으로 따로 기억했어요. 필요 자금과 같은 금액으로 비교하려면 농업금융의 필요 자금에 입력해 주세요.','answer');
     const selectedSearch=/(?:선택|입력|설정|저장)(?:한|된)?\s*(?:영농\s*)?조건/.test(question)&&/검색|찾|탐색|지원\s*사업/.test(question);
-    const financeFollow=!conversation.search_action&&!selectedSearch&&(financeState?.active||conversation.service==='finance')&&!/지원사업|공고|보조금|초기화|지워|비워/.test(question)&&/그\s*(?:사업|제도)|신청|서류|접수|준비|등록|조건|빌리|이자|상환|첫\s*번째|두\s*번째|세\s*번째|^응[?？]?$|무슨\s*뜻|다시\s*설명/.test(question);
+    const namedFinance=(typeof financeMvp!=='undefined'?financeMvp?.products||[]:[]).some(p=>question.replace(/\s/g,'').includes(p.title.replace(/\([^)]*\)/g,'').replace(/\s/g,'')));
+    const financeFollow=!namedFinance&&!conversation.search_action&&!selectedSearch&&(financeState?.active||conversation.service==='finance')&&!/지원사업|공고|보조금|초기화|지워|비워/.test(question)&&/그\s*(?:사업|제도)|신청|서류|접수|준비|등록|조건|빌리|이자|상환|첫\s*번째|두\s*번째|세\s*번째|^응[?？]?$|무슨\s*뜻|다시\s*설명/.test(question);
     const financeExcluded=/(?:융자|대출|금융)\s*(?:말고|제외|아닌)/.test(question);
-    const finance=!conversation.search_action&&!financeExcluded&&(!!financeFollow||/대출|융자|정책자금|금융|농신보|농지\s*매매|(?:돈|자금)(?:이|이\s*더)?\s*부족|시설\s*(?:설치\s*)?자금/.test(question));
+    const finance=!conversation.search_action&&!financeExcluded&&(!!financeFollow||/대출|융자|정책자금|금융|농신보|농지연금|귀산촌|농업인행복|농업종합자금|농촌주택개량|식품가공원료|농촌융복합.*자금|사료.*자금|태양광.*자금|경영회생.*농지|농지\s*매매|(?:돈|자금)(?:이|이\s*더)?\s*부족|시설\s*(?:설치\s*)?자금/.test(question));
     const mixed=finance&&/지원사업|보조금/.test(question);
     if(!finance&&!/^(?:응|네|무슨|다시)/.test(question))financeState=null;
     const requestRevision=stateRevision,controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
@@ -410,7 +411,7 @@
       status.className='chat-message chat-message-error';status.replaceChildren(text('p','다시 시도해 주세요','chat-message-label'),text('p',value),text('p',question===selectionQuestion?'선택한 조건은 유지돼요. 내 조건 선택·수정에서 다시 검색해 주세요.':'작성한 질문은 입력창에 그대로 남아 있어요.'));
     }finally{clearTimeout(timer);pending=false;status.removeAttribute('role');sync();if(dialog.open){input.focus({preventScroll:true});status.scrollIntoView({block:'start',behavior:'instant'});}}
   }
-  async function financeAnswer(node,question,append=false,follow=false){
+  async function financeAnswer(node,question,append=false,follow=false,offset=0){
     if(!append){node.replaceChildren(text('p','무농사 · 농업금융 안내','chat-answer-label'));node.className='chat-message chat-message-answer';}
     node.append(text('p','보조금은 공고별 지원이고, 정책자금·융자는 갚아야 하는 자금이에요. 입력한 영농 조건을 그대로 사용하되 대출 승인·중복 수혜·자부담 충당은 보장하지 않아요.'));
     if(/만약|가정|등록하면|이라면/.test(question))node.append(text('p','가정한 조건은 실제 프로필에 저장하지 않았어요. 아래 금융 후보는 현재 입력된 실제 조건 기준이며, 가정에 따른 대출 가능 여부를 확정한 결과가 아니에요.'));
@@ -420,12 +421,13 @@
       const guide=/신청|서류|접수|준비/.test(question),ordinal=question.match(/(첫|두|세)\s*번째/),position=ordinal?{첫:0,두:1,세:2}[ordinal[1]]:null;
       const selected=follow?(position!==null?financeState?.ids[position]:financeState?.selected|| (financeState?.ids.length===1?financeState.ids[0]:null)):null;
       if(guide&&selected){const item=data.products.find(p=>p.id===selected);if(item){node.append(text('h3',item.title),text('p',MunongsaFinance.comparisonView(item,MunongsaFinance.compare(item,p)).scope));const content=text('section','','chat-finance-guide');content.innerHTML=MunongsaFinance.applicationGuide(item);node.append(content);const action=conditionButton('금융 상세정보에서 내 조건 확인',()=>{dialog.close();navigateTo('bank','',{kind:'financeMvp',key:item.id});});node.append(action);return;}}
-      let found=MunongsaFinance.filter(data.products,terms[0]||'','all');
+      let found=MunongsaFinance.filter(data.products,MunongsaFinance.discoveryQuery(data.products,search),'all');
       found=MunongsaFinance.rank(found,p).filter(item=>MunongsaFinance.compare(item,p).state!=='mismatch');
-      node.append(text('p',found.length?'공식 금융 안내 중 확인할 후보예요. 일부 조건 비교이며 신청 가능 확정이 아니에요.':'현재 조건으로 안내할 금융 후보가 부족해요. 조건을 확인하거나 취급기관에 문의해 주세요.'));
-      financeState={query:search,ids:found.slice(0,3).map(p=>p.id),active:!append,selected:null};
+      node.append(text('p',found.length?'공식 금융 안내에서 찾은 관련 제도예요. 일부 조건 비교이며 신청 가능 확정이 아니에요.':'현재 조건으로 안내할 관련 금융제도가 부족해요. 조건을 확인하거나 취급기관에 문의해 주세요.'));
+      financeState={query:search,ids:found.slice(offset,offset+3).map(p=>p.id),active:!append,selected:null};
       if(guide)node.append(text('p','어느 금융제도인지 선택하면 해당 제도의 공식 신청 안내만 보여드릴게요.'));
-      for(const item of found.slice(0,3)){const card=text('section','','chat-finance-result');card.append(text('h3',item.title),text('p',item.target));const link=conditionButton('공식 조건·신청 방법 확인',()=>{dialog.close();navigateTo('bank','',{kind:'financeMvp',key:item.id});});card.append(link,conditionButton('이 제도 신청 준비 안내',()=>{if(!pending){financeState.selected=item.id;sendQuestion('이 금융제도의 신청 방법과 서류를 알려주세요.');}}));node.append(card);}
+      for(const item of found.slice(offset,offset+3)){const card=text('section','','chat-finance-result');card.append(text('h3',item.title),text('p',item.target));const link=conditionButton('공식 조건·신청 방법 확인',()=>{dialog.close();navigateTo('bank','',{kind:'financeMvp',key:item.id});});card.append(link,conditionButton('이 제도 신청 준비 안내',()=>{if(!pending){financeState.selected=item.id;sendQuestion('이 금융제도의 신청 방법과 서류를 알려주세요.');}}));node.append(card);}
+      if(found.length>offset+3)node.append(conditionButton('다음 금융제도 보기',()=>{node.replaceChildren();financeAnswer(node,search,append,false,offset+3)}));
       const row=text('div','','chat-followups');row.append(conditionButton('농업금융 전체 보기',()=>{dialog.close();navigateTo('bank');}),conditionButton('같은 조건으로 지원사업 찾기',()=>{if(!pending)sendQuestion(selectionQuestion);}));node.append(row);
     }catch{node.append(text('p','금융자료를 불러오지 못했어요. 농업금융 메뉴에서 다시 확인해 주세요.'));}
   }

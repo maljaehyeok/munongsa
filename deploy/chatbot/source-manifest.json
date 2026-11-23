@@ -4,8 +4,8 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "6fbace94e97fca2fea40555231d365a074920d8443e4308f1884cce9af1e992d",
-    "assets/chat-ui.js": "2562fdcc27ac110930b61edca23dc342abbb4473c12fe27d4a0ab994afd0f7d7",
+    "index.html": "716a7a2cd1474b64f4e75bce0201925fe7a23c069a83568f9e9cd40882597959",
+    "assets/chat-ui.js": "37093f4d474ebc6d2e2915d4ef0f66e39902cfe60ccedc3e92546a8ce0da9b60",
     "assets/chat-ui.css": "75843362a4bad9e2694f9cf1550584f8ed1c87912824adcda6dd4b349de74d0b",
     "assets/support-public.js": "2ded1c4458e71a5deb7cdb974df9e8172e602298f12767e5c5525bbb9f83d8a2",
     "assets/selection-view.js": "50babcdf8fc50f270b253e7d337def0e987cc0b05361ce919b88b8c3d3c77401",
@@ -20,15 +20,18 @@
     "assets/support-details.json": "c01a7e6a4dd298621bcfa22e840fa849e7b4d8b9d6d02ea58f898aa997f0b451",
     "assets/farm-profile.js": "46e3effea7444d556af1dcaa0149d2a7b0caf7a2d75d0f82ed605e71b83ba2d2",
     "assets/application-journey.js": "70edceb33f13979c46d7b003fc6bc6163ee47bb26331c7406d64bbee9f0a0a4d",
-    "assets/finance-mvp.js": "a342f092703d2fdc598afbfd293581fd201c8149a420858eb5b89e72d5843327",
+    "assets/finance-mvp.js": "5524e5a159c0e70688d2080166f4e34711f24989839ef42793d2799e6866aff4",
     "assets/profile-matching.js": "e28410a516c9a4f8b6e4b1d9d7ddec408db794f11f6d281963a156ddd1a768f4",
     "assets/finance-mvp.css": "cc0e8070c99d944abfb5fabb2601f27f067af73cdd785014e8527a42b117077a",
-    "assets/cultivation-mvp.js": "dc4456ea01ffe4e6ac0b1f0f139f8f1a59c25c8f4437b0d9e99f686913bf3e77",
+    "assets/cultivation-mvp.js": "ef40c223dce160a145c103fd1f318aa9c5f0a24bfc96e54ef6d56dd9632f2554",
     "assets/readability.js": "bfe7a7fef369b91d452890b23fca2a84f06b8d66d007c7657f0077b304fe4904",
     "assets/readability.css": "61af48970a8a5e3abbc1e58ac1ab8263feb1b2bee2560afec25e6b10d9560506",
     "assets/ui-v2.js": "e2715cb304c7c7b6f93a512820e54bc4a5f72566a44bb4cd7048478cab24d99c",
     "assets/input-ux.css": "a168701f9b813226b85623402f97ada55f3c34a7da19df63a2b07bca2bb2c303",
-    "assets/cultivation-mvp.css": "d68c979b59edc5aa3747d0597236cd5127d06f6a70b12a088ea4ebbe6c15a762"
+    "assets/cultivation-mvp.css": "d68c979b59edc5aa3747d0597236cd5127d06f6a70b12a088ea4ebbe6c15a762",
+    "assets/controls.css": "bc911c019898b9c2619a9efd8121c69e9d627412562b4850c32bca7b05f16628",
+    "assets/control-state.js": "673fb1ebfd0fed2947193f76d7598852ee590d7a83797fa6c7a111f0c5c183bb",
+    "data/finance-mvp.json": "3076dea4af39d08b0015dc5a98430b639cac7c56970d3100e601364f87c72b17"
   },
   "runtime": {
     "scripts/rag_search.py": "a724c7d6a113a10b2dcfa24dc64fa9fc457bf8e253f9c065edc888615d3f2407",
@@ -41,7 +44,7 @@
     "scripts/rag_refresh_cycle.py": "1534735163a23b4167fcb365f904f7def84da2c5cd533ec88da7a4edec13ff04",
     "scripts/rag_dialogue.py": "424eca840dce99fb56ccdce7b8a259e3c88035393934f51c03e5d01f6bf28f75",
     "scripts/rag_profile.py": "621b3d620a017782f09bdf009f1f54a8b08e79fe90d5cbcbd6da5b3b4c408cc2",
-    "scripts/rag_nlu.py": "868e3ebce573d59deba5f477686260012e2b3b64ed282d5178790f2ac65e6c2a",
+    "scripts/rag_nlu.py": "d873fe2c19fd826b9a5ef358e664235250c059a949058860704ffb0a54d4d0e8",
     "scripts/rag_catalogue.py": "6eeff45d7e0e42d1b01f129ae00172b0a9f617803bac171347b769cfaf69e01c",
     "scripts/support_notice_review.py": "a04d3b5bb2e9558eddc019b7153cd79674c02847966b20ecefb6eba616d45d56",
     "scripts/support_recommendation_readiness.py": "fb86b08cd4af6266eb38bb42eefa46666353c651188f52e5cb52d8d0dc2228a7",
@@ -54,8 +57,8 @@
     "scripts/rag_crops.py": "d94bbabb7a19ac6bca12b28753ad94c231bb868ea759d3927cea8e7106393e03",
     "scripts/support_http_projection.py": "f3f0b358c0aa7cb3161ecf38951f10683fc2e1bfb67aef24d1aa70f42e152011",
     "assets/crop-directory.js": "0caceea922520f3065219596bc2f4de245149bebace918045fc297cbf91017d7",
-    "deploy/chatbot/chat_wsgi.py": "fffbce60eaf37274bc533335f128d82901d38051deee935dc48fb6b754a9fcf5",
-    "scripts/rag_turn.py": "f4a6a253c230909233e763c6372ddab1d1a1b073be6ec39ee35a6dd101faa2f3"
+    "deploy/chatbot/chat_wsgi.py": "5777dfdf41315353cb411dbb1c66cd7ab3fad175402868b416e9d97ae2a8a86f",
+    "scripts/rag_turn.py": "71aeee45426b0cd73aa1a80ff401de8a9035ebd6e7f393b80d04118dc39a04db"
   },
   "private_corpus": {
     "assets/support-details.json": "01a3d2eb61ab8ea6d70b1514eddafaf60b107e3a777c5df342991ac5c6e72c62",

@@ -1,0 +1,27 @@
+/* Actions and user selection are neutral; eligibility notices retain four colors. */
+:root{--action-radius:9999px;--action-height:44px;--action-gap:8px;--action-ink:#171717;--action-paper:#fafaf7;--action-border:#858580;--action-speed:180ms}
+body button:not(.compact-open):not(.discovery-card):not(.category),body .source-action,body .preparation-actions a{
+ border-radius:var(--action-radius)!important;min-height:var(--action-height);padding:10px 18px;box-sizing:border-box;border-width:1px;font-size:14px;font-weight:650;line-height:1.5;white-space:normal;overflow-wrap:anywhere;max-width:100%;cursor:pointer;
+ transition:background-color var(--action-speed),border-color var(--action-speed),color var(--action-speed)
+}
+body :is(.cultivation-options,.notice-filters,.chat-followups,.chat-quick-actions) button,body .secondary-action{background:var(--action-paper);color:var(--action-ink);border:1px solid var(--action-border)}
+body :is(button[type=submit],.apply,.primary-action,.source-action){background:#171717;color:#fff;border:1px solid #73736e}
+body .source-action{background:#171717!important;color:#fff!important}
+body button:not(.compact-open):not(.discovery-card):not(.category):hover:not(:disabled),body .source-action:hover{border-color:#171717;filter:brightness(.94)}
+body button[aria-pressed=true],body button[aria-selected=true]{background:#171717!important;color:#fff!important;border:2px solid #777!important}
+body button[aria-pressed=true]::before,body button[aria-selected=true]::before{content:'✓';display:inline-block;margin-inline-end:7px;font-weight:900}
+body :is(.cultivation-options,.notice-filters) button{background:#171717;color:#f8f8f4;border-color:#999}
+body :is(.cultivation-options,.notice-filters) button[aria-pressed=true]{background:#fafaf7!important;color:#171717!important;border-color:#fafaf7!important}
+body button:disabled{opacity:.48;cursor:not-allowed;filter:none}
+body :is(button,a,summary,input,select):focus-visible{outline:3px solid #598db4;outline-offset:3px}
+body :is(.close,.chat-close,.chat-icon-button){border-radius:50%!important;min-width:44px;width:44px;height:44px;padding:8px!important;flex-shrink:0}
+body :is(.more-conditions,.plain-help,.notice-period-details,.finance-interest)>summary{border:1px solid var(--action-border);border-radius:var(--action-radius);padding:10px 17px;min-height:44px;box-sizing:border-box;line-height:1.5}
+body details[open]>summary{font-weight:750;border-color:#333}
+body .selection-chip,body .cultivation-selection{border:1px solid #777;background:#f6f6f1;color:#171717;border-radius:12px}
+body .selection-chip .condition-value::before,body .cultivation-selection>strong::before{content:'✓ ';font-weight:900}
+body select[data-selected=true]{border:2px solid #333;background-color:#f6f6f1;color:#171717;box-shadow:inset 4px 0 0 #333}
+body [data-action-selected=true]{outline:2px solid #555;outline-offset:2px}
+body .chat-followups{gap:var(--action-gap)}
+body .nav a[aria-current=page]::before{content:'✓ ';font-weight:800}
+@media(max-width:600px){body button:not(.compact-open):not(.discovery-card):not(.category),body .source-action{padding:10px 15px;font-size:14px}body .cultivation-options{gap:8px}body .cultivation-options button{flex:0 1 auto}}
+@media(prefers-reduced-motion:reduce){body button,body .source-action{transition:none!important;animation:none!important}}

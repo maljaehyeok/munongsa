@@ -6,14 +6,14 @@
   <title>무농사 | 농업 지원사업·농업금융·재배기술</title>
   <meta name="description" content="초보·청년·예비 농업인을 위한 공식 농업정보 안내. 지원사업, 농업금융, 재배기술을 내 상황에 맞게 찾아보세요.">
   <link rel="canonical" href="https://munongsa.duckdns.org/">
-<link rel="stylesheet" href="./assets/chat-ui.css?v=conditions-20261112">
-<script src="./assets/amount-display.js?v=ux-20261114"></script>
-<script src="./assets/farm-profile.js?v=20261122"></script>
-<script src="./assets/application-journey.js?v=20261122"></script>
-<script src="./assets/readability.js?v=20261123" defer></script>
-<script src="./assets/chat-ui.js?usability-20261115" defer></script>
-  <link rel="stylesheet" href="./assets/ui-v2.css?v=support-readable-20261029">
-  <link rel="stylesheet" href="./assets/finance-mvp.css?v=finance-20261029">
+<link rel="stylesheet" href="./assets/chat-ui.css?v=75843362a4ba">
+<script src="./assets/amount-display.js?v=fad28252ece3"></script>
+<script src="./assets/farm-profile.js?v=46e3effea744"></script>
+<script src="./assets/application-journey.js?v=81ba7fd413c2"></script>
+<script src="./assets/readability.js?v=bfe7a7fef369" defer></script>
+<script src="./assets/chat-ui.js?v=37093f4d474e" defer></script>
+  <link rel="stylesheet" href="./assets/ui-v2.css?v=222851b5348e">
+  <link rel="stylesheet" href="./assets/finance-mvp.css?v=cc0e8070c99d">
 </head>
 <body data-view="brand">
   <a class="skip-link" href="#mainContent">본문으로 바로 가기</a>
@@ -135,24 +135,26 @@
   </main>
   <footer class="footer">무농사 · 농사의 시작을, 더 쉽게.<br>초보 농업인을 위한 영농 지원 길잡이</footer>
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-box"><div class="modal-head"><div><span class="tag warning" id="modalTag">사업 정보</span><h2 id="modalTitle"></h2><span class="status-pill" id="modalStatus"></span></div><button class="close" id="closeModal" aria-label="닫기">×</button></div><p id="modalSummary"></p><h3 id="modalEligibilityHeading">누가 신청할 수 있나요? · 확인할 조건</h3><ul id="modalEligibility"></ul><h3 id="modalSupportHeading">지원 내용·일정</h3><p id="modalSupport"></p><p id="modalSchedule"></p><div class="cite" id="modalSource"></div></div></div>
-  <link rel="stylesheet" href="./assets/cultivation-mvp.css">
-  <link rel="stylesheet" href="./assets/black-minimal.css?v=brand-motion-20261030">
-  <script src="./assets/crop-directory.js"></script>
-  <link rel="stylesheet" href="./assets/input-ux.css?v=compact-funds-20261101">
-  <link rel="stylesheet" href="./assets/ux-first.css?v=ux-20261114">
-  <link rel="stylesheet" href="./assets/readability.css?v=20261123">
-  <script src="./assets/selection-view.js?region-20261113"></script>
-  <script src="./assets/input-ux.js?v=ux-20261114"></script>
-  <script src="./assets/cultivation-mvp.js?v=search-preserve-20261030"></script>
-  <script src="./assets/ui-v2.js?v=compact-funds-20261101"></script>
-  <script src="./assets/profile-matching.js"></script>
-  <script src="./assets/support-public.js?guidance-20261114"></script>
-  <script src="./assets/finance-mvp.js?v=selection-20261031"></script>
-  <script src="./assets/support-details.js?v=details-20261030"></script>
-  <script src="./assets/user-display.js?v=support-final-20261030"></script>
-  <script src="./assets/notice-review.js?v=usability-20261115"></script>
-  <script src="./assets/personalization.js?v=usability-20261115"></script>
-  <script src="./assets/support-review.js?usability-20261115"></script>
+  <link rel="stylesheet" href="./assets/cultivation-mvp.css?v=d68c979b59ed">
+  <link rel="stylesheet" href="./assets/black-minimal.css?v=b8721403939e">
+  <script src="./assets/crop-directory.js?v=0caceea92252"></script>
+  <link rel="stylesheet" href="./assets/input-ux.css?v=a168701f9b81">
+  <link rel="stylesheet" href="./assets/ux-first.css?v=9273649430e9">
+  <link rel="stylesheet" href="./assets/readability.css?v=61af48970a8a">
+  <link rel="stylesheet" href="./assets/controls.css?v=bc911c019898">
+  <script defer src="./assets/control-state.js?v=673fb1ebfd0f"></script>
+  <script src="./assets/selection-view.js?v=50babcdf8fc5"></script>
+  <script src="./assets/input-ux.js?v=c6984f7ce806"></script>
+  <script src="./assets/cultivation-mvp.js?v=ef40c223dce1"></script>
+  <script src="./assets/ui-v2.js?v=e2715cb304c7"></script>
+  <script src="./assets/profile-matching.js?v=e28410a516c9"></script>
+  <script src="./assets/support-public.js?v=2ded1c4458e7"></script>
+  <script src="./assets/finance-mvp.js?v=5524e5a159c0"></script>
+  <script src="./assets/support-details.js?v=a72146191416"></script>
+  <script src="./assets/user-display.js?v=4368affa94cd"></script>
+  <script src="./assets/notice-review.js?v=a23d49a2bd63"></script>
+  <script src="./assets/personalization.js?v=82fc8d7fe800"></script>
+  <script src="./assets/support-review.js?v=cd85d7646a4f"></script>
   <script>
     // Public facts are provided only through the existing approval boundary.
     let programs=[];
@@ -465,7 +467,7 @@
     document.getElementById('financeSearch').addEventListener('input',e=>{financeQuery=e.target.value;draw()});
     document.getElementById('financeSearchReset').addEventListener('click',()=>{financeQuery='';financePurpose='all';document.getElementById('financeSearch').value='';document.getElementById('financePurpose').value='all';draw();document.getElementById('financeSearch').focus()});
     document.getElementById('financePurpose').addEventListener('change',e=>{financePurpose=e.target.value;draw()});
-    fetch('./data/finance-mvp.json').then(r=>{if(!r.ok)throw new Error('finance_load');return r.json()}).then(data=>{financeMvp=data;draw();restoreNavigationDetail()}).catch(()=>{financeDataError=true;draw()});
+    fetch('./data/finance-mvp.json',{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error('finance_load');return r.json()}).then(data=>{financeMvp=data;const select=document.getElementById('financePurpose'),existing=new Set([...select.options].map(o=>o.value));for(const purpose of new Set(data.products.flatMap(p=>p.purposes))){if(!existing.has(purpose)){select.add(new Option(purpose,purpose));existing.add(purpose)}}draw();restoreNavigationDetail()}).catch(()=>{financeDataError=true;draw()});
     // Workbook candidates remain private review inputs, separate from the four public schemes.
     fetch('./data/equipment-catalog.json').then(response=>{if(!response.ok)throw new Error('\uC7A5\uBE44 \uC790\uB8CC\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.');return response.json()}).then(data=>{installEquipment(data);equipmentDataError=false;draw();restoreNavigationDetail()}).catch(()=>{equipmentDataError=true;draw()});
   </script>
