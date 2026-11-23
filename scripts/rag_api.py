@@ -166,7 +166,10 @@ def local_pipeline(question):
         return catalogue_response(listing,corpus) if listing else rag_dialogue.response('공개 목록이 변경됐어요. 같은 질문으로 다시 검색해 주세요.',context,'clarify',status='needs_verification')
     listing=rag_catalogue.respond(question,corpus,explicit=True)
     if listing:return catalogue_response(listing,corpus)
-    if '경영체' in original and re.search(r'미등록|등록.{0,5}안\s*했',original) and re.search(r'지원받|지원\s*받|가능',original):
+    # A named public business must not be replaced by a generic profile/crop search.
+    named=rag_catalogue.named_response(question,corpus)
+    if named:return catalogue_response(named,corpus)
+    if '경영체' in original and re.search(r'미등록|등록.{0,5}안\s*했',original) and re.search(r'지원받|지원\s*받|가능',original) and not rag_catalogue.named_records(original,corpus.get('guidance_feed',{})):
         facts,error=rag_dialogue.rag_profile.extract(original,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
         if not error:
             encoded=rag_dialogue.PREFIX+json.dumps({**context,**facts},ensure_ascii=False)+rag_dialogue.SEPARATOR+'선택한 조건으로 지원사업을 찾아주세요.'

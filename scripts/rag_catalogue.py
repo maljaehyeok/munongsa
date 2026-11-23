@@ -213,7 +213,44 @@ def program(item,feed,now,context=None):
             'card':{'group':'elapsed' if state=='elapsed' else 'mismatch' if verdict['excluded'] else 'related' if verdict['category']=='A' else 'check','label':verdict['label'],'lifecycle_label':review.closure_label(shown),'period_state':{'window':'within_recorded_dates','upcoming':'upcoming','elapsed':'elapsed'}.get(state,'unknown'),
                     'institution':item['institution'],'reception_state':shown.get('actual_reception_state','unconfirmed'),'facts':{'region':'전국 · 세부 자격 별도 확인' if shown.get('geographic_scope')=='nationwide_verified' and shown.get('verified_facts_at') else shown.get('region') if shown.get('region') not in (None,'','unknown') else '확인 필요','target':shown.get('target') if shown.get('target') not in (None,'','unknown') else preparation.get('target_note','확인 필요'),'support':shown.get('support') if shown.get('support') not in (None,'','unknown') else '공식 원문에서 확인','funding':[],'method':[preparation.get('method') or shown['application_method']] if preparation.get('method') or shown.get('application_method') else [],'documents':[preparation['documents_note']] if preparation.get('documents_note') else []},'questions':result_comparison['questions']}}
 
-def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False):
+def named_records(question,feed,now=None):
+    """Public title phrases identify the subject, never an eligibility condition."""
+    compact=lambda s:re.sub(r'[^0-9a-z가-힣]','',rag_dialogue.normalized(s).lower())
+    q=compact(question);ranked=[]
+    generic={'지원','지원사업','사업','공고','신청','안내','모집','추가','변경','연장','농업인','농업경영체','농업경영정보','농업법인','농업용','농업','계획','시행계획','첨부파일','있음','신청서','등록'}
+    for item in records(feed,now):
+        words=[v for v in re.findall(r'[가-힣a-zA-Z]+',item['title']) if v not in generic and len(v)>=2]
+        phrases=[v for v in words if len(v)>=6]
+        # Do not join across generic words: only actual adjacent title words.
+        tokens=re.findall(r'[가-힣a-zA-Z]+',item['title'])
+        phrases += [a+b for a,b in zip(tokens,tokens[1:]) if a not in generic and b not in generic and len(a)>=2 and len(b)>=2 and len(a+b)>=6]
+        score=max([len(compact(item['title'])) if compact(item['title']) in q else 0]+[len(v) for v in phrases if compact(v) in q])
+        if score>=6:ranked.append((score,item))
+    if not ranked:return []
+    best=max(s for s,_ in ranked);found=[n for s,n in ranked if s==best]
+    area=rag_dialogue.area_in(question)
+    local=[n for n in found if area and area in n['title']+' '+n['institution']]
+    return local or found
+
+
+def named_response(encoded,corpus):
+    question,context=rag_dialogue.decode(encoded)
+    if page_request(question) or question=='선택한 조건으로 지원사업을 찾아주세요.':return None
+    compact=lambda s:re.sub(r'[^0-9a-z가-힣]','',rag_dialogue.normalized(s).lower())
+    # Keep the existing full-title route and its reviewed detailed evidence.
+    if any(compact(d['public']['title']) in compact(question) for d in corpus['documents'].values()):return None
+    feed=corpus.get('guidance_feed',{});now=datetime.now(timezone.utc)
+    named=named_records(question,feed,now)
+    if not named:return None
+    # Reuse only explicit self-reported facts; hypothetical facts stay separate.
+    if not rag_dialogue.rag_profile.hypothetical(question):
+        facts,error=rag_dialogue.rag_profile.extract(question,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
+        if not error:context={**context,**facts}
+    scoped={**corpus,'guidance_feed':{**feed,'notices':named}}
+    return respond(rag_dialogue.PREFIX+json.dumps(context,ensure_ascii=False)+rag_dialogue.SEPARATOR+question,scoped,named=True)
+
+
+def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False,named=False):
     feed=corpus.get('guidance_feed')
     if not feed:return None
     question,context=rag_dialogue.decode(encoded);now=datetime.now(timezone.utc)
@@ -222,8 +259,11 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
         question=page['query']
         context={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','last_kind')}
         explicit=False
+        subjects=named_records(question,feed,now)
+        if subjects:
+            feed={**feed,'notices':subjects};named=True
     strict={d['public']['id'] for d in corpus['documents'].values()}
-    found=matches(question,feed,context,now)
+    found=records(feed,now) if named else matches(question,feed,context,now)
     exact=[n for n in found if re.sub(r'[^0-9a-z가-힣]','',rag_dialogue.normalized(n['title']).lower()) in re.sub(r'[^0-9a-z가-힣]','',rag_dialogue.normalized(question).lower())]
     if explicit:
         found=[n for n in exact if include_approved or n['id'] not in strict]
@@ -231,7 +271,7 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
     elif fallback and fallback.get('programs') and not page and len(found)<=3 and question!='선택한 조건으로 지원사업을 찾아주세요.':return None
     # Follow-up to a metadata-only listing: do not redirect it to another approved business.
     previous=[] if page else context.get('notice_ids',[])
-    if question!='선택한 조건으로 지원사업을 찾아주세요.' and not explicit and previous and any(i not in strict for i in previous) and re.search(r'그\s*사업|서류|지원금|자격|조건|마감|첫\s*번째|두\s*번째|^신청\s*가능',question):
+    if question!='선택한 조건으로 지원사업을 찾아주세요.' and not explicit and not named and previous and any(i not in strict for i in previous) and re.search(r'그\s*사업|서류|지원금|자격|조건|마감|첫\s*번째|두\s*번째|^신청\s*가능',question):
         by_id={n['id']:n for n in records(feed,now)}
         found=[by_id[i] for i in previous if i in by_id]
         if not found:return rag_dialogue.response('앞서 본 공고를 최신 공개 목록에서 확인할 수 없어 안내를 보류했어요. 사업명으로 다시 찾아주세요.',{},'clarify',status='needs_verification')
