@@ -80,5 +80,12 @@ if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--feed',type=Path,required=True);p.add_argument('--output',type=Path,required=True);args=p.parse_args()
  results=run(json.loads(args.feed.read_text('utf8')));args.output.write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding='utf8')
  failures=[{'scenario':r['name'],'q':s['question'],'failures':s['failures']} for r in results for s in r['turns'] if s['failures']]
- print(json.dumps({'scenarios':len(results),'turns':sum(len(r['turns']) for r in results),'failed_turns':len(failures),'failures':failures},ensure_ascii=False))
+ feed=json.loads(args.feed.read_text('utf8'));count_checks=0
+ for area in ('익산','전북','전국'):
+  context={'search_scope':area,'search_mode':'regional','planned':True,'crop':'마늘','farm_region':'김제','farm_registered':'no'}
+  base=area+' 지원사업 알려줘';ids=lambda q:[n['id'] for n in cat.matches(q,feed,context)]
+  for count in ('7개','5~10개'):
+   count_checks+=1
+   if ids(base)!=ids(base+' '+count):failures.append({'scenario':'result count must not change relevance','q':base+' '+count,'failures':['candidate set changed']})
+ print(json.dumps({'scenarios':len(results),'turns':sum(len(r['turns']) for r in results),'count_checks':count_checks,'failures':failures},ensure_ascii=False))
  raise SystemExit(1 if failures else 0)

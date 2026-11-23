@@ -157,6 +157,8 @@ def matches(question,feed,context=None,now=None):
     personal=question=='선택한 조건으로 지원사업을 찾아주세요.'
     archive=archive_requested(text)
     text=re.sub(r'지난|과거|예전|종료된|마감된|기한\s*경과|기간\s*경과|보여줘|포함','',text)
+    # Requested cardinality controls pagination, never business relevance.
+    text=re.sub(r'(?<!\d)\d{1,2}\s*(?:[~～〜\-–]\s*\d{1,2})?\s*개(?:로|\s*정도)?(?=\s|[.!?,]|$)','',text).strip()
     compact=re.sub(r'[^0-9a-z가-힣]','',text.lower())
     area=rag_dialogue.area_in(text) or context.get('farm_region') or context.get('region')
     import rag_crops
