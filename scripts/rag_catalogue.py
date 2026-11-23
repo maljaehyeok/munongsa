@@ -213,6 +213,66 @@ def program(item,feed,now,context=None):
             'card':{'group':'elapsed' if state=='elapsed' else 'mismatch' if verdict['excluded'] else 'related' if verdict['category']=='A' else 'check','label':verdict['label'],'lifecycle_label':review.closure_label(shown),'period_state':{'window':'within_recorded_dates','upcoming':'upcoming','elapsed':'elapsed'}.get(state,'unknown'),
                     'institution':item['institution'],'reception_state':shown.get('actual_reception_state','unconfirmed'),'facts':{'region':'전국 · 세부 자격 별도 확인' if shown.get('geographic_scope')=='nationwide_verified' and shown.get('verified_facts_at') else shown.get('region') if shown.get('region') not in (None,'','unknown') else '확인 필요','target':shown.get('target') if shown.get('target') not in (None,'','unknown') else preparation.get('target_note','확인 필요'),'support':shown.get('support') if shown.get('support') not in (None,'','unknown') else '공식 원문에서 확인','funding':[],'method':[preparation.get('method') or shown['application_method']] if preparation.get('method') or shown.get('application_method') else [],'documents':[preparation['documents_note']] if preparation.get('documents_note') else []},'questions':result_comparison['questions']}}
 
+def listing_version(item,feed,now=None):
+    """Bound the existing three-item reference to public facts, not collection times."""
+    now=now or datetime.now(timezone.utc)
+    observation=feed.get('notice_observations',{}).get(item['id'],{})
+    material={k:item.get(k) for k in ('id','title','url','target','region','support','application_period','reference_application_dates','eligibility','publication','verification_status')}
+    material['conditions']=approved_conditions(item,feed,now)
+    material['observed']={k:observation.get(k) for k in ('article_sha','reference_application_dates','standing','review_required')}
+    return hashlib.sha256(json.dumps(material,sort_keys=True,ensure_ascii=False,separators=(',',':')).encode()).hexdigest()
+
+
+def continuation(encoded,corpus,grounded=None):
+    """Resolve public-list follow-ups with the same comparison function, no new facts."""
+    question,actual=rag_dialogue.decode(encoded);feed=corpus.get('guidance_feed',{});now=datetime.now(timezone.utc)
+    ids=actual.get('list_ids',[]);versions=actual.get('list_versions',[])
+    strict={d['public']['id'] for d in corpus['documents'].values()}
+    if not ids or all(i in strict for i in ids):return None
+    ordinal=[]
+    for m in re.finditer(r'(첫|두|세|[1-3])\s*(?:번째|번)(?:째)?',question):
+        index={'첫':0,'두':1,'세':2,'1':0,'2':1,'3':2}[m[1]]
+        if index not in ordinal:ordinal.append(index)
+    if actual.get('conversation_topic') and not ordinal and not re.search(r'사업|공고|아까|앞서',question):return None
+    follow=bool(ordinal or re.search(r'그\s*(?:사업|공고|거|건|게)|아까|앞서|다시\s*설명|등록\s*(?:하면|한다면)|그럼|신청\s*(?:조건|서류)|필요한\s*서류',question))
+    if not follow:return None
+    facts,error=rag_dialogue.rag_profile.extract(question,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
+    if error:return rag_dialogue.response(error,actual,'clarify',status='needs_verification')
+    if facts and not re.search(r'[?？]|신청|가능|달라|비교|조건|다시',question):return None
+    by_id={n['id']:n for n in records(feed,now)}
+    intact=len(ids)==len(versions) and all(i in by_id and listing_version(by_id[i],feed,now)==v for i,v in zip(ids,versions))
+    if not intact:return rag_dialogue.response('앞서 본 공고의 근거나 목록이 변경되어 순서를 그대로 사용할 수 없어요. 사업명으로 다시 확인해 주세요.',actual,'clarify',status='needs_verification')
+    if re.search(r'그거\s*말고\s*다른|아까.*말고.*다른',question):
+        return rag_dialogue.response('현재 입력 조건은 유지했어요. 다른 공고를 찾을 분야나 사업명을 알려주세요. 같은 공고를 새로운 결과처럼 다시 추천하지 않을게요.',actual,'clarify',suggestions=('선택한 조건으로 지원사업을 찾아주세요.',))
+    if re.search(r'아니.*내\s*말|그게\s*아니',question):return rag_dialogue.response('어떤 사업이나 조건을 다르게 이해했는지 짧게 알려주세요. 말씀하시기 전에는 입력 조건을 바꾸지 않을게요.',actual,'clarify')
+    if any(i>=len(ids) for i in ordinal):return rag_dialogue.response('앞선 목록에 해당 순서가 없어요. 사업명이나 표시된 순서를 알려주세요.',actual,'clarify')
+    current=[i for i in actual.get('notice_ids',[]) if i in ids] or ids
+    if not ordinal and len(current)>1 and not re.search(r'그\s*중|사업.*기억|공고.*기억|목록|모두|다시\s*설명',question):
+        return rag_dialogue.response('어느 사업을 확인할까요? 앞선 목록의 순서나 사업명을 알려주세요.',actual,'clarify',suggestions=tuple(by_id[i]['title'] for i in ids))
+    selected=[ids[i] for i in ordinal] if ordinal else current
+    hypothetical=rag_dialogue.rag_profile.hypothetical(question)
+    evaluation={**actual,**facts}
+    if hypothetical and re.search(r'등록\s*(?:하면|한다면|할\s*경우)',question):evaluation['farm_registered']='yes'
+    context={**actual,'notice_ids':selected} if hypothetical else {**evaluation,'notice_ids':selected}
+    programs=[]
+    by_key={doc['public']['id']:key for key,doc in corpus['documents'].items()}
+    query='신청 방법 접수처 필수 제출서류' if re.search(r'서류|접수|어떻게|준비|방법',question) else '지원 금액 한도' if re.search(r'지원금|금액|얼마',question) else '신청 대상 자격 조건 지원 내용'
+    for identity in selected:
+        part=grounded(query,by_key[identity]) if grounded and identity in by_key else None
+        detailed=next((p for p in (part or {}).get('programs',[]) if p['id']==identity),None)
+        if detailed:
+            detailed['comparison']=comparison(by_id[identity],feed,evaluation,now)
+            detailed['card']['label']=detailed['comparison']['decision']['label']
+            detailed['card']['group']='mismatch' if detailed['comparison']['decision']['excluded'] else detailed['card']['group']
+            detailed['card']['questions']=detailed['comparison']['questions']
+        programs.append(detailed or program(by_id[identity],feed,now,evaluation))
+    for p in programs:p['comparison']['hypothetical']=hypothetical
+    intro='가정한 조건으로 비교했으며 실제 영농 조건은 변경하지 않았어요.' if hypothetical else '앞서 선택한 공고를 현재 입력 조건으로 다시 비교했어요.'
+    parts=[p['name']+' — '+p['comparison']['decision']['label']+'\n추가 확인: '+' / '.join(p['comparison']['checks']) for p in programs]
+    return {**rag_dialogue.response(intro+' 전체 신청 자격과 실제 접수는 확정하지 않습니다. 카드의 ‘내 조건·신청 준비 보기’에서 방법·서류·공식 근거를 확인하세요.\n\n'+'\n\n'.join(parts),context,'answer',status='needs_verification',programs=programs),
+            'sources':[{'url':p['source_url'],'location':'현재 공개 공고·승인된 일부 조건 비교','checked_at':p['checked_at']} for p in programs],'understanding':'rules'}
+
+
 def named_records(question,feed,now=None):
     """Public title phrases identify the subject, never an eligibility condition."""
     compact=lambda s:re.sub(r'[^0-9a-z가-힣]','',rag_dialogue.normalized(s).lower())
@@ -289,7 +349,7 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
         shown=review.fact_project(n,feed.get('verified_facts',{}).get(n['id']),now)
         quality=discovery_quality(question,n['title'],search_text(n,feed,now).replace(n['institution'],''),context,n['title']+' '+str(shown.get('support','')))
         p['card']['discovery_reason']='사업명 일치' if n in exact else ' / '.join(quality['reasons'])[:160]
-    conversation={**context,'notice_ids':[n['id'] for n in chosen],'list_ids':[],'list_versions':[],'last_kind':'results'}
+    conversation={**context,'notice_ids':[n['id'] for n in chosen],'list_ids':[n['id'] for n in chosen],'list_versions':[listing_version(n,feed,now) for n in chosen],'last_kind':'results'}
     summary='\n\n'.join(p['name']+' — '+p['card']['label']+'\n확인할 조건: '+' / '.join(p['comparison']['checks']) for p in programs)
     intro='질문과 공개 정보의 관련성을 기준으로 탐색한 결과입니다. 관련성이 신청 자격 충족을 뜻하지 않습니다. 공식 조건 비교와 추가 확인 사항을 따로 확인하세요.' if question!='선택한 조건으로 지원사업을 찾아주세요.' else '공식 조건 비교와 참고 공고를 구분해 안내합니다. 전체 신청 자격과 실제 접수는 별도 확인이 필요합니다.'
     return {**rag_dialogue.response(f'공식 공고 {len(found)}건 중 {offset+1}~{offset+len(chosen)}번째를 안내합니다. '+intro+'\n\n'+summary,conversation,'catalogue',status='needs_verification',programs=programs),

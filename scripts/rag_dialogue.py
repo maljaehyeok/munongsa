@@ -49,7 +49,7 @@ def decode(value):
         if 'conversation_topic' in context:
             import rag_nlu
             if not rag_nlu.valid_topic(context['conversation_topic']):raise ValueError('conversation_topic')
-        if 'casual_topic' in context and context['casual_topic'] not in ('meal','wellbeing','humor'):raise ValueError('context_topic')
+        if 'casual_topic' in context and context['casual_topic'] not in ('meal','wellbeing','humor','scope'):raise ValueError('context_topic')
         if 'region' in context and not rag_profile.valid_area(context['region'],AREAS):raise ValueError('context_region')
         if 'crop' in context and context['crop'] not in CROPS:raise ValueError('context_crop')
         if 'farm_registered' in context and context['farm_registered'] not in ('yes','no'):raise ValueError('context_registration')
@@ -66,6 +66,24 @@ def decode(value):
 def response(answer,context,kind='context',status='answered',programs=None,sources=None,suggestions=()):
     return {'mode':'local','status':status,'answer':answer,'programs':programs or [],'sources':sources or [],
             'kind':kind,'conversation':context,'suggestions':list(suggestions)[:3]}
+
+
+def scope_response(encoded):
+    """Only clear unrelated requests are gated; keyword-free follow-ups pass through."""
+    question,context=decode(encoded);compact=re.sub(r'[\s?!.,~，。]','',question)
+    agricultural=bool(re.search(r'농업|농사|영농|지원사업|공고|신청|경영체|재배|작물|병해충|농약|비료|금융|대출|융자|시설|귀농|청년농',question))
+    unrelated=not agricultural and bool(re.search(r'게임|연예인|아이돌|드라마|영화|음악|맛집|점심|저녁.*(?:메뉴|추천|먹)|메뉴.*추천|농담|재밌는\s*이야기',question))
+    if unrelated:
+        next_context={**context,'casual_topic':'scope'};next_context.pop('conversation_topic',None)
+        message='지원사업·농업금융·재배기술 중 무엇이 궁금하세요?' if context.get('casual_topic')=='scope' else '무농사는 농업 지원사업과 영농 정보를 중심으로 상담해요. 지원사업, 신청 자격, 농업금융, 재배기술 등에 관해 질문해 주세요.'
+        return response(message,next_context,'context')
+    if context.get('casual_topic')=='scope' and compact in ('그게무슨뜻이야','무슨뜻이야','다시설명해줘','응','네'):
+        return response('농업 지원사업을 찾거나 신청 조건·준비사항을 확인하는 상담을 도와드린다는 뜻이에요.',context,'context')
+    if re.fullmatch(r'[ㄱ-ㅎㅏ-ㅣ\d\s?!.,~]+',question):
+        return response('어떤 사업이나 영농 상황이 궁금한지 한 문장으로 다시 알려주세요.',context,'clarify',status='needs_verification')
+    if re.search(r'아까|앞서',question) and re.search(r'기억|말했던|알려준',question) and not (context.get('notice_ids') or context.get('list_ids')):
+        return response('이 대화에서 앞서 본 공고를 확인할 수 없어요. 사업명이나 찾는 분야를 알려주시면 다시 확인할게요.',context,'clarify',status='needs_verification')
+    return None
 
 def area_in(question):
     text=normalized(question)
@@ -183,9 +201,15 @@ def service_response(encoded,corpus,intent=None):
     """Bounded service guidance, not generated grant facts. No model call needed."""
     question,context=decode(encoded);context=dict(context)
     live={d['public']['id'] for d in corpus['documents'].values()}
+    if corpus.get('guidance_feed'):
+        import rag_catalogue
+        live.update(n['id'] for n in rag_catalogue.records(corpus['guidance_feed']))
     context['notice_ids']=[v for v in context.get('notice_ids',[]) if v in live]
     facts,error=rag_profile.extract(question,AREAS,CROPS,normalized)
     if error:return None
+    if re.search(r'재배기술|재배\s*방법|병해충|농약\s*안전|비료\s*사용\s*처방',question) and not re.search(r'지원사업|보조금|공고',question):
+        actual=context if rag_profile.hypothetical(question) else {**context,**facts}
+        return response('선택한 작물의 공식 재배기술 자료를 확인할 수 있어요. 병해충 정보와 등록농약·안전사용기준은 구분하며, 개인별 농약·비료 처방은 확정하지 않습니다.',actual,'cultivation')
     if re.search(r'처음.*(?:농사|농업)|(?:농사|농업).*처음',question) and re.search(r'뭐부터|무엇부터|어떻게|시작',question):
         actual=context if rag_profile.hypothetical(question) else {**context,**facts}
         missing=[]

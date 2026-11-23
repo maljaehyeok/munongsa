@@ -30,6 +30,13 @@
   let editor=null;
   const contextLine=document.createElement('details');contextLine.className='chat-context';contextLine.hidden=true;byId('chatQuestion').closest('.chat-composer-inner').prepend(contextLine);
   function updateContext(value,share=true){
+    const factKey=c=>JSON.stringify([...fields.map(f=>f.key),'age_basis','group_min'].map(k=>[k,c?.[k]??null]));
+    if(factKey(conversation)!==factKey(value)){
+      lastNext=null;lastDiscovery=false;
+      for(const result of history.querySelectorAll('.chat-result-message'))if(!result.dataset.profileStale){
+        result.dataset.profileStale='true';result.prepend(text('p','영농 조건이 변경됐어요. 이 카드는 변경 전 비교입니다.','chat-condition-note'));
+      }
+    }
     conversation=value||{};
     if(share)globalThis.MunongsaFarmProfile?.apply(conversation);
     const labels=fields.filter(f=>conversation[f.key]!==undefined).map(f=>{
@@ -115,7 +122,7 @@
     const validContext=context===undefined||(context&&typeof context==='object'&&!Array.isArray(context)
       &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm','casual_topic','conversation_topic'].includes(k))
       &&(context.conversation_topic===undefined||(typeof context.conversation_topic==='string'&&context.conversation_topic.length<=80&&!/https?:\/\/|www\.|[\d<>\n\r@]|API[_ -]?KEY|sk-/i.test(context.conversation_topic)))
-      &&(context.casual_topic===undefined||['meal','wellbeing','humor'].includes(context.casual_topic))
+      &&(context.casual_topic===undefined||['meal','wellbeing','humor','scope'].includes(context.casual_topic))
       &&['age','group_size','farming_years','facility_sqm'].every(k=>context[k]===undefined||(typeof context[k]==='number'&&Number.isFinite(context[k])&&context[k]>=0&&context[k]<=100000000))
       &&['planned','cultivating','group_min'].every(k=>context[k]===undefined||typeof context[k]==='boolean')
       &&['region','crop','farm_registered','farm_region','age_basis','applicant'].every(k=>context[k]===undefined||(str(context[k])&&context[k].length<=24))
@@ -170,6 +177,9 @@
     const answer=text('div','','chat-answer-text');
     readableAnswer(data).split(/\n{2,}/).filter(Boolean).forEach(paragraph=>answer.append(text('p',paragraph)));
     node.append(answer);node.className='chat-message chat-message-answer';
+    if(data.kind==='cultivation'){
+      node.append(conditionButton('선택 작물의 공식 재배기술 보기',()=>{dialog.close();if(typeof navigateTo==='function')navigateTo('cultivation');}));
+    }
     if(['help','condition_edit'].includes(data.kind)){
       const actions=text('div','','chat-followups');
       actions.append(conditionButton('내 조건 선택·수정',()=>{if(!pending)openConditions();}));node.append(actions);
@@ -220,7 +230,7 @@
       comparison.append(text('h4','내 조건과 비교'),text('strong',comparisonLabel,'condition-result '+(mismatch?'mismatch':program.card.group)));
       const reasons=program.comparison?.reasons||[],checks=program.comparison?.checks||[];
       const compared=localRow?MunongsaSupportReview.conditionViews(localRow.comparisonItem||localRow.item,localRow.match).filter(v=>v.evidenceUrl&&v.fact!=='확인 필요'):[];
-      const mismatchFacts=compared.filter(v=>v.comparison==='mismatch').slice(0,2).map(v=>v.label+' 조건 불일치 · '+v.fact);
+      const mismatchFacts=mismatch&&!program.comparison?.hypothetical?compared.filter(v=>v.comparison==='mismatch').slice(0,2).map(v=>v.label+' 조건 불일치 · '+v.fact):[];
       const points=[...new Set([...(mismatchFacts.length?mismatchFacts:[reasons[0]]),checks[0]].filter(Boolean))];
       if(points.length){const ul=document.createElement('ul');points.forEach(v=>ul.append(text('li',v)));comparison.append(ul);}
       else comparison.append(text('p','지역 관련성만으로 전체 신청 자격을 판단하지 않습니다.'));
@@ -292,7 +302,7 @@
     if(!question||question.length>1000||/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(question)){input.setCustomValidity('질문을 1~1,000자로 입력하고 사용할 수 없는 특수문자는 지워주세요.');input.reportValidity();return;}
     if(editor?.isConnected)editor.remove();
     pullProfile();
-    const another=/^(?:다른|다음|나머지)\s*(?:관련\s*)?(?:지원)?사업(?:도)?\s*(?:보여줘|알려줘)[.!?\s]*$|그거\s*말고\s*다른\s*거|아까\s*보여준\s*사업\s*말고\s*다른/.test(question);
+    const another=/^(?:다른|다음|나머지)\s*(?:관련\s*)?(?:지원)?사업(?:도)?\s*(?:보여줘|알려줘)[.!?\s]*$|그거\s*말고\s*다른\s*(?:거|건|사업)|아까\s*보여준\s*사업\s*말고\s*다른/.test(question);
     if(another&&lastNext)question='[공식 공고 더 보기]\n'+JSON.stringify(lastNext);
     else if(another&&lastDiscovery){message('무농사','같은 검색에서 추가로 보여드릴 관련 공고가 없어요. 앞서 본 공고의 공식 조건을 확인하거나, 시설·교육 등 찾는 목적을 바꿔 주세요. 입력한 영농 조건은 그대로 유지합니다.','answer');input.value='';sync();return;}
     showConversation(true);byId('chatFormStatus').textContent='';message('내 질문',label,'user');
@@ -317,7 +327,10 @@
       const raw=await response.text();if(raw.length>262144)throw new Error('답변이 너무 커서 표시하지 않았어요. 질문을 나눠 보내주세요.');
       let data;try{data=JSON.parse(raw)}catch{throw new Error('서버 응답 형식을 확인해야 해요.');}
       if(!validResponse(data))throw new Error('답변의 공식 근거 항목을 확인해야 해요.');
-      lastNext=data.catalogue_next||null;if(data.catalogue_total!==undefined)lastDiscovery=true;else if(data.kind==='condition_edit'||data.kind==='context')lastDiscovery=false;updateContext(data.conversation);if(finance&&!mixed)await financeAnswer(status,question,false,financeFollow);else{renderAnswer(status,data);offerConditions(status,data);if(mixed)await financeAnswer(status,question,true,false);}if(question!==selectionQuestion)input.value='';
+      updateContext(data.conversation);
+      if(data.catalogue_total!==undefined){lastNext=data.catalogue_next||null;lastDiscovery=true;}
+      else if(data.kind==='condition_edit'||finance||data.kind==='cultivation'||data.conversation?.conversation_topic){lastNext=null;lastDiscovery=false;}
+      if(finance&&!mixed&&!data.programs.length)await financeAnswer(status,question,false,financeFollow);else{if(data.programs.length)financeState=null;renderAnswer(status,data);offerConditions(status,data);if(mixed)await financeAnswer(status,question,true,false);}if(question!==selectionQuestion)input.value='';
     }catch(error){
       const value=error.name==='AbortError'?'응답 대기 시간이 초과됐어요. 잠시 후 다시 보내주세요.':error instanceof Error&&error.name==='Error'?error.message:'서버에 연결하지 못했어요. 잠시 후 다시 보내주세요.';
       status.className='chat-message chat-message-error';status.replaceChildren(text('p','다시 시도해 주세요','chat-message-label'),text('p',value),text('p',question===selectionQuestion?'선택한 조건은 유지돼요. 내 조건 선택·수정에서 다시 검색해 주세요.':'작성한 질문은 입력창에 그대로 남아 있어요.'));

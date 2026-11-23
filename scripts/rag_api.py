@@ -145,6 +145,13 @@ def local_pipeline(question):
     import rag_dialogue,rag_nlu
     original,context=rag_dialogue.decode(question)
     import rag_catalogue
+    scoped=rag_dialogue.scope_response(question)
+    if scoped:
+        scoped['understanding']='rules'
+        return scoped
+    if context.get('casual_topic')=='scope':
+        context.pop('casual_topic',None)
+        question=rag_dialogue.PREFIX+json.dumps(context,ensure_ascii=False)+rag_dialogue.SEPARATOR+original
     # A new definition question or a follow-up to ordinary conversation must
     # not inherit an old crop/list as the subject. One existing NLU call only.
     explanation=bool(re.search(r'뭐야|무엇(?:이야|인가|인지)|무슨\s*(?:뜻|말)|뜻(?:이|은)|설명|풀어\s*(?:줘|줄)',original))
@@ -155,7 +162,7 @@ def local_pipeline(question):
         interpreted_question=context['conversation_topic']+'에 대해 쉬운 말로 설명해 주세요.' if referential else original
         understood=rag_nlu.interpret(interpreted_question,context)
         reply=rag_nlu.safe_conversation_reply(understood or {},original)
-        clean={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','casual_topic','conversation_topic')}
+        clean={k:v for k,v in context.items() if k not in ('notice_ids','casual_topic','conversation_topic')}
         topic=context['conversation_topic'] if referential else (understood or {}).get('topic') or (original if rag_nlu.valid_topic(original) else '')
         if topic and rag_nlu.valid_topic(topic):clean['conversation_topic']=topic
         out=rag_dialogue.response(reply or '일반 개념에 관한 질문으로 이해했어요. 지금은 설명을 확인하지 못해 이전 지원사업을 대신 추천하지 않았습니다. 궁금한 개념을 조금 더 구체적으로 알려주세요.',clean,'context',status='answered' if reply else 'needs_verification')
@@ -189,6 +196,12 @@ def local_pipeline(question):
         response.update(kind='answer',conversation={**context,'notice_ids':[document['public']['id']]},suggestions=[],understanding='rules')
         decorate_cards(response,corpus)
         return rag_dialogue.remember(response,corpus)
+    def followup_evidence(query,key):
+        out=grounded_response(query,corpus,key)
+        decorate_cards(out,corpus)
+        return out
+    public_followup=rag_catalogue.continuation(question,corpus,followup_evidence)
+    if public_followup:return catalogue_response(public_followup,corpus)
     guidance=rag_dialogue.service_response(question,corpus) or rag_dialogue.continuation(question,corpus,lambda query,notice:grounded_response(query,corpus,notice))
     # Topic discovery is independent of eligibility. Reuse only the validated
     # profile parser; never infer residence from a notice or spend a model call.
@@ -210,6 +223,8 @@ def local_pipeline(question):
     # Do not spend a model call reinterpreting this fixed UI action.
     understood=None if guidance or original=='선택한 조건으로 지원사업을 찾아주세요.' else rag_nlu.interpret(original,context)
     used_gpt=understood is not None
+    if understood and understood.get('intent')=='other':
+        return rag_dialogue.response('어떤 영농 상황이나 사업을 확인하려는지 조금 더 알려주세요. 기존 입력 조건은 유지합니다.',context,'clarify',status='needs_verification')
     if understood and rag_nlu.safe_conversation_reply(understood,original):
         clean={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','casual_topic','conversation_topic')}
         topic=understood.get('topic','')
@@ -223,7 +238,7 @@ def local_pipeline(question):
     if understood is None and not guidance and not re.search(r'지원|사업|공고|신청|자격|등록|서류|마감|시설|교육|농기계|비료|보험|금융|대출|융자|자금|그럼|아까|그\s*사업',original):
         facts,error=rag_dialogue.rag_profile.extract(original,rag_dialogue.AREAS,rag_dialogue.CROPS,rag_dialogue.normalized)
         if not facts and not error:
-            clean={k:v for k,v in context.items() if k not in ('notice_ids','list_ids','list_versions','casual_topic','conversation_topic')}
+            clean=dict(context)
             return rag_dialogue.remember(rag_dialogue.response('새 질문의 뜻을 충분히 파악하지 못했어요. 어떤 이야기를 하고 싶은지 조금 더 알려주세요. 이전 작물 조건만으로 지원사업을 대신 추천하지 않을게요.',clean,'context',status='needs_verification'),corpus)
     if understood is None and rag_dialogue.rag_profile.hypothetical(original):
         understood={'intent':'discover','facts':{},'hypothetical':True,'reference_previous':bool(context.get('notice_ids')),'uncertain':[]}
@@ -243,6 +258,7 @@ def local_pipeline(question):
     listing=rag_catalogue.respond(routed,corpus,fallback=response)
     if listing and (response.get('kind') in ('catalogue','recommendation','clarify') or context.get('notice_ids')):
         if understood and understood['hypothetical'] and actual is not None:
+            for p in listing['programs']:p['comparison']['hypothetical']=True
             listing['conversation']={**actual,'notice_ids':listing['conversation'].get('notice_ids',[]),'list_ids':[],'list_versions':[],'last_kind':'results'}
             listing['answer']='가정한 조건으로 탐색했습니다. 실제 입력 상태와 전체 신청 자격은 변경하거나 확정하지 않았습니다.\n\n'+listing['answer']
         return catalogue_response(listing,corpus)
@@ -265,7 +281,9 @@ def local_pipeline(question):
         notice_ids=response.get('conversation',{}).get('notice_ids',context.get('notice_ids',[]))
         response['conversation']={**actual,'notice_ids':notice_ids}
         note='가정한 조건으로 비교했습니다. 실제 입력 상태는 변경하지 않았으며 전체 신청 자격을 확정하지 않습니다.'
-        for program in response['programs']:program['comparison']['checks'].insert(0,note)
+        for program in response['programs']:
+            program['comparison']['checks'].insert(0,note)
+            program['comparison']['hypothetical']=True
         response['answer']=note+'\n\n'+response['answer']
     response['understanding']='gpt' if used_gpt else 'rules'
     if used_gpt:response['answer']=response['answer'].replace('외부 AI에 자료를 보내지 않고 저장된 검증 근거를 정리했습니다.','질문 이해에는 GPT를, 지원사업 안내에는 저장된 공식 근거를 사용했습니다.')

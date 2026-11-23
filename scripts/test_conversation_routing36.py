@@ -37,12 +37,11 @@ class ConversationRouting(unittest.TestCase):
             self.assertFalse(n.safe_conversation_reply(value,'농업이 뭐야?'))
         for topic in ('<script>','https://example.com','연락처 01000000000'):
             with self.assertRaises(ValueError):d.decode(d.PREFIX+json.dumps({'conversation_topic':topic})+d.SEPARATOR+'안녕')
-    def test_smalltalk_replaces_topic_and_keeps_conditions(self):
+    def test_smalltalk_uses_agricultural_scope_without_model(self):
         v={**self.knowledge('좋아하는 음악이나 가볍게 쉬는 이야기를 나눠도 좋아요.','음악 이야기'),'intent':'other'}
         out=self.run_question('음악 이야기하자',{'crop':'토마토','conversation_topic':'농업의 의미'},v)
-        self.assertEqual(out['conversation']['conversation_topic'],'음악 이야기');self.assertFalse(out['programs'])
-        hints=json.loads(n.make_request('음악 이야기하자',{'conversation_topic':'농업의 의미'})['input'])
-        self.assertIsNone(hints['conversation_topic'])
+        self.assertEqual(out['conversation']['casual_topic'],'scope');self.assertFalse(out['programs'])
+        self.assertNotIn('conversation_topic',out['conversation']);self.assertIsNone(self.last_nlu_question)
     def test_budget_and_schema_stay_bounded(self):
         self.assertEqual((n.DAILY_CALLS,n.MINUTE_CALLS,n.MAX_OUTPUT),(30,6,512))
         raw={**self.knowledge(),'facts':[]}
@@ -51,7 +50,7 @@ class ConversationRouting(unittest.TestCase):
     def test_unavailable_smalltalk_does_not_resume_old_crop(self):
         out=self.run_question('음악 이야기하자',{'crop':'토마토','notice_ids':['NOTICE-old']})
         self.assertEqual(out['kind'],'context');self.assertFalse(out['programs'])
-        self.assertNotIn('notice_ids',out['conversation'])
+        self.assertEqual(out['conversation']['notice_ids'],['NOTICE-old']);self.assertIsNone(self.last_nlu_question)
     def test_business_result_replaces_general_subject(self):
         out=d.response('공개 목록',{'conversation_topic':'음악','casual_topic':'humor'},'catalogue')
         with patch.dict('os.environ',{},clear=True):out=api.catalogue_response(out,{'documents':{}})
