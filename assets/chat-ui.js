@@ -29,8 +29,11 @@
     {key:'farming_years',label:'영농 경력 (년)',min:0,max:100,step:0.01},
     {key:'facility_sqm',label:'시설면적 (㎡)',min:0,max:100000000,step:0.0001}
   ];
-  let editor=null;
-  const contextLine=document.createElement('details');contextLine.className='chat-context';contextLine.hidden=true;byId('chatQuestion').closest('.chat-composer-inner').prepend(contextLine);
+  let editor=null,editorOpener=null;
+  const contextLine=document.createElement('details');contextLine.className='chat-context';contextLine.id='chatSettings';contextLine.hidden=true;body.prepend(contextLine);
+  function settingsButtonState(){for(const b of dialog.querySelectorAll('.chat-header-condition')){const active=!!editor?.isConnected||contextLine.open;b.textContent=active?'설정 닫기':'조건 설정';b.setAttribute('aria-expanded',String(active));b.setAttribute('aria-controls','chatSettings');}}
+  contextLine.addEventListener('toggle',settingsButtonState);
+  function conditionValues(heading,rows){const panel=text('section','','chat-condition-summary');panel.append(text('h3',heading));const dl=document.createElement('dl');for(const [label,value]of rows){const row=document.createElement('div');row.append(text('dt',label),text('dd',value===undefined||value===''?'설정 안 함':String(value)));dl.append(row);}panel.append(dl);return panel;}
   function updateContext(value,share=true){
     const factKey=c=>JSON.stringify([...fields.map(f=>f.key),'age_basis','group_min','search_scope','search_crop','search_mode','search_purpose','search_period','search_limit'].map(k=>[k,c?.[k]??null]));
     if(factKey(conversation)!==factKey(value)){
@@ -41,23 +44,25 @@
     }
     conversation=value||{};
     if(share)globalThis.MunongsaFarmProfile?.apply(conversation);
-    const labels=fields.filter(f=>conversation[f.key]!==undefined).map(f=>{
+    const labels=fields.map(f=>{
       const value=conversation[f.key],option=f.options?.find(v=>String(Array.isArray(v)?v[0]:v)===String(value));
-      return f.label+': '+(Array.isArray(option)?option[1]:option||value)+(f.key==='group_size'&&conversation.group_min?' 이상':'');
+      return [{crop:'영농 작물',farm_registered:'경영체 등록',planned:'시작 상태'}[f.key]||f.label,value===undefined?undefined:(Array.isArray(option)?option[1]:option||value)+(f.key==='group_size'&&conversation.group_min?' 이상':'')];
     });
     const money=globalThis.MunongsaFarmProfile?.money||{};
-    for(const [key,label]of Object.entries({own:'보유 자금',loan:'희망 대출금',project:'필요 사업비',required:'필요 자금'}))if(money[key])labels.push(label+': '+MunongsaAmounts.wonText(money[key]));
-    contextLine.replaceChildren(text('summary','영농 조건 '+labels.length+'개 · 검색 조건 확인'));
-    const values=text('div','','chat-context-values');labels.forEach(label=>values.append(text('span',label)));
-    values.prepend(text('strong','실제 영농 조건'));if(!labels.length)values.append(text('span','입력한 영농 사실 없음'));
-    values.append(conditionButton('영농 조건 수정',()=>openConditions([],'profile')));
-    const search=text('div','','chat-context-values');search.append(text('strong','지원사업 검색 조건'),text('span',searchLabel(conversation)),conditionButton('검색 조건 수정',()=>openConditions()),conditionButton('현재 검색 조건으로 다시 찾기',()=>currentSearch()));
+    for(const [key,label]of Object.entries({own:'보유 자금',loan:'희망 대출금',project:'필요 사업비',required:'필요 자금'}))if(money[key]!==undefined)labels.push([label,MunongsaAmounts.wonText(money[key])]);
+    contextLine.replaceChildren(text('summary','내 영농정보와 검색 조건 확인'));
+    const values=conditionValues('실제 영농정보',labels.slice(0,6));
+    const extra=document.createElement('details');extra.append(text('summary','나이·경력·자금 등 추가 정보'),conditionValues('추가 영농정보',labels.slice(6)));values.append(extra,conditionButton('영농정보 입력·수정',()=>openConditions([],'profile')));
+    const search=conditionValues('지원사업 검색 조건',[
+      ['이번 검색 지역',conversation.search_scope||'지역 제한 없음'],['관심 작물',conversation.search_crop||'작물 제한 없음'],['지원 분야',purposes.find(p=>p[0]===conversation.search_purpose)?.[1]||'분야 제한 없음'],['공고 범위',conversation.search_period==='past'?'기재기간 경과':conversation.search_period==='current'?'기재기간 남음 · 접수 별도 확인':'현재 목록 · 기간 미확인 포함'],['요청 개수',conversation.search_limit?conversation.search_limit+'개까지':'기본 · 3건씩 보기']]);
+    search.append(text('p','검색 조건은 실제 거주지·영농지·재배 사실을 바꾸지 않아요.','chat-condition-note'),conditionButton('검색 조건 수정',()=>openConditions()),conditionButton('현재 검색 조건으로 다시 찾기',()=>currentSearch(),'primary'));
     const resets=document.createElement('details');resets.append(text('summary','초기화 범위 선택'),text('p','검색만 비우면 영농 조건은 유지해요. 새 대화는 영농 조건을 유지하고 검색·공고 참조를 지워요.','chat-condition-note'),conditionButton('검색 조건 초기화',()=>resetLocal('search')),conditionButton('영농 프로필 초기화',()=>resetLocal('profile')));
     const all=conditionButton('모두 초기화',()=>{if(all.dataset.confirm==='yes'){resetLocal('all');return;}all.dataset.confirm='yes';all.textContent='영농 조건·검색·상담 모두 지우기 (확인)';});resets.append(all);
-    contextLine.append(values,search,resets);contextLine.hidden=false;
+    const panels=text('div','','chat-condition-panels');panels.append(values,search);contextLine.append(panels,resets);contextLine.hidden=false;settingsButtonState();
   }
   function searchLabel(c){return [c.search_scope||'지역 제한 없음',c.search_crop||'작물 제한 없음',purposes.find(p=>p[0]===c.search_purpose)?.[1]||'분야 제한 없음',c.search_period==='past'?'기재기간 경과':c.search_period==='current'?'기재기간 남음 · 접수 별도 확인':'현재 목록 · 기간 미확인 포함',c.search_limit?c.search_limit+'개까지':'3건씩 보기'].join(' · ');}
-  function closeEditor(){if(editor?.isConnected)editor.remove();dialog.classList.remove('chat-editing');}
+  function closeEditor(restoreFocus=false){if(editor?.isConnected)editor.remove();editor=null;dialog.classList.remove('chat-editing');settingsButtonState();if(restoreFocus)(editorOpener?.isConnected?editorOpener:dialog.querySelector('.chat-header-condition')||input).focus({preventScroll:true});}
+  function editorHeading(title,note){const row=text('div','','chat-editor-heading');const heading=text('h3',title);heading.tabIndex=-1;row.append(heading,conditionButton('설정 닫기',()=>closeEditor(true)));editor.append(row,text('p',note));contextLine.open=false;settingsButtonState();requestAnimationFrame(()=>{if(editor?.isConnected)heading.focus({preventScroll:true});});}
   function resetLocal(scope,dom=true){
     const next=state.transition(conversation,scope);
     if(dom&&(scope==='profile'||scope==='all')){resetting=true;byId('resetFilters').click();resetting=false;}
@@ -73,9 +78,9 @@
   }
   function currentSearch(){if(pending)return;updateContext({...conversation,search_action:'current'},false);closeEditor();sendQuestion('현재 검색 조건으로 다시 검색');}
   function openSearch(){
-    if(pending)return;closeEditor();pullProfile();
+    if(pending)return;editorOpener=document.activeElement;closeEditor();pullProfile();
     editor=text('section','','chat-message chat-message-answer chat-condition-editor');editor.setAttribute('aria-label','검색 조건 수정');dialog.classList.add('chat-editing');
-    editor.append(text('h3','지원사업 검색 조건'),text('p','선택 안 함은 이 검색의 제한 해제입니다. 실제 거주지·영농지·재배 사실은 바꾸지 않아요. 적용 전에는 현재 검색이 유지됩니다.'));
+    editorHeading('지원사업 검색 조건','선택 안 함은 이번 검색의 제한 해제입니다. 실제 영농정보는 바뀌지 않으며 적용 전에는 기존 검색 조건을 유지해요.');
     const draft=document.createElement('form'),grid=text('div','','chat-condition-grid'),controls=new Map();
     const places=state?MunongsaInputUX.places().map(p=>[[p.region,p.district].filter(Boolean).join(' '),p.text]):areas;
     for(const [key,label,options] of [['search_scope','탐색 지역',[["전국","전국 탐색"],...places]],['search_crop','관심 작물',crops],['search_purpose','지원 분야',purposes.filter(p=>p[0])],['search_period','기간 필터',[['current','기재기간이 남은 공고 · 접수 별도 확인'],['past','기재기간 경과 공고']]],['search_limit','결과 개수',[[5,'5개까지'],[7,'7개까지'],[10,'10개까지']]]]){
@@ -89,13 +94,13 @@
     draft.addEventListener('submit',event=>{event.preventDefault();if(pending)return;const values={};controls.forEach((control,key)=>{if(control.value)values[key]=key==='search_limit'?Number(control.value):control.value;});updateContext(state.transition(conversation,'replace',values),false);closeEditor();sendQuestion('선택한 검색 조건으로 찾아줘');});
   }
   function requestQuestion(question){return Object.keys(conversation).length?'[무농사 대화 참고]\n'+JSON.stringify(conversation)+'\n[질문]\n'+question:question;}
-  function conditionButton(label,fn){const b=text('button',label);b.type='button';b.addEventListener('click',fn);return b;}
+  function conditionButton(label,fn,kind='secondary'){const b=text('button',label,'chat-action chat-action-'+kind);b.type='button';b.addEventListener('click',fn);return b;}
   function openConditions(missing=[],mode='search'){
     if(mode==='search'){openSearch();return;}
     if(pending)return;
-    closeEditor();pullProfile();dialog.classList.add('chat-editing');
+    editorOpener=document.activeElement;closeEditor();pullProfile();dialog.classList.add('chat-editing');
     editor=text('section','','chat-message chat-message-answer chat-condition-editor');editor.setAttribute('aria-label','내 조건 선택');
-    editor.append(text('h3','실제 영농 조건 수정'),text('p','영농 사실을 수정하는 화면입니다. 비운 값은 적용할 때 해제됩니다. 관심 지역·작물만 바꾸려면 검색 조건 수정을 이용하세요.'));
+    editorHeading('실제 영농정보 입력·수정','직접 알려준 영농 사실입니다. 비운 항목은 적용할 때 해제돼요. 관심 지역·작물만 바꾸려면 검색 조건을 수정하세요.');
     const form=document.createElement('form');form.className='chat-condition-form';
     const core=text('div','','chat-condition-grid'),extra=document.createElement('details');extra.className='chat-condition-extra';
     extra.append(text('summary','나이·경력·인원·시설면적 더 선택'));const advanced=text('div','','chat-condition-grid'),controls=new Map();
@@ -346,7 +351,9 @@
   document.querySelectorAll('[data-start-chat]').forEach(button=>button.addEventListener('click',openChat));
   document.querySelectorAll('[data-start-conditions]').forEach(button=>button.addEventListener('click',event=>{if(!localPage&&typeof navigateTo==='function'){navigateTo('support');return;}openChat(event);openConditions();}));
   byId('closeChat').addEventListener('click',()=>dialog.close());
-  document.querySelectorAll('[data-chat-select]').forEach(button=>button.addEventListener('click',()=>openConditions()));
+  document.querySelectorAll('[data-chat-select]').forEach(button=>button.addEventListener('click',()=>{if(button.classList.contains('chat-header-condition')){if(editor?.isConnected){closeEditor(true);return;}contextLine.open=!contextLine.open;if(contextLine.open){contextLine.scrollIntoView({block:'start'});contextLine.querySelector('summary').focus();}}else openConditions();}));
+  dialog.addEventListener('cancel',event=>{if(editor?.isConnected){event.preventDefault();closeEditor(true);}});
+  dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});
   dialog.addEventListener('close',()=>{closeEditor();document.documentElement.classList.remove('chat-ui-open');if(opener?.isConnected)opener.focus({preventScroll:true});});
   document.querySelectorAll('[data-chat-conditions]').forEach(button=>button.addEventListener('click',()=>{
     if(typeof navigationReady==='undefined'||!navigationReady||typeof navigateTo!=='function'){byId('chatFormStatus').textContent='지원사업 자료를 불러오고 있어요. 잠시 후 다시 눌러주세요.';return;}
@@ -423,7 +430,7 @@
     }catch{node.append(text('p','금융자료를 불러오지 못했어요. 농업금융 메뉴에서 다시 확인해 주세요.'));}
   }
   byId('clearChat').addEventListener('click',()=>{if(pending)return;closeEditor();history.replaceChildren();updateContext(state.transition(conversation,'conversation'),false);financeState=null;lastNext=null;lastDiscovery=false;stateRevision++;pullProfile();showConversation(false);input.value='';byId('chatFormStatus').textContent='새 대화: 실제 영농 조건은 유지하고 검색·공고·이전 상담 참조는 지웠어요.';sync();body.scrollTop=0;input.focus({preventScroll:true});});
-  document.querySelectorAll('[data-chat-select]').forEach(b=>b.textContent='조건 확인·수정');
+  document.querySelectorAll('[data-chat-select]').forEach(b=>{if(!b.classList.contains('chat-header-condition'))b.textContent='검색 조건 선택·수정';});
   if(!localPage){byId('chatAvailability').replaceChildren(text('span','질문 상담은 '),Object.assign(text('a','무농사 대표 주소 ↗'),{href:'https://munongsa.duckdns.org/'}),text('span','에서 이용할 수 있어요. 조건 검색은 이 화면에서도 이용할 수 있어요.'));byId('chatPrivacy').textContent='현재 주소에서는 질문을 전송하지 않아요. 대표 주소에서 상담을 이용해 주세요.';}
   const discovery=byId('supportDiscovery');
   document.querySelector('[data-scroll-services]').addEventListener('click',event=>{

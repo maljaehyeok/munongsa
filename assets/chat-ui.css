@@ -183,3 +183,32 @@ body[data-view="explore"] .support-discovery{display:none}
 
 .application-next,.funding-plan{border:1px solid #888;border-radius:12px;padding:16px;margin:16px 0;overflow-wrap:anywhere}.application-next li{margin:12px 0;line-height:1.7}.application-next button,.funding-plan button{min-height:44px;max-width:100%;white-space:normal}.funding-plan input{box-sizing:border-box;max-width:100%;width:100%;padding:12px;margin:6px 0 12px}.funding-plan label{display:block;margin-top:12px}.funding-plan summary{cursor:pointer;font-weight:600}.journey-next{display:block;border-top:1px solid #777;padding-top:10px}.chat-finance-guide{overflow-wrap:anywhere}.chat-finance-guide ol{padding-left:20px}
 #modal .application-next{padding:12px;margin:12px 0;font-size:14px;line-height:1.7}#modal .application-next h3{margin:0 0 8px;font-size:16px}#modal .application-next p{margin:8px 0}#modal .application-next ol{padding-left:20px;margin:8px 0}#modal .application-next li{margin:8px 0}
+
+/* Consultation settings, readable states and keyboard controls. */
+.chat-ui .chat-header-condition{display:inline-flex;align-items:center;border:1px solid #777;color:#fff;font-size:14px;padding:8px 12px;transition:none}
+.chat-ui .chat-header-condition[aria-expanded=true]{background:#f5f5f5;color:#171717;border-color:#f5f5f5}
+.chat-ui .chat-header-condition[aria-expanded=true]:hover{background:#ddd;color:#171717}
+.chat-ui .chat-action-primary:not(:disabled):hover{background:#353535;color:#fff}
+.chat-ui .chat-context{max-width:800px;margin:0 auto 24px;padding:0 16px;border:1px solid #666;border-radius:12px;font-size:15px;background:#202020;color:#eee}
+.chat-context>summary{font-weight:700;cursor:pointer;padding:14px 0;min-height:48px;color:#fff}
+.chat-condition-panels{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-bottom:12px}
+.chat-condition-summary{background:#fff;color:#171717;border-radius:9px;padding:16px;min-width:0}
+.chat-ui .chat-condition-summary h3{color:#171717;font-size:17px;line-height:1.5;margin:0 0 12px}
+.chat-condition-summary dl{margin:0 0 14px}.chat-condition-summary dl>div{display:grid;grid-template-columns:105px minmax(0,1fr);gap:8px;border-bottom:1px solid #ddd;padding:8px 0;line-height:1.6;font-size:15px}
+.chat-condition-summary dt{color:#555}.chat-condition-summary dd{margin:0;color:#171717;overflow-wrap:anywhere;font-weight:650}
+.chat-condition-summary>details>summary{color:#333;cursor:pointer;min-height:44px;padding:10px 0;font-size:14px}
+.chat-condition-summary .chat-condition-summary{padding:0}
+.chat-ui .chat-action{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 12px;border:1px solid #888;border-radius:7px;background:transparent;color:inherit;font-size:15px;line-height:1.5;white-space:normal;text-align:left;max-width:100%}
+.chat-ui .chat-action-primary{background:#242424;color:#fff;border-color:#242424;font-weight:750}
+.chat-context>.chat-condition-panels button{width:100%;margin-top:8px}
+.chat-context>details{border-top:1px solid #666;padding:8px 0 12px}.chat-context>details>summary{cursor:pointer;min-height:44px;padding:10px 0}
+.chat-ui .chat-context>details button{margin:4px 4px 4px 0}
+.chat-editor-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.chat-editor-heading h3{margin:5px 0!important}.chat-editor-heading button{flex-shrink:0}
+.chat-ui .chat-condition-summary :is(button,summary):focus-visible{outline:3px solid #171717;outline-offset:3px}
+.chat-ui :is(input,select):focus-visible{outline:3px solid #171717;outline-offset:3px}
+.chat-ui .chat-message-user{font-size:16px;line-height:1.8}
+.chat-ui .chat-notice-title{font-size:19px;line-height:1.55}
+.chat-ui .chat-notice :is(.notice-institution,.chat-notice-meta),.chat-ui .chat-answer-caution,.chat-ui #chatPrivacy{font-size:14px;line-height:1.75}
+.chat-ui .chat-condition-block :is(p,li){font-size:15px;line-height:1.8}
+.chat-ui .chat-followups button{font-size:15px;min-height:44px;line-height:1.6}
+@media(max-width:600px){.chat-condition-panels{grid-template-columns:1fr;gap:12px}.chat-ui .chat-context{padding:0 12px}.chat-condition-summary{padding:14px}.chat-condition-summary dl>div{grid-template-columns:95px minmax(0,1fr)}.chat-ui .chat-header-condition{font-size:14px!important;min-height:44px;padding:8px!important}.chat-ui .chat-editor-heading{flex-wrap:wrap}.chat-ui .chat-notice-title{font-size:18px}.chat-ui .chat-condition-field :is(input,select){font-size:16px}.chat-ui .chat-answer-text{font-size:16px}.chat-ui .chat-condition-actions button{font-size:15px}}

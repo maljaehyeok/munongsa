@@ -324,6 +324,8 @@ def named_records(question,feed,now=None):
     compact=lambda s:re.sub(r'[^0-9a-z가-힣]','',rag_dialogue.normalized(s).lower())
     q=compact(question);ranked=[]
     generic={'지원','지원사업','사업','공고','신청','안내','모집','추가','변경','연장','농업인','농업경영체','농업경영정보','농업법인','농업용','농업','계획','시행계획','첨부파일','있음','신청서','등록'}
+    # A broad support category is not a unique official business identifier.
+    generic.update({'시설지원사업','교육지원사업','수출지원사업','보험지원사업','금융지원사업','농기계지원사업'})
     for item in records(feed,now):
         words=[v for v in re.findall(r'[가-힣a-zA-Z]+',item['title']) if v not in generic and len(v)>=2]
         phrases=[v for v in words if len(v)>=6]

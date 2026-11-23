@@ -4,9 +4,9 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "1062222347e17ec00c7c27a87055c3541df5ebc4507f0613aa4c0f7f6ba8ea58",
-    "assets/chat-ui.js": "f56f0481f3c538c1b3d30b34971d37e6bb5dc3aab558895e0c15db4fefe6a0bd",
-    "assets/chat-ui.css": "c6d9cd72aa92148f40373cfd0ab130e9b0f90779e42c0f1ebd868ddc4c0cd638",
+    "index.html": "bbddf8b0d967e367838716030cd10d473d54a245d3fc02a2b67a6d4d4aedc15e",
+    "assets/chat-ui.js": "021c7a87acb188e76ce445864d25bd4f6daf1c93ec21b81162359c8295ccd06c",
+    "assets/chat-ui.css": "75843362a4bad9e2694f9cf1550584f8ed1c87912824adcda6dd4b349de74d0b",
     "assets/support-public.js": "2ded1c4458e71a5deb7cdb974df9e8172e602298f12767e5c5525bbb9f83d8a2",
     "assets/selection-view.js": "50babcdf8fc50f270b253e7d337def0e987cc0b05361ce919b88b8c3d3c77401",
     "assets/input-ux.js": "c6984f7ce8069b5a9c9a53dab0b63c688d51bb57abd06f6ae02d9922ffdccf8d",
@@ -41,7 +41,7 @@
     "scripts/rag_dialogue.py": "424eca840dce99fb56ccdce7b8a259e3c88035393934f51c03e5d01f6bf28f75",
     "scripts/rag_profile.py": "621b3d620a017782f09bdf009f1f54a8b08e79fe90d5cbcbd6da5b3b4c408cc2",
     "scripts/rag_nlu.py": "e5b2c767e428e78d3b99756f8636e8574338c559430696effb4bae97ed7df029",
-    "scripts/rag_catalogue.py": "6c43b6447d0b110aebbeb1e11bb23e576683756e9f8062848fa81646cd5c88c4",
+    "scripts/rag_catalogue.py": "2e80c276fc735ee505bfa6856287de8fab9ab66e07ea35def7c7ea0fee0747d8",
     "scripts/support_notice_review.py": "a04d3b5bb2e9558eddc019b7153cd79674c02847966b20ecefb6eba616d45d56",
     "scripts/support_recommendation_readiness.py": "fb86b08cd4af6266eb38bb42eefa46666353c651188f52e5cb52d8d0dc2228a7",
     "scripts/support_runtime/api_core.py": "7331af6d2bab977d38e90edb815fccb02024186654a450c0fb282df0eaf07254",
@@ -54,7 +54,7 @@
     "scripts/support_http_projection.py": "f3f0b358c0aa7cb3161ecf38951f10683fc2e1bfb67aef24d1aa70f42e152011",
     "assets/crop-directory.js": "0caceea922520f3065219596bc2f4de245149bebace918045fc297cbf91017d7",
     "deploy/chatbot/chat_wsgi.py": "fffbce60eaf37274bc533335f128d82901d38051deee935dc48fb6b754a9fcf5",
-    "scripts/rag_turn.py": "265a415437eb85dd2d76b578013dc582b32838bb973f4d4ad24246949587aae9"
+    "scripts/rag_turn.py": "ecffc8839ae40bdfe07ff1e998e2f48690366dcc910a9d0a3a5c0429bd59a627"
   },
   "private_corpus": {
     "assets/support-details.json": "01a3d2eb61ab8ea6d70b1514eddafaf60b107e3a777c5df342991ac5c6e72c62",
