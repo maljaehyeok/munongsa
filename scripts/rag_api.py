@@ -191,7 +191,7 @@ def local_pipeline(question):
     explanation=bool(re.search(r'뭐야|무엇(?:이야|인가|인지)|무슨\s*(?:뜻|말)|뜻(?:이|은)|설명|풀어\s*(?:줘|줄)',original))
     knowledge_request=rag_nlu.concept_request(original,context)
     if knowledge_request:
-        referential=bool(context.get('conversation_topic')) and bool(re.search(r'그게|그건|그거|그걸|그것|왜|다시|쉽게|풀어|예를|예시|무슨\s*(?:뜻|말)',original)) and not re.search(r'농업|농사|재배|작물|스마트팜|윤작|연작|경영체|독립경영|청년후계농|보조금|융자',original)
+        referential=bool(context.get('conversation_topic')) and bool(re.search(r'그게|그건|그거|그걸|그것|왜|다시|쉽게|풀어|예를|예시|무슨\s*(?:뜻|말)',original)) and not rag_nlu.concept_subject(original)
         # Resolve the subject, not the answer. No second call or factual history.
         interpreted_question=context['conversation_topic']+'에 대해, 후속 질문: '+original if referential else original
         understood=rag_nlu.interpret(interpreted_question,context)

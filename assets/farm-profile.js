@@ -4,7 +4,7 @@
  const valid=v=>v!==undefined&&v!==null&&v!==''&&!['all','unknown'].includes(v);
  const applicant={individual:'individual_farmer',young:'individual_farmer',prospective:'individual_farmer',agricultural_corporation:'agricultural_corporation',group:'group',business:'business'};
  let explicitStage=null,extraFacts={};
- const profileKeys=['region','farm_region','crop','farm_registered','applicant','age','age_basis','group_size','group_min','farming_years','planned','cultivating','facility_sqm'];
+ const profileKeys=['region','farm_region','crop','farm_registered','applicant','age','age_basis','group_size','group_min','farming_years','planned','cultivating','facility_sqm','farm_area_ha','export_activity'];
  const searchKeys=['search_scope','search_crop','search_mode','search_query','search_purpose','search_period','search_limit','search_action','empty_search'];
  const referenceKeys=['notice_ids','list_ids','list_versions','last_kind','search_offset','search_fingerprint','conversation_topic','casual_topic','empty_search'];
  const pick=(c,keys)=>Object.fromEntries(keys.filter(k=>c[k]!==undefined).map(k=>[k,c[k]]));
@@ -24,6 +24,9 @@
    if(valid(p[a]))out[key]=[p[a],valid(p[b])?p[b]:''].filter(Boolean).join(' ');
   }
   if(['yes','no'].includes(p.farmRegistered))out.farm_registered=p.farmRegistered;
+  delete out.farm_area_ha;delete out.export_activity;
+  if(valid(p.area)&&Number.isFinite(Number(p.area))&&Number(p.area)>=0&&Number(p.area)<=100000)out.farm_area_ha=Number(p.area);
+  if(['yes','no'].includes(p.exporterStatus))out.export_activity=p.exporterStatus;
   if(applicant[p.applicant])out.applicant=applicant[p.applicant];
   delete out.age;if(valid(p.age)&&Number.isFinite(Number(p.age))){out.age=Number(p.age);if(!out.age_basis||previous.age!==undefined&&previous.age!==out.age)out.age_basis='unspecified';}else delete out.age_basis;
   for(const [key,field]of [['farming_years','farmingYears'],['group_size','groupMemberCount']]){delete out[key];if(valid(p[field])&&Number.isFinite(Number(p[field]))&&Number(p[field])>=0)out[key]=Number(p[field]);}
@@ -35,7 +38,7 @@
   const crop=root.MunongsaCropDirectory?.find(document.getElementById('crop')?.selectedOptions[0]?.textContent||p.crop);
   if(crop)out.crop=crop.name;
   if(previous.crop!==undefined&&previous.crop!==out.crop||previous.planned!==undefined&&previous.planned!==out.planned)delete out.cultivating;
-  const changed=['region','farm_region','crop','farm_registered','applicant','age','age_basis','planned','farming_years','group_size'].some(k=>previous[k]!==out[k]);
+  const changed=['region','farm_region','crop','farm_registered','applicant','age','age_basis','planned','farming_years','group_size','farm_area_ha','export_activity'].some(k=>previous[k]!==out[k]);
   if(changed)referenceKeys.forEach(k=>delete out[k]);
   if(changed&&out.search_mode==='profile'){
    for(const k of ['search_crop','search_scope','search_query'])delete out[k];
@@ -56,6 +59,8 @@
    const set=(id,value)=>{const e=document.getElementById(id);if(e&&e.value!==value){e.value=value;e.dispatchEvent(new Event('change',{bubbles:true}));}};
    if(context.age!==before.age){ux.commit('birth','');set('age',context.age===undefined?'':String(context.age));}
    set('farmRegistered',context.farm_registered||'unknown');
+   if(context.farm_area_ha!==before.farm_area_ha)set('area',context.farm_area_ha===undefined?'':String(context.farm_area_ha));
+   if(context.export_activity!==before.export_activity)set('exporterStatus',context.export_activity||'unknown');
    for(const [key,field]of [['farming_years','farmingYears'],['group_size','groupMemberCount']])if(context[key]!==before[key])set(field,context[key]===undefined?'':String(context[key]));
    if(context.applicant!==toConversation(readProfile()).applicant)set('applicant',Object.keys(applicant).find(k=>applicant[k]===context.applicant)||'all');
    if(context.planned===true)set('farmingSituation','preparing');

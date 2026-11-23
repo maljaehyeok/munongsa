@@ -6,8 +6,8 @@ No model, network, persistence, invented thresholds or eligibility certification
 import re
 import math
 
-NUMBERS={'age':(0,120),'group_size':(1,100000),'farming_years':(0,100),'facility_sqm':(0,100000000)}
-ENUMS={'age_basis':('international','unspecified'),'applicant':('individual_farmer','group','agricultural_corporation','business')}
+NUMBERS={'age':(0,120),'group_size':(1,100000),'farming_years':(0,100),'facility_sqm':(0,100000000),'farm_area_ha':(0,100000)}
+ENUMS={'age_basis':('international','unspecified'),'applicant':('individual_farmer','group','agricultural_corporation','business'),'export_activity':('yes','no')}
 BOOLEANS=('planned','cultivating','group_min')
 KEYS=set(NUMBERS)|set(ENUMS)|set(BOOLEANS)|{'farm_region'}
 
@@ -193,6 +193,12 @@ def compare(document,context,valid_url,areas):
                 known=not context.get('group_min') or v.get('max') is None;ok=in_range(context['group_size'],v);reason='공동 신청 인원 비교'
             elif kind=='crop' and isinstance(v.get('any_of'),list):
                 known=bool(context.get('cultivating') and context.get('crop'));ok=context.get('crop') in v['any_of'];reason='실제 재배 작물과 공고 작물 비교'
+            elif kind=='export_activity' and type(v.get('required')) is bool:
+                known=context.get('export_activity') in ('yes','no');ok=(context.get('export_activity')=='yes')==v['required'];reason='직접 입력한 수출 활동과 공식 조건 비교'
+                if not known:missing.append('수출 활동 여부를 조건 설정에서 알려주세요.')
+            elif kind=='scale' and v.get('metric')=='cultivated_area' and v.get('unit')=='ha':
+                known='farm_area_ha' in context;ok=known and in_range(context['farm_area_ha'],v);reason='입력한 재배면적(ha)과 공식 최소·최대 면적 비교'
+                if not known:missing.append('재배면적을 ha 단위로 입력해 주세요. 시설면적과는 별개입니다.')
             elif kind in ('age','farming_experience','independent_management'):
                 reason='연령·경력의 공고 기준일을 확인하기 전에는 충족 여부 판단 보류'
             if known:state='match' if ok else 'mismatch'

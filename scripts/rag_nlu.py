@@ -47,7 +47,7 @@ class ConceptCache:
     """Broker RAM only: standalone educational replies, never profiles/business facts."""
     def __init__(self):self.items={}
     def key(self,q):
-        if not concept_request(q) or re.search(r'그게|그건|그거|그럼|아까|이전|나는|저는|내가|제가|우리|나의|내\s',q):return None
+        if not concept_request(q) or re.search(r'그게|그건|그거|그럼|아까|이전|후속\s*질문|물어본|아니[, ]|나는|저는|내가|제가|우리|나의|내\s',q):return None
         return digest((MODEL+INSTRUCTIONS+re.sub(r'\s+',' ',q).strip()).encode())
     def get(self,q,now):
         key=self.key(q);entry=self.items.get(key)
@@ -78,12 +78,16 @@ INSTRUCTIONS+=' The CURRENT question takes precedence over a prior crop/business
 INSTRUCTIONS+=' For other, reply only about the current everyday subject: do not mention farming, agriculture, businesses or the old topic, even to say that the topic changed. For knowledge, give only a basic educational explanation. topic must be a subject phrase without personal names or contact information.'
 INSTRUCTIONS+=' General agricultural concepts include rotation, independent farm management, farm registration, subsidies versus repayable loans, and registration versus selection. Explain these in simple Korean, without legal definitions, eligibility thresholds, current scheme facts, amounts, dates, rates, URLs or prescriptions. These general distinctions are knowledge, not discover or funding. A conceptual question never reports personal farming or registration facts. Keep knowledge replies to two or three short sentences. Follow-up why/example questions should answer that purpose, not repeat the definition.'
 
+CONCEPT_SUBJECT=r'농업|농사|영농|재배|작물|스마트팜|윤작|연작|독립경영|경영체|청년후계농|청년농업인|보조금|융자|시설재배|거치기간|원금균등|분할상환'
+
+def concept_subject(question):return bool(re.search(CONCEPT_SUBJECT,question))
+
 def concept_request(question,context=None):
     """Only educational explanations; specific scheme facts stay in the evidence engine."""
     context=context or {}
     if re.search(r'올해|현재|접수|마감|공고|그\s*사업|아까.*지원사업|지원사업|관련.*사업|찾아|추천|신청|자격|선정될|필수|몇\s*년|몇\s*세|한도|금액|금리|서류|법적|법률|기준일|\d',question):return False
-    explanation=bool(re.search(r'이란|이?뭐야|무엇|무슨\s*(?:뜻|말)|뜻|설명|차이|같은|다른|달라|왜|예를|예시|쉽게|다시',question))
-    subject=bool(re.search(r'농업|농사|영농|재배|작물|스마트팜|윤작|연작|독립경영|경영체|청년후계농|청년농업인|보조금|융자|시설재배',question))
+    explanation=bool(re.search(r'이란|이?뭐야|무엇|무슨\s*(?:뜻|말)|뜻|설명|차이|같은|다른|달라|왜|예를|예시|쉽게|다시|물어본|묻는\s*거|질문한',question))
+    subject=concept_subject(question)
     follow=bool(context.get('conversation_topic')) and bool(re.search(r'그게|그건|그거|그걸|그것|그럼|왜|다시|쉽게|예를|예시',question))
     return explanation and (subject or follow)
 

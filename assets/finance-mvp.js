@@ -109,5 +109,10 @@
     const comparison=interestHtml(p,checkedAt)+(p.type==='신용보증'?`<h3>보증 상담 안내</h3><p>${esc(view.scope)}</p>`:`<h3>실제로 비교한 입력 항목</h3><ul>${view.rows.map(r=>`<li><b>${esc(r.text)}</b><br>${esc(r.detail)}</li>`).join('')}</ul><p class="finance-caution">${esc(view.scope)}</p>`);
     return {match:m,label:view.label,html:`<h3>주요 조건</h3><dl class="support-detail-list finance-facts">${fields.map(([a,b])=>`<div><dt>${esc(a)}</dt><dd>${esc(b)}</dd></div>`).join('')}</dl><p class="finance-amount-scope notice-meta">${esc(amountScope(p))}</p>${fundingHtml(p,profile)}${glossary}${applicationGuide(p)}<h3>현재 신청 안내</h3><p>${esc(p.status)}</p><div class="detail-actions">${action(p)}</div>${comparison}<h3>신청 시 확인할 조건</h3><ul>${p.conditions.map(c=>`<li>${esc(c)}</li>`).join('')}</ul><details class="more-conditions"><summary>추가로 확인할 항목</summary><ul>${p.unknowns.map(u=>`<li>${esc(u)}</li>`).join('')}</ul></details><p class="finance-caution">자금 배정·보증·대출 승인은 별도 심사합니다. 최신 금융조건과 접수 일정은 취급기관에서 확인하세요.</p><p>정보 확인일: <b>${esc(date(checkedAt))}</b> (한국시간)<br>자료 기준: ${esc(p.year)}</p><div class="cite"><b>${esc(p.source.publisher)}</b><p>${esc(p.source.location)}</p></div>`};
   }
-  const api={compare,filter,rank,discoveryQuery,card,detail,date,labels,comparisonView,fundingView,applicationGuide,interestAssumption,simpleInterest};root.MunongsaFinance=api;if(typeof module!=='undefined')module.exports=api;
+  function factRows(p,question){
+    // Verbatim approved fields only. A hypothetical amount is never a loan approval.
+    const fields=[[/금리|이자|보증료/,'금리·보증료','interest'],[/한도|얼마까지/,'제도상 한도·개인 승인액과 별개','limit'],[/거치/,'거치기간','grace'],[/상환|갚/,'상환·지급 방식','repayment'],[/대상|누가|자격/,'공식 안내의 대상·전체 자격은 별도 확인','target']];
+    return fields.filter(([pattern])=>pattern.test(question)).map(([,label,key])=>[label,p[key]]).filter(([,value])=>typeof value==='string'&&value.trim());
+  }
+  const api={compare,filter,rank,discoveryQuery,card,detail,date,labels,comparisonView,fundingView,applicationGuide,interestAssumption,simpleInterest,factRows};root.MunongsaFinance=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -27,7 +27,9 @@
     {key:'cultivating',label:'선택한 작물을 실제 재배하나요?',options:[['true','현재 재배'],['false','아직 재배하지 않음']]},
     {key:'group_size',label:'단체 구성원 수 (명)',min:1,max:100000,step:1},
     {key:'farming_years',label:'영농 경력 (년)',min:0,max:100,step:0.01},
-    {key:'facility_sqm',label:'시설면적 (㎡)',min:0,max:100000000,step:0.0001}
+    {key:'facility_sqm',label:'시설면적 (㎡)',min:0,max:100000000,step:0.0001},
+    {key:'farm_area_ha',label:'재배면적 (ha) · 시설면적과 별개',min:0,max:100000,step:0.0001},
+    {key:'export_activity',label:'수출 활동 여부',options:[['yes','수출 활동 있음'],['no','수출 활동 없음']]}
   ];
   let editor=null,editorOpener=null;
   const contextLine=document.createElement('details');contextLine.className='chat-context';contextLine.id='chatSettings';contextLine.hidden=true;body.prepend(contextLine);
@@ -103,7 +105,7 @@
     editorHeading('실제 영농정보 입력·수정','직접 알려준 영농 사실입니다. 비운 항목은 적용할 때 해제돼요. 관심 지역·작물만 바꾸려면 검색 조건을 수정하세요.');
     const form=document.createElement('form');form.className='chat-condition-form';
     const core=text('div','','chat-condition-grid'),extra=document.createElement('details');extra.className='chat-condition-extra';
-    extra.append(text('summary','나이·경력·인원·시설면적 더 선택'));const advanced=text('div','','chat-condition-grid'),controls=new Map();
+    extra.append(text('summary','나이·경력·인원·면적·수출 더 선택'));const advanced=text('div','','chat-condition-grid'),controls=new Map();
     fields.forEach((f,i)=>{
       const label=text('label','','chat-condition-field');label.append(text('span',f.label));
       const control=document.createElement(f.options?'select':'input');control.name=f.key;control.dataset.condition=f.key;
@@ -138,7 +140,7 @@
   }
   function offerConditions(node,data){
     if(['help','condition_edit'].includes(data.kind))return;
-    const map=[[/경영체/,'farm_registered'],[/거주|주소/,'region'],[/영농지역|농지/,'farm_region'],[/개인|단체·법인|신청자/,'applicant'],[/구성원|인원/,'group_size'],[/시설면적/,'facility_sqm'],[/나이|연령/,'age'],[/작물/,'crop']];
+    const map=[[/경영체/,'farm_registered'],[/거주|주소/,'region'],[/재배면적/,'farm_area_ha'],[/수출/,'export_activity'],[/영농지역|농지/,'farm_region'],[/개인|단체·법인|신청자/,'applicant'],[/구성원|인원/,'group_size'],[/시설면적/,'facility_sqm'],[/나이|연령/,'age'],[/작물/,'crop']];
     const missing=[...new Set((data.followup_questions||[]).flatMap(q=>map.filter(([re,key])=>re.test(q)&&conversation[key]===undefined).map(([,key])=>key)))];
     if(!missing.length)return;
     const row=text('div','','chat-followups');row.append(conditionButton('필요한 영농 조건 입력',()=>openConditions(missing,'profile')));node.append(row);
@@ -165,7 +167,7 @@
     const str=v=>typeof v==='string',strings=v=>Array.isArray(v)&&v.length<=100&&v.every(str);
     const context=data?.conversation;
     const validContext=context===undefined||(context&&typeof context==='object'&&!Array.isArray(context)
-      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm','casual_topic','conversation_topic','search_scope','search_query','search_offset','search_fingerprint','search_crop','search_mode','search_purpose','search_period','search_limit','search_action','empty_search','service','tech_crop','tech_topic','tech_resource'].includes(k))
+      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm','farm_area_ha','export_activity','casual_topic','conversation_topic','search_scope','search_query','search_offset','search_fingerprint','search_crop','search_mode','search_purpose','search_period','search_limit','search_action','empty_search','service','tech_crop','tech_topic','tech_resource'].includes(k))
       &&(context.search_mode===undefined||['focused','regional','profile','custom'].includes(context.search_mode))
       &&(context.search_period===undefined||['current','past'].includes(context.search_period))
       &&(context.search_action===undefined||['replace','current'].includes(context.search_action))
@@ -181,6 +183,8 @@
       &&(context.search_query===undefined||(typeof context.search_query==='string'&&context.search_query.length>0&&context.search_query.length<=300&&!/[<>\x00-\x1f]/.test(context.search_query)))
       &&(context.conversation_topic===undefined||(typeof context.conversation_topic==='string'&&context.conversation_topic.length<=80&&!/https?:\/\/|www\.|[\d<>\n\r@]|API[_ -]?KEY|sk-/i.test(context.conversation_topic)))
       &&(context.casual_topic===undefined||['meal','wellbeing','humor','scope'].includes(context.casual_topic))
+      &&(context.export_activity===undefined||['yes','no'].includes(context.export_activity))
+      &&(context.farm_area_ha===undefined||(typeof context.farm_area_ha==='number'&&Number.isFinite(context.farm_area_ha)&&context.farm_area_ha>=0&&context.farm_area_ha<=100000))
       &&['age','group_size','farming_years','facility_sqm'].every(k=>context[k]===undefined||(typeof context[k]==='number'&&Number.isFinite(context[k])&&context[k]>=0&&context[k]<=100000000))
       &&['planned','cultivating','group_min'].every(k=>context[k]===undefined||typeof context[k]==='boolean')
       &&['region','crop','farm_registered','farm_region','age_basis','applicant'].every(k=>context[k]===undefined||(str(context[k])&&context[k].length<=24))
@@ -384,7 +388,7 @@
     if(funding&&['loan','project'].includes(funding.kind))message('입력 확인',(funding.kind==='loan'?'희망 대출금: ':'필요 사업비: ')+MunongsaAmounts.wonText(funding.won)+'으로 따로 기억했어요. 필요 자금과 같은 금액으로 비교하려면 농업금융의 필요 자금에 입력해 주세요.','answer');
     const selectedSearch=/(?:선택|입력|설정|저장)(?:한|된)?\s*(?:영농\s*)?조건/.test(question)&&/검색|찾|탐색|지원\s*사업/.test(question);
     const namedFinance=(typeof financeMvp!=='undefined'?financeMvp?.products||[]:[]).some(p=>question.replace(/\s/g,'').includes(p.title.replace(/\([^)]*\)/g,'').replace(/\s/g,'')));
-    const financeFollow=!namedFinance&&!conversation.search_action&&!selectedSearch&&(financeState?.active||conversation.service==='finance')&&!/지원사업|공고|보조금|초기화|지워|비워/.test(question)&&/그\s*(?:사업|제도)|신청|서류|접수|준비|등록|조건|빌리|이자|상환|첫\s*번째|두\s*번째|세\s*번째|^응[?？]?$|무슨\s*뜻|다시\s*설명/.test(question);
+    const financeFollow=!namedFinance&&!conversation.search_action&&!selectedSearch&&(financeState?.active||conversation.service==='finance')&&!/지원사업|공고|보조금|초기화|지워|비워/.test(question)&&/그\s*(?:사업|제도)|신청|서류|접수|준비|등록|조건|빌리|금리|한도|거치|대상|이자|상환|첫\s*번째|두\s*번째|세\s*번째|^응[?？]?$|무슨\s*뜻|다시\s*설명/.test(question);
     const financeExcluded=/(?:융자|대출|금융)\s*(?:말고|제외|아닌)/.test(question);
     const finance=!conversation.search_action&&!financeExcluded&&(!!financeFollow||/대출|융자|정책자금|금융|농신보|농지연금|귀산촌|농업인행복|농업종합자금|농촌주택개량|식품가공원료|농촌융복합.*자금|사료.*자금|태양광.*자금|경영회생.*농지|농지\s*매매|(?:돈|자금)(?:이|이\s*더)?\s*부족|시설\s*(?:설치\s*)?자금/.test(question));
     const mixed=finance&&/지원사업|보조금/.test(question);
@@ -422,7 +426,17 @@
       const selected=follow?(position!==null?financeState?.ids[position]:financeState?.selected|| (financeState?.ids.length===1?financeState.ids[0]:null)):null;
       if(guide&&selected){const item=data.products.find(p=>p.id===selected);if(item){node.append(text('h3',item.title),text('p',MunongsaFinance.comparisonView(item,MunongsaFinance.compare(item,p)).scope));const content=text('section','','chat-finance-guide');content.innerHTML=MunongsaFinance.applicationGuide(item);node.append(content);const action=conditionButton('금융 상세정보에서 내 조건 확인',()=>{dialog.close();navigateTo('bank','',{kind:'financeMvp',key:item.id});});node.append(action);return;}}
       let found=MunongsaFinance.filter(data.products,MunongsaFinance.discoveryQuery(data.products,search),'all');
+      const chosen=selected?data.products.find(item=>item.id===selected):!follow&&found.length===1?found[0]:null;
+      const approvedFacts=chosen?MunongsaFinance.factRows(chosen,question):[];
+      if(chosen&&approvedFacts.length){
+        financeState={query:search,ids:[chosen.id],active:!append,selected:chosen.id};
+        node.append(text('h3',chosen.title));const facts=text('dl','','chat-notice-facts');
+        for(const [label,value]of approvedFacts){const row=text('div','','notice-fact');row.append(text('dt',label),text('dd',MunongsaAmounts.format(value)));facts.append(row);}node.append(facts);
+        node.append(text('p',MunongsaFinance.comparisonView(chosen,MunongsaFinance.compare(chosen,p)).scope),text('p','제도 안내 기준: '+chosen.year+' · 정보 확인일 '+(chosen.checkedAt||data.checkedAt)+' · 현재 접수·실제 적용 금리는 별도 확인','notice-meta'));
+        const source=text('a','공식 금융 안내 확인 ↗');source.href=chosen.source.url;source.target='_blank';source.rel='noopener noreferrer';source.className='source-action';node.append(source,conditionButton('금융 상세정보에서 내 조건 확인',()=>{dialog.close();navigateTo('bank','',{kind:'financeMvp',key:chosen.id});}));return;
+      }
       found=MunongsaFinance.rank(found,p).filter(item=>MunongsaFinance.compare(item,p).state!=='mismatch');
+      if(follow&&!chosen&&/금리|한도|거치|상환|대상/.test(question))node.append(text('p','어느 제도의 조건인지 순서나 제도명을 알려주세요. 서로 다른 제도의 수치를 섞어 안내하지 않습니다.'));
       node.append(text('p',found.length?'공식 금융 안내에서 찾은 관련 제도예요. 일부 조건 비교이며 신청 가능 확정이 아니에요.':'현재 조건으로 안내할 관련 금융제도가 부족해요. 조건을 확인하거나 취급기관에 문의해 주세요.'));
       financeState={query:search,ids:found.slice(offset,offset+3).map(p=>p.id),active:!append,selected:null};
       if(guide)node.append(text('p','어느 금융제도인지 선택하면 해당 제도의 공식 신청 안내만 보여드릴게요.'));
