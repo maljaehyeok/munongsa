@@ -201,11 +201,13 @@
     const heading=text('header','','chat-result-heading');
     heading.append(text('h3',data.catalogue_scope==='past'?'지난 공고 검색 결과':basic?'공식 공고 검색 결과':personal?'맞춤 추천 결과':'지원사업 검색 결과'),text('p',(data.catalogue_total||data.programs.length)+'건 중 '+(data.catalogue_start?data.catalogue_start+'~'+(data.catalogue_start+data.programs.length-1)+'번째':data.programs.length+'건')+'를 안내합니다. '+(basic?'기본 안내와 일부 조건 비교이며, 신청 가능 판정이 아닙니다.':'모집기간과 내 조건 비교를 함께 확인하세요.')));
     node.replaceChildren(heading);node.className='chat-message chat-message-answer chat-result-message';
+    const linkedRows=new Map((typeof approvedRows==='function'?approvedRows():[]).map(r=>[r.item.id,r]));
     for(const program of data.programs){
       const card=text('section','','card notice-card chat-notice');card.dataset.noticeId=program.id;
-      const d=MunongsaSupportReview.presentation({reference_application_dates:program.application_period,actual_reception_state:program.card.reception_state,known_closed:program.card.period_state==='elapsed'&&Boolean(program.card.lifecycle_label)});
+      const linked=linkedRows.get(program.id),localRow=linked?.item.url===program.source_url?linked:null;
+      const d=localRow?MunongsaSupportReview.presentation(localRow.item):MunongsaSupportReview.presentation({reference_application_dates:program.application_period,actual_reception_state:program.card.reception_state,known_closed:program.card.period_state==='elapsed'&&Boolean(program.card.lifecycle_label)});
       const status=text('div','','notice-status');
-      const periodLabel=program.card.lifecycle_label||{window:'기재 모집기간 내',upcoming:'모집 예정',elapsed:'모집기간 경과',unknown:'기간 확인 필요'}[d.state];
+      const periodLabel=(localRow?null:program.card.lifecycle_label)||{window:'기재 모집기간 내',upcoming:'모집 예정',standing:'상시·예산 조건 확인',elapsed:'모집기간 경과',unknown:d.historical_elapsed?'최신 모집 확인 필요':'기간 확인 필요'}[d.state];
       status.append(text('span',periodLabel,'notice-chip '+d.tone),text('strong',d.headline,'deadline-badge '+d.tone));
       for(const chip of d.chips.filter(c=>/최종 접수|로그인 이후/.test(c.text)))status.append(text('span',chip.text,'notice-chip check'));
       const order=(data.conversation?.list_ids||[]).indexOf(program.id);
@@ -220,7 +222,7 @@
       const points=[...new Set([reasons[0],checks[0]].filter(Boolean))];
       if(points.length){const ul=document.createElement('ul');points.forEach(v=>ul.append(text('li',v)));comparison.append(ul);}
       else comparison.append(text('p','지역 관련성만으로 전체 신청 자격을 판단하지 않습니다.'));
-      if(program.card.group==='elapsed')comparison.append(text('p',program.application_period.description||'과거 공고의 금액·조건은 현재 신청에 적용할 수 없습니다. 연장·재공고는 별도 확인하세요.'));
+      if(d.state==='elapsed')comparison.append(text('p',localRow?'기재 기간이 지난 안내입니다. 현재 신청에 그대로 적용하지 말고 연장·재공고를 별도로 확인하세요.':program.application_period.description||'과거 공고의 금액·조건은 현재 신청에 적용할 수 없습니다. 연장·재공고는 별도 확인하세요.'));
       card.append(comparison,status);
       const facts=document.createElement('dl');facts.className='chat-notice-facts';
       function fact(label,value){const row=text('div','','notice-fact');row.append(text('dt',label,'notice-fact-label'),text('dd',MunongsaAmounts.format(Array.isArray(value)?value.join('\n'):value),'notice-fact-value'));facts.append(row);}

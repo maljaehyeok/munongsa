@@ -55,6 +55,8 @@
     const urgent=!closed&&state!=='upcoming'&&days!==null&&days>=0&&days<=10;
     let headline=closed?(item.known_closed===true?'마감':'기한 경과'):state==='upcoming'?'모집 예정':days===0?'오늘 마감 · 시각 미확인':days!==null&&days>0?'마감 D-'+days:state==='window'?'기재 모집기간 내':'마감일 미확인';
     if(officialClosed)headline=cancelled?'공식 모집 취소 확인':item.actual_reception_state==='unavailable'?'접수 불가 확인':'공식 모집 종료 확인';
+    const historicalElapsed=state==='unknown'&&item.recorded_period_elapsed===true;
+    if(historicalElapsed)headline='과거 기간 경과 기록 · 최신 모집 미확인';
     if(!closed&&days===0&&cutoff)headline='오늘 '+Number(cutoff.slice(0,2))+'시'+(cutoff.slice(3,5)==='00'?'':Number(cutoff.slice(3,5))+'분')+(cutoff.length===8&&cutoff.slice(6)!=='00'?Number(cutoff.slice(6))+'초':'')+' 마감';
     const chips=[];
     const observed=item.actual_reception_state;
@@ -82,7 +84,7 @@
       tone:closed?'muted':urgent?'urgent':state==='window'?'window':state==='upcoming'?'upcoming':'check',
       periodText:start&&end?start+' ~ '+end+(cutoff?' '+cutoff+'(KST)':''):end?'기재 기한 '+end:'신청기간 확인 필요',
       // A calendar window is never a claim of verified reception or eligibility.
-      eligibility_confirmed:false,reception_confirmed:receptionConfirmed};
+      eligibility_confirmed:false,reception_confirmed:receptionConfirmed,historical_elapsed:historicalElapsed};
   }
   function sortRows(rows){
     const rank=r=>r.display.state==='elapsed'?6:r.display.operator_notice?0:r.display.urgent&&r.display.state!=='unknown'?1:r.display.state==='window'?2:r.display.state==='upcoming'?3:r.display.state==='standing'?4:5;
