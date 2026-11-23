@@ -57,6 +57,7 @@
     if(officialClosed)headline=cancelled?'공식 모집 취소 확인':item.actual_reception_state==='unavailable'?'접수 불가 확인':'공식 모집 종료 확인';
     const historicalElapsed=state==='unknown'&&item.recorded_period_elapsed===true;
     if(historicalElapsed)headline='과거 기간 경과 기록 · 최신 모집 미확인';
+    if(state==='unknown'&&item.recorded_standing_application===true&&!historicalElapsed)headline='과거 상시 안내 · 최신 접수 미확인';
     if(!closed&&days===0&&cutoff)headline='오늘 '+Number(cutoff.slice(0,2))+'시'+(cutoff.slice(3,5)==='00'?'':Number(cutoff.slice(3,5))+'분')+(cutoff.length===8&&cutoff.slice(6)!=='00'?Number(cutoff.slice(6))+'초':'')+' 마감';
     const chips=[];
     const observed=item.actual_reception_state;
@@ -82,7 +83,7 @@
     if(closed)chips.push({text:item.known_closed===true?'마감 확인':'기재 기간 경과',tone:'muted'});
     return {state,days,start,end,cutoff,urgent,headline:state==='standing'?'상시·예산 조건 확인':headline,chips,reference,operator_notice:state==='window'&&(observed==='operator_notice'||receptionConfirmed),
       tone:closed?'muted':urgent?'urgent':state==='window'?'window':state==='upcoming'?'upcoming':'check',
-      periodText:start&&end?start+' ~ '+end+(cutoff?' '+cutoff+'(KST)':''):end?'기재 기한 '+end:'신청기간 확인 필요',
+      periodText:start&&end?start+' ~ '+end+(cutoff?' '+cutoff+'(KST)':''):end?'기재 기한 '+end:state==='standing'?'상시·예산 소진 조건 · 현재 접수는 별도 확인':item.recorded_standing_application===true?'과거 상시 안내 · 최신 모집 확인 필요':'신청기간 확인 필요',
       // A calendar window is never a claim of verified reception or eligibility.
       eligibility_confirmed:false,reception_confirmed:receptionConfirmed,historical_elapsed:historicalElapsed};
   }

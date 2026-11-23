@@ -20,7 +20,7 @@
  function sourceButton(url,label='공식 공고 보기'){return root.MunongsaSupport.safeUrl(url)?`<a class="source-link source-action" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)} <span aria-hidden="true">↗</span></a>`:''}
  function supportDetail(item,row,display,period){
   const known=v=>typeof v==='string'&&v.trim()&&!['unknown','확인 필요'].includes(v),review=root.MunongsaSupportReview;
-  const views=row?review.conditionViews(item,row.match):[],facts=views.filter(v=>v.fact!=='확인 필요'),missing=views.filter(v=>v.fact==='확인 필요');
+  const views=row?review.conditionViews(row.comparisonItem||item,row.match):[],facts=views.filter(v=>v.fact!=='확인 필요'),missing=views.filter(v=>v.fact==='확인 필요');
   const status={match:'입력 조건 일치',mismatch:'입력 조건 불일치',check:'내 정보 또는 세부 조건 확인'};
   const documents=known(item.required_documents)?item.required_documents:Array.isArray(item.required_documents)&&item.required_documents.length&&item.required_documents.every(known)?item.required_documents.join(' · '):'필요 서류는 공식 공고에서 확인해 주세요.';
   const fields=[...(known(item.support)?[['지원 내용',item.support]]:[]),['신청기간',period],['모집 상태',recruitment(item,display)],['신청 대상',known(item.target)?item.target:'공식 공고의 신청 대상을 확인해 주세요.'],['대상 지역',known(item.region)?item.region:'공식 공고의 지역 요건을 확인해 주세요.'],...(!known(item.support)?[['지원 내용','지원 규모와 세부 내용은 공식 공고에서 확인해 주세요.']]:[]),['신청 방법',known(item.application_method)?item.application_method:'신청처와 접수 방법은 공식 공고에서 확인해 주세요.'],['필요 서류',documents]];

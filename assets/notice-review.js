@@ -11,7 +11,8 @@
   const fresh=now<b&&!value.source_recheck_pending,age=now-Date.parse(value.reception_checked_at),reception=!newerPeriod&&fresh&&age>=0&&age<86400000?value.actual_reception:'unconfirmed';
   return {...item,reference_application_dates:newerPeriod?item.reference_application_dates:Object.keys(dates).length?dates:item.reference_application_dates,
    actual_reception_state:['operator_notice','login_unverified','confirmed','unavailable'].includes(reception)?reception:'unconfirmed',
-   official_observation_at:value.facts_checked_at||value.checked_at,standing_application:fresh&&value.standing===true,
+   official_observation_at:value.facts_checked_at||value.checked_at,official_observation_current:fresh,official_observation_expires_at:value.expires_at,recorded_standing_application:value.standing===true,standing_application:fresh&&value.standing===true,
+   official_reception_checked_at:reception!=='unconfirmed'&&['operator_notice','login_unverified','confirmed','unavailable'].includes(reception)?value.reception_checked_at:null,
    application_preparation:value.preparation||{},application_method:value.preparation?.method||value.method||item.application_method,published_at:value.published_at||item.published_at};
  }
  root.MunongsaNoticeReview={project};
