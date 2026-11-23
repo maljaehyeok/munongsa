@@ -26,7 +26,7 @@
   function queueBrowseContext(){if(browseQueued)return;browseQueued=true;requestAnimationFrame(()=>{browseQueued=false;updateBrowseContext()})}
   function updateBrowseContext(){
     const summary=byId('selectionSummary'),order=byId('browseOrder');if(!summary||!order)return;
-    summary.hidden=browseState.homeView;order.hidden=browseState.homeView;if(browseState.homeView)return;
+    summary.hidden=browseState.homeView||browseState.activeCategory==='cultivation';order.hidden=summary.hidden;if(browseState.homeView)return;
     const category=browseState.activeCategory,filters=[],add=(label,value)=>{if(value&&value!=='all')filters.push({label,value})},value=id=>byId(id)?.value?.trim(),selected=id=>{const el=byId(id);return el&&el.value!=='all'?el.selectedOptions[0]?.textContent.trim():''};
     if(category==='support'){
       add('검색',value('supportSearch'));
@@ -50,6 +50,7 @@
   function sync({homeView,serviceHomeView,activeCategory}){
     browseState={homeView,activeCategory};queueBrowseContext();
     document.body.dataset.view=homeView?'brand':'explore';
+    document.body.dataset.service=activeCategory;
     byId('top').hidden=!homeView;
     byId('brandServices').hidden=!homeView;
     byId('serviceHome').hidden=true;
@@ -74,9 +75,12 @@
     byId('supportNeedField').hidden=homeView||!support;
     document.querySelector('.filters-intro').textContent=support||activeCategory==='bank'
       ?'지역과 현재 농업 상황만 알려주세요. 잘 모르는 항목은 비워두고 둘러볼 수 있어요.'
-      :'작물은 입력창이나 작물 목록에서 선택하세요. 재배 방식은 자료의 적용 범위를 살펴볼 때 사용해요.';
+      :'자료를 찾을 관심 작물은 본문에서 선택하세요. 이곳의 실제 영농정보는 필요한 경우에만 수정하세요.';
     if(!homeView&&profileCategory!==activeCategory){
-      byId('additionalProfileFields').open=!['support','bank'].includes(activeCategory);
+      byId('additionalProfileFields').open=false;
+      if(activeCategory==='cultivation'){
+        byId('filterForm').classList.add('is-collapsed');byId('profileToggle').setAttribute('aria-expanded','false');byId('profileToggle').textContent='영농정보 확인·수정';
+      }
       profileCategory=activeCategory;
     }
     // Preserve the old budget control and value, but it has no place in the new menu.

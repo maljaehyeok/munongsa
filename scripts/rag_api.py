@@ -203,7 +203,8 @@ def local_pipeline(question):
             if not clean['notice_ids']:clean.pop('notice_ids')
         topic=context['conversation_topic'] if referential else (understood or {}).get('topic') or (original if rag_nlu.valid_topic(original) else '')
         if topic and rag_nlu.valid_topic(topic):clean['conversation_topic']=topic
-        out=rag_dialogue.response(reply or '일반 개념에 관한 질문으로 이해했어요. 지금은 설명을 확인하지 못해 이전 지원사업을 대신 추천하지 않았습니다. 궁금한 개념을 조금 더 구체적으로 알려주세요.',clean,'context',status='answered' if reply else 'needs_verification')
+        fallback='현재 AI 설명의 호출 한도에 도달했어요. 지원사업 검색·확인된 자격 비교·신청 준비와 금융·재배기술 자료 찾기는 계속 이용할 수 있어요.' if rag_nlu.failure_reason()=='budget_limit' else '지금은 AI 설명을 확인하지 못했어요. 질문은 유지되며, 지원사업 검색이나 금융·재배기술 자료 찾기는 계속 이용할 수 있어요.'
+        out=rag_dialogue.response(reply or fallback,clean,'context',status='answered' if reply else 'needs_verification')
         out['understanding']='gpt' if reply else 'rules'
         return rag_dialogue.remember(out,corpus)
     # An explicit service switch takes precedence over a vague "then" follow-up.

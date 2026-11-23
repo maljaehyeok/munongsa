@@ -56,6 +56,8 @@
     </header>
     <div class="chat-ui-body" id="chatBody">
       <section class="chat-introduction" id="chatIntroduction" aria-label="질문 안내">
+        <p class="chat-scope-intro">지원사업·농업금융·재배기술을 안내해요. 관련 공고가 신청 가능 확정은 아니며, 근거 없는 자격·농약 처방·대출 승인은 확정하지 않아요.</p>
+        <p class="chat-scope-note">일부 AI 설명은 호출 한도로 제한될 수 있어요. 개인정보·상세주소는 입력하지 마세요.</p>
         <h3>어떤 지원사업이 궁금하세요?</h3><p id="chatAvailability">농사짓는 곳과 현재 상황을 알려주세요. 직접 질문하거나 조건을 선택해 시작할 수 있어요.</p>
         <button type="button" class="chat-select-start" data-chat-select>조건 선택으로 찾기 <span aria-hidden="true">→</span></button>
         <div class="chat-examples" aria-label="질문 예시"><button type="button" data-chat-example="청년농업인 지원사업의 신청 조건을 알려주세요.">청년농업인 지원사업 <span aria-hidden="true">↗</span></button><button type="button" data-chat-example="마늘 재배와 관련된 지원사업을 알려주세요.">마늘 재배 지원 <span aria-hidden="true">↗</span></button><button type="button" data-chat-example="부안 청년농업인 R&D 사업은 개인도 신청할 수 있나요?">신청 자격 확인 <span aria-hidden="true">↗</span></button></div>
@@ -222,7 +224,7 @@
       document.getElementById('resultTitle').textContent='농업금융';
       message.textContent='필요한 자금부터 찾아보세요. 기본 조건 비교와 실제 대출·보증 심사는 별개입니다.';
       const data=financeMvp?.products||[],found=MunongsaFinance.rank(MunongsaFinance.filter(data,financeQuery,financePurpose),readProfile());
-      count.textContent=`금융 안내 ${found.length}건 / 전체 ${data.length}건`;
+      count.textContent=`대표 농업금융 제도 ${data.length}개 중 ${found.length}개`;
       cards.innerHTML=found.map(p=>MunongsaFinance.card(p,readProfile())).join('')||`<div class="empty" data-load-state="${financeMvp?'empty':financeDataError?'error':'loading'}" role="${!financeMvp&&financeDataError?'alert':'status'}">${financeMvp?'검색 조건에 맞는 안내가 없어요. 검색어나 자금 목적을 바꿔보세요.':financeDataError?'금융정보를 불러오지 못했어요. 잠시 후 다시 확인해 주세요.':'금융정보를 불러오고 있어요.'}</div>`;
     }
     function openFinanceModal(key){
@@ -435,7 +437,7 @@
       const topic=e.target.closest('[data-cultivation-topic]');
       if(topic){MunongsaCultivation.choose(Number(topic.dataset.cultivationTopic));draw();return}
       const crop=e.target.closest('[data-crop-open]');
-      if(crop){MunongsaInputUX.commit('crop',crop.dataset.cropOpen);return}
+      if(crop){MunongsaCultivation.explore(crop.dataset.cropOpen,0);draw();return}
       if(e.target.closest('[data-crop-back]')){navigateTo(activeCategory);return}
       const info=e.target.closest('[data-info-kind]');
       if(info){navigateTo(activeCategory,selectedCropName,{kind:info.dataset.infoKind,key:info.dataset.infoKey});return}
@@ -464,7 +466,7 @@
     document.getElementById('financeSearch').addEventListener('input',e=>{financeQuery=e.target.value;draw()});
     document.getElementById('financePurpose').addEventListener('change',e=>{financePurpose=e.target.value;draw()});
     fetch('./data/finance-mvp.json').then(r=>{if(!r.ok)throw new Error('finance_load');return r.json()}).then(data=>{financeMvp=data;draw();restoreNavigationDetail()}).catch(()=>{financeDataError=true;draw()});
-    fetch('./data/finance-products.json').then(response=>{if(!response.ok)throw new Error('금융자료를 불러오지 못했습니다.');return response.json()}).then(data=>{financeData=data;financeDataError=false;draw();restoreNavigationDetail()}).catch(()=>{financeDataError=true;draw()});
+    // Workbook candidates remain private review inputs, separate from the four public schemes.
     fetch('./data/equipment-catalog.json').then(response=>{if(!response.ok)throw new Error('\uC7A5\uBE44 \uC790\uB8CC\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.');return response.json()}).then(data=>{installEquipment(data);equipmentDataError=false;draw();restoreNavigationDetail()}).catch(()=>{equipmentDataError=true;draw()});
   </script>
 </body>

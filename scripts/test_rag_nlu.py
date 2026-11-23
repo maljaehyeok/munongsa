@@ -64,4 +64,19 @@ class NluSafety(unittest.TestCase):
             self.assertIsNone(nlu.interpret('전주 지원사업',{},queue));t.join()
             self.assertEqual(list(queue.glob('q-*.json')),[])
 
+    def test_budget_failure_is_request_local(self):
+        with tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parent) as tmp:
+            queue=Path(tmp);nlu.atomic(queue/'status.json',{'ready':True,'model':nlu.MODEL})
+            def reply():
+                for _ in range(100):
+                    files=list(queue.glob('q-*.json'))
+                    if files:
+                        r=json.loads(files[0].read_text('utf8'))
+                        nlu.atomic(queue/('r-'+r['id']+'.json'),{'id':r['id'],'question_sha':nlu.digest(r['question'].encode()),'ok':False,'failure':'budget_limit'});return
+                    time.sleep(.01)
+            worker=threading.Thread(target=reply);worker.start()
+            self.assertIsNone(nlu.interpret('독립경영이란?',{},queue));worker.join();self.assertEqual(nlu.failure_reason(),'budget_limit')
+            separate=[];other=threading.Thread(target=lambda:separate.append(nlu.failure_reason()));other.start();other.join();self.assertEqual(separate,[None])
+            self.assertIsNone(nlu.interpret('',{},queue));self.assertIsNone(nlu.failure_reason())
+
 if __name__=='__main__':unittest.main()

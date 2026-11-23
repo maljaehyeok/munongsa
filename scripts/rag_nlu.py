@@ -13,6 +13,10 @@ import uuid
 from datetime import datetime,timezone,timedelta
 import urllib.request
 import urllib.error
+from contextvars import ContextVar
+
+_failure=ContextVar('nlu_failure',default=None)
+def failure_reason():return _failure.get()
 import rag_crops,rag_dialogue
 # The worker reads the same directory as the web/API, including all 67 crops.
 rag_dialogue.CROPS=rag_crops.CROPS
@@ -211,6 +215,7 @@ def read_safe(path,limit=8192,uid=None):
 
 def interpret(question,context,queue=QUEUE):
     """Filesystem IPC works without weakening PrivateNetwork or connect denial."""
+    _failure.set(None)
     request=make_request(question,context)
     if not request:return None
     qfile=rfile=None
@@ -226,9 +231,13 @@ def interpret(question,context,queue=QUEUE):
             if rfile.exists():
                 reply=read_safe(rfile)
                 if reply.get('id')!=identity or reply.get('question_sha')!=digest(question.encode()):return None
-                return validate(reply['result'],question) if reply.get('ok') else None
+                if not reply.get('ok'):
+                    _failure.set(reply.get('failure') if reply.get('failure') in FAILURES else 'worker_failure')
+                    return None
+                return validate(reply['result'],question)
             time.sleep(.05)
-    except (OSError,ValueError,KeyError,TypeError):return None
+    except (OSError,ValueError,KeyError,TypeError):
+        _failure.set('worker_failure');return None
     finally:
         for path in (qfile,rfile):
             if path:
@@ -293,7 +302,9 @@ def broker(queue,budget,client_uid):
             finally:
                 path.unlink(missing_ok=True)
                 diagnostic(queue,outcome,started)
-                if 'question_sha' in reply:atomic(queue/('r-'+identity+'.json'),reply)
+                if 'question_sha' in reply:
+                    if not reply.get('ok'):reply['failure']=outcome if outcome in FAILURES else 'internal'
+                    atomic(queue/('r-'+identity+'.json'),reply)
         # Only bounded transient files are retained, never question history.
         for path in queue.glob('r-*.json'):
             try:

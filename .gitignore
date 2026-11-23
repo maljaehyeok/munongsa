@@ -63,3 +63,5 @@ publication-rights.json
 # Generated HTTP projections; approval originals remain separate.
 /data/support-details-public.json
 /data/support-review-public.json
+# Workbook finance candidates are retained locally and on the operator host only.
+/data/finance-products.json
