@@ -197,10 +197,13 @@ def local_pipeline(question):
         understood=rag_nlu.interpret(interpreted_question,context)
         reply=rag_nlu.safe_conversation_reply(understood or {},original)
         generated=bool(reply)
-        if not reply and understood and understood.get('intent')=='knowledge' and not understood.get('facts'):
+        subject=None
+        if not reply and (not understood or understood.get('intent')=='knowledge' and not understood.get('facts')):
             # Rejected model examples must not weaken numeric/official-fact checks.
             # Only these basic service concepts have a bounded qualitative fallback.
-            subject=context.get('conversation_topic') if referential else understood.get('topic')
+            subject=context.get('conversation_topic') if referential else (understood or {}).get('topic')
+            if not subject:
+                subject='농업경영체 등록' if re.search(r'농업\s*경영체\s*등록',original) else '거치기간' if re.search(r'거치\s*기간',original) else None
             basic=rag_nlu.basic_concept_reply(subject,original)
             reply=rag_nlu.safe_conversation_reply({'intent':'knowledge','facts':{},'reply':basic},original)
         clean={k:v for k,v in context.items() if k not in ('casual_topic','conversation_topic')}
@@ -208,7 +211,7 @@ def local_pipeline(question):
         if 'notice_ids' in clean:
             clean['notice_ids']=[i for i in clean['notice_ids'] if i in live_ids]
             if not clean['notice_ids']:clean.pop('notice_ids')
-        topic=context['conversation_topic'] if referential else (understood or {}).get('topic') or (original if rag_nlu.valid_topic(original) else '')
+        topic=context['conversation_topic'] if referential else (understood or {}).get('topic') or subject or (original if rag_nlu.valid_topic(original) else '')
         if topic and rag_nlu.valid_topic(topic):clean['conversation_topic']=topic
         fallback='현재 AI 설명의 호출 한도에 도달했어요. 지원사업 검색·확인된 자격 비교·신청 준비와 금융·재배기술 자료 찾기는 계속 이용할 수 있어요.' if rag_nlu.failure_reason()=='budget_limit' else '지금은 AI 설명을 확인하지 못했어요. 질문은 유지되며, 지원사업 검색이나 금융·재배기술 자료 찾기는 계속 이용할 수 있어요.'
         out=rag_dialogue.response(reply or fallback,clean,'context',status='answered' if reply else 'needs_verification')

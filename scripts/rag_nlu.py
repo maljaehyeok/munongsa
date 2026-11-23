@@ -78,15 +78,33 @@ INSTRUCTIONS+=' The CURRENT question takes precedence over a prior crop/business
 INSTRUCTIONS+=' For other, reply only about the current everyday subject: do not mention farming, agriculture, businesses or the old topic, even to say that the topic changed. For knowledge, give only a basic educational explanation. topic must be a subject phrase without personal names or contact information.'
 INSTRUCTIONS+=' General agricultural concepts include rotation, independent farm management, farm registration, subsidies versus repayable loans, and registration versus selection. Explain these in simple Korean, without legal definitions, eligibility thresholds, current scheme facts, amounts, dates, rates, URLs or prescriptions. These general distinctions are knowledge, not discover or funding. A conceptual question never reports personal farming or registration facts. Keep knowledge replies to two or three short sentences. Follow-up why/example questions should answer that purpose, not repeat the definition.'
 INSTRUCTIONS+=' Examples must also be qualitative: never invent illustrative numbers or durations, even hypothetical ones. For a grace-period example say initial principal repayment is deferred and repayment starts later; never supply an example number of years. A correction naming a concept asks about that new concept, not the previous topic.'
+INSTRUCTIONS+=' Narrow exception: a general farming concept question explicitly using a hypothetical area in ha/hectares may repeat ONLY the exact user-supplied area with an explicit hypothetical label. Invent no numbers, conversions, yields, money, rates, dates or thresholds. This is an educational illustration, never actual personal facts or scheme eligibility; emit no facts. All other numeric restrictions remain.'
 
 CONCEPT_SUBJECT=r'농업|농사|영농|재배|작물|스마트팜|윤작|연작|독립경영|경영체|청년후계농|청년농업인|보조금|융자|시설재배|거치기간|원금균등|분할상환'
 
 def concept_subject(question):return bool(re.search(CONCEPT_SUBJECT,question))
 
+def educational_area_example(question,reply=None):
+    """Only reuse user-supplied hypothetical hectares; never invent scheme numbers."""
+    if not isinstance(question,str) or reply is not None and not isinstance(reply,str):return False
+    if not re.search(r'가상|가정|예를|예시',question) or not concept_subject(question):return False
+    if re.search(r'사업|공고|신청|자격|선정|필수|최소|최대|기준|한도|금리|금액|지원금|보조금|대출|거치|상환|법적|현재|접수|농약',question):return False
+    area=r'(?<![\d.])\d{1,4}(?:\.\d{1,4})?\s*(?:ha|헥타르)(?![A-Za-z])'
+    supplied=re.findall(area,question,re.I)
+    if not supplied or re.search(r'\d',re.sub(area,'',question,flags=re.I)):return False
+    if reply is None:return True
+    if re.search(r'이상|이하|미만|최소|최대|요건|자격|필수|등록\s*가능|수확량|살포|희석|수익',reply):return False
+    if not re.search(r'가상|가정|예시|예를',reply):return False
+    allowed={re.sub(r'\s+','',s).lower().replace('헥타르','ha') for s in supplied}
+    for number in re.findall(area,reply,re.I):
+        if re.sub(r'\s+','',number).lower().replace('헥타르','ha') not in allowed:return False
+    return not re.search(r'\d',re.sub(area,'',reply,flags=re.I))
+
 def concept_request(question,context=None):
     """Only educational explanations; specific scheme facts stay in the evidence engine."""
     context=context or {}
-    if re.search(r'올해|현재|접수|마감|공고|그\s*사업|아까.*지원사업|지원사업|관련.*사업|찾아|추천|신청|자격|선정될|필수|몇\s*년|몇\s*세|한도|금액|금리|서류|법적|법률|기준일|\d',question):return False
+    if re.search(r'올해|현재|접수|마감|공고|그\s*사업|아까.*지원사업|지원사업|관련.*사업|찾아|추천|신청|자격|선정될|필수|몇\s*년|몇\s*세|한도|금액|금리|서류|법적|법률|기준일',question):return False
+    if re.search(r'\d',question) and not educational_area_example(question):return False
     explanation=bool(re.search(r'이란|이?뭐야|무엇|무슨\s*(?:뜻|말)|뜻|설명|차이|같은|다른|달라|왜|예를|예시|쉽게|다시|물어본|묻는\s*거|질문한',question))
     subject=concept_subject(question)
     follow=bool(context.get('conversation_topic')) and bool(re.search(r'그게|그건|그거|그걸|그것|그럼|왜|다시|쉽게|예를|예시',question))
@@ -109,7 +127,8 @@ def valid_topic(value):
     return isinstance(value,str) and len(value)<=80 and not re.search(r'https?://|www\.|[\d<>\n\r@]|API[_ -]?KEY|sk-',value,re.I)
 
 def safe_conversation_reply(value,question):
-    if value.get('intent') not in ('other','knowledge') or value.get('facts') or value.get('hypothetical'):return ''
+    educational=value.get('intent')=='knowledge' and educational_area_example(question,value.get('reply',''))
+    if value.get('intent') not in ('other','knowledge') or value.get('facts') or value.get('hypothetical') and not educational:return ''
     reply=value.get('reply','')
     if not isinstance(reply,str) or not 1<=len(reply)<=220:return ''
     forbidden=r'등록|지원|사업|공고|신청|자격|금액|보조|융자|대출|금융|금리|이자|보험|경영체|모집|접수|서류|출처|정책|예산|기간|법률|진단|약물|약품|치료|통증|질병|농약|살포|투여|투자|수익|주식|세금|계약|법적|날씨|기온|예보|https?://|www\.|[0-9<>]'
@@ -118,7 +137,10 @@ def safe_conversation_reply(value,question):
         if not concept_request(question) and not (follow and concept_request(question,{'conversation_topic':'농업 개념'})):return ''
         forbidden=r'https?://|www\.|\d|[<>%]|[일이삼사오육칠팔구십백천만억]+\s*원|[일이삼사오육칠팔구십백천]+\s*(?:년|개월|세)|퍼센트|법률|법적|확정|보장|신청\s*가능|선정\s*(?:가능|됩니다)|자격\s*충족|모집\s*중|접수\s*중|살포|투여|희석|농약|약품|치료|진단|날씨|예보|금리|한도'
     if value.get('intent')=='other':forbidden=r'농업|농민|농가|농사|'+forbidden
-    if re.search(forbidden,question+' '+reply,re.I):return ''
+    checked=question+' '+reply
+    if educational:
+        checked=re.sub(r'(?<![\d.])\d{1,4}(?:\.\d{1,4})?\s*(?:ha|헥타르)(?![A-Za-z])','설명용 면적',checked,flags=re.I)
+    if re.search(forbidden,checked,re.I):return ''
     return reply
 
 def packed(value):return json.dumps(value,ensure_ascii=False,separators=(',',':')).encode('utf-8')
