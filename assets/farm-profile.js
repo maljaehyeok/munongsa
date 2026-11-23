@@ -21,9 +21,9 @@
   if(crop)out.crop=crop.name;
   if(previous.crop!==undefined&&previous.crop!==out.crop||previous.planned!==undefined&&previous.planned!==out.planned)delete out.cultivating;
   const changed=['region','farm_region','crop','farm_registered','applicant','planned','farming_years','group_size'].some(k=>previous[k]!==out[k]);
-  if(changed)for(const k of ['notice_ids','list_ids','list_versions','last_kind','search_offset','search_fingerprint'])delete out[k];
-  if(previous.crop!==out.crop)for(const k of ['search_crop','search_query','tech_crop','tech_topic','tech_resource'])delete out[k];
-  if(previous.farm_region!==out.farm_region)for(const k of ['search_scope','search_query'])delete out[k];
+  if(changed)for(const k of ['notice_ids','list_ids','list_versions','last_kind','search_offset','search_fingerprint','empty_search'])delete out[k];
+  if(previous.crop!==out.crop)for(const k of ['search_crop','search_mode','search_query','tech_crop','tech_topic','tech_resource'])delete out[k];
+  if(previous.farm_region!==out.farm_region)for(const k of ['search_scope','search_mode','search_query'])delete out[k];
   return out;
  }
  let applying=false;

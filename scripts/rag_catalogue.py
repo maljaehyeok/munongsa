@@ -128,6 +128,10 @@ def records(feed,now=None):
 
 TOPICS=(('startup',r'창업|귀농|처음|초보|정착|농사.{0,6}시작',r'창업|귀농|정착|후계농','창업·영농 시작'),('facility',r'시설|하우스|온실|스마트팜|현대화',r'시설|하우스|온실|스마트팜|현대화','시설 설치·개선'),('machinery',r'농기계|트랙터|농업기계',r'농기계|트랙터|농업기계','농기계 구입'),('education',r'교육|배우|연수|공부',r'교육|연수|대학|교육생|학습|수강','농업 교육'),('fertilizer',r'비료|유기질|유기농업자재|토양',r'비료|유기질|유기농업자재|토양','비료·토양 관리'),('export',r'수출|해외판로',r'수출|해외판로','수출 지원'),('insurance',r'보험|재해',r'보험|재해','보험·재해'),('finance',r'융자|대출|금융|운영\s*자금|자금.{0,4}부족',r'융자|대출|금융|운영\s*자금','금융·운영 자금'))
 
+def discovery_crop(question,context):
+    import rag_crops
+    return rag_crops.find(question) or context.get('search_crop') or (context.get('crop') if context.get('search_mode')!='regional' else None)
+
 def discovery_quality(question,title,hay,context=None,purpose=None):
     q=question.lower();title=title.lower();hay=hay.lower()
     terms=[re.sub(r'(?:으로|에서|관련|을|를|이|가|은|는)$','',t) for t in re.findall('[가-힣a-z0-9]+',q)]
@@ -138,7 +142,7 @@ def discovery_quality(question,title,hay,context=None,purpose=None):
     installation=bool(re.search(r'설치|하우스|온실|현대화',q))
     thematic=[g for g in wanted if re.search(g[2],purpose) and (g[0]!='facility' or not installation or re.search(r'시설원예|시설현대화|시설지원|시설\s*지원|온실|하우스|스마트팜|시설.{0,8}(?:설치|신축|개보수|현대화)',purpose))]
     import rag_crops
-    crop=rag_crops.find(question) or (context or {}).get('search_crop') or (context or {}).get('crop')
+    crop=discovery_crop(question,context or {})
     broadened=not wanted and bool(crop) and (context or {}).get('planned') is True and bool(re.search(TOPICS[0][2],purpose))
     related=len(thematic)==len(wanted) if wanted else bool(crop in hay or broadened) if crop else bool(hits)
     reasons=[' · '.join(g[3] for g in thematic)+' 분야의 공개 정보 일치'] if thematic else ['영농 준비 관련 대안 · 작물 전용 사업 아님'] if broadened else ['공개 정보에 '+crop+' 명시'] if crop and crop in hay else ['검색어가 공개 정보에 포함'] if hits else []
@@ -156,7 +160,7 @@ def matches(question,feed,context=None,now=None):
     compact=re.sub(r'[^0-9a-z가-힣]','',text.lower())
     area=rag_dialogue.area_in(text) or context.get('farm_region') or context.get('region')
     import rag_crops
-    crop=rag_crops.find(text) or context.get('search_crop') or context.get('crop')
+    crop=discovery_crop(text,context)
     generic={'지원사업','지원','공고','사업','안내','신청','모집','농업','농업인','관련','알려줘','확인','조건','자격','해주세요','현재','전체','공개','있나요','있는','에서','찾아줘'}
     terms=[re.sub(r'(?:으로|에서|관련|을|를|이|가|은|는)$','',v) for v in re.findall(r'[가-힣A-Za-z0-9]+',text)]
     terms=[v for v in terms if len(v)>=2 and v not in generic and v not in rag_dialogue.AREAS and v not in {'농사짓는데','농사짓고','찾고','싶어요','받을','있을까요','알고','싶어','해주세요','시작하려는데','재배해요','키워요','있어요','알려주세요','등록했어요','등록해야','어떤','해당하는','가능한'}]
@@ -390,7 +394,7 @@ def respond(encoded,corpus,*,explicit=False,fallback=None,include_approved=False
         return None
     available=len(found)
     if limit:found=found[:limit]
-    fingerprint=hashlib.sha256(json.dumps({'scope':context.get('search_scope'),'profile':{k:v for k,v in context.items() if k in rag_dialogue.rag_profile.KEYS or k in ('region','crop','farm_registered','search_crop')},'items':[{'id':n['id'],'version':listing_version(n,feed,now)} for n in found]},sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+    fingerprint=hashlib.sha256(json.dumps({'scope':context.get('search_scope'),'profile':{k:v for k,v in context.items() if k in rag_dialogue.rag_profile.KEYS or k in ('region','crop','farm_registered','search_crop','search_mode')},'items':[{'id':n['id'],'version':listing_version(n,feed,now)} for n in found]},sort_keys=True,ensure_ascii=False).encode()).hexdigest()
     offset=page['offset'] if page else 0
     if page and (page['fingerprint']!=fingerprint or offset>=len(found)):
         return rag_dialogue.response('공고 목록이나 확인된 조건이 변경됐어요. 같은 질문으로 다시 검색해 주세요.',context,'clarify',status='needs_verification')

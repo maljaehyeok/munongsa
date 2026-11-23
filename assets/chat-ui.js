@@ -120,7 +120,9 @@
     const str=v=>typeof v==='string',strings=v=>Array.isArray(v)&&v.length<=100&&v.every(str);
     const context=data?.conversation;
     const validContext=context===undefined||(context&&typeof context==='object'&&!Array.isArray(context)
-      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm','casual_topic','conversation_topic','search_scope','search_query','search_offset','search_fingerprint','search_crop','service','tech_crop','tech_topic','tech_resource'].includes(k))
+      &&Object.keys(context).every(k=>['region','crop','farm_registered','notice_ids','list_ids','list_versions','last_kind','farm_region','age','age_basis','applicant','group_size','group_min','farming_years','planned','cultivating','facility_sqm','casual_topic','conversation_topic','search_scope','search_query','search_offset','search_fingerprint','search_crop','search_mode','empty_search','service','tech_crop','tech_topic','tech_resource'].includes(k))
+      &&(context.search_mode===undefined||['focused','regional','profile'].includes(context.search_mode))
+      &&(context.empty_search===undefined||(str(context.empty_search)&&/^[a-f0-9]{64}$/.test(context.empty_search)))
       &&(context.tech_resource===undefined||['general','pesticide'].includes(context.tech_resource))
       &&(['search_crop','tech_crop'].every(k=>context[k]===undefined||crops.includes(context[k])))
       &&(context.service===undefined||['support','finance','cultivation'].includes(context.service))
@@ -222,7 +224,7 @@
     const basic=data.programs.every(p=>p.evidence_level==='공식 공고 기본 안내');
     const heading=text('header','','chat-result-heading');
     const countNote=data.catalogue_requested?'요청 최대 '+data.catalogue_requested+'건 · 관련 결과 '+data.catalogue_total+'건. ':'';
-    const scopeNote=data.catalogue_search_scope?data.catalogue_search_scope+' 탐색 · 실제 영농지역은 유지. ':'';
+    const scopeNote=data.catalogue_search_scope?data.catalogue_search_scope+' 탐색 · '+(data.conversation?.search_mode==='regional'?'작물 제한 없음 · ':'')+'실제 영농지역은 유지. ':'';
     heading.append(text('h3',data.catalogue_scope==='past'?'지난 공고 검색 결과':basic?'공식 공고 검색 결과':personal?'맞춤 추천 결과':'지원사업 검색 결과'),text('p',scopeNote+countNote+(data.catalogue_total??data.programs.length)+'건 중 '+(data.catalogue_start?data.catalogue_start+'~'+(data.catalogue_start+data.programs.length-1)+'번째':data.programs.length+'건')+'를 안내합니다. '+(basic?'기본 안내와 일부 조건 비교이며, 신청 가능 판정이 아닙니다.':'모집기간과 내 조건 비교를 함께 확인하세요.')));
     node.replaceChildren(heading);node.className='chat-message chat-message-answer chat-result-message';
     const linkedRows=new Map((typeof approvedRows==='function'?approvedRows():[]).map(r=>[r.item.id,r]));
@@ -328,7 +330,8 @@
     if(funding?.kind==='required'&&globalThis.MunongsaInputUX?.setFunds(funding.won))message('입력 확인','필요 자금 '+MunongsaAmounts.wonText(funding.won)+'으로 반영했어요. 보유 자금이나 대출 승인액을 뜻하지 않아요.','answer');
     if(funding?.kind==='own')message('입력 확인','말씀하신 보유 자금은 '+MunongsaAmounts.wonText(funding.won)+'이에요. 필요 사업비·희망 대출금과 달라 자동으로 대입하지 않았어요.','answer');
     if(funding&&['loan','project'].includes(funding.kind))message('입력 확인',(funding.kind==='loan'?'희망 대출금: ':'필요 사업비: ')+MunongsaAmounts.wonText(funding.won)+'으로 따로 기억했어요. 필요 자금과 같은 금액으로 비교하려면 농업금융의 필요 자금에 입력해 주세요.','answer');
-    const financeFollow=(financeState?.active||conversation.service==='finance')&&!/지원사업|공고|보조금/.test(question)&&/그\s*(?:사업|제도)|신청|서류|접수|준비|등록|조건|빌리|이자|상환|첫\s*번째|두\s*번째|세\s*번째|^응[?？]?$|무슨\s*뜻|다시\s*설명/.test(question);
+    const selectedSearch=/(?:선택|입력|설정|저장)(?:한|된)?\s*(?:영농\s*)?조건/.test(question)&&/검색|찾|탐색|지원\s*사업/.test(question);
+    const financeFollow=!selectedSearch&&(financeState?.active||conversation.service==='finance')&&!/지원사업|공고|보조금/.test(question)&&/그\s*(?:사업|제도)|신청|서류|접수|준비|등록|조건|빌리|이자|상환|첫\s*번째|두\s*번째|세\s*번째|^응[?？]?$|무슨\s*뜻|다시\s*설명/.test(question);
     const financeExcluded=/(?:융자|대출|금융)\s*(?:말고|제외|아닌)/.test(question);
     const finance=!financeExcluded&&(!!financeFollow||/대출|융자|정책자금|금융|(?:돈|자금)(?:이|이\s*더)?\s*부족|시설\s*(?:설치\s*)?자금/.test(question));
     const mixed=finance&&/지원사업|보조금/.test(question);
@@ -343,8 +346,8 @@
       let data;try{data=JSON.parse(raw)}catch{throw new Error('서버 응답 형식을 확인해야 해요.');}
       if(!validResponse(data))throw new Error('답변의 공식 근거 항목을 확인해야 해요.');
       updateContext(data.conversation);
-      if(data.catalogue_total!==undefined){lastNext=data.catalogue_next||null;lastDiscovery=true;}
-      else if(data.kind==='condition_edit'||finance||data.kind==='cultivation'||data.conversation?.conversation_topic){lastNext=null;lastDiscovery=false;}
+      if(data.catalogue_total!==undefined){lastNext=data.catalogue_next||null;lastDiscovery=data.catalogue_total>0;}
+      else if(data.kind==='condition_edit'||finance||data.kind==='cultivation'||data.conversation?.conversation_topic||!data.conversation?.list_ids?.length){lastNext=null;lastDiscovery=false;}
         if(data.kind==='context'&&data.conversation?.conversation_topic){financeState=null;renderAnswer(status,data);offerConditions(status,data);}
         else if(finance&&!mixed&&!data.programs.length)await financeAnswer(status,question,false,financeFollow);else{if(data.programs.length)financeState=null;renderAnswer(status,data);offerConditions(status,data);if(mixed)await financeAnswer(status,question,true,false);}if(question!==selectionQuestion)input.value='';
     }catch(error){
