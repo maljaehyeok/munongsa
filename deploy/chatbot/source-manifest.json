@@ -4,7 +4,7 @@
   "documents": 11,
   "passages": 70,
   "web": {
-    "index.html": "716a7a2cd1474b64f4e75bce0201925fe7a23c069a83568f9e9cd40882597959",
+    "index.html": "63d09b1a0f525681368192c65b3a6ac0d6e7bc22c5f199bd99256d4ffb21f333",
     "assets/chat-ui.js": "37093f4d474ebc6d2e2915d4ef0f66e39902cfe60ccedc3e92546a8ce0da9b60",
     "assets/chat-ui.css": "75843362a4bad9e2694f9cf1550584f8ed1c87912824adcda6dd4b349de74d0b",
     "assets/support-public.js": "2ded1c4458e71a5deb7cdb974df9e8172e602298f12767e5c5525bbb9f83d8a2",
@@ -29,7 +29,7 @@
     "assets/ui-v2.js": "e2715cb304c7c7b6f93a512820e54bc4a5f72566a44bb4cd7048478cab24d99c",
     "assets/input-ux.css": "a168701f9b813226b85623402f97ada55f3c34a7da19df63a2b07bca2bb2c303",
     "assets/cultivation-mvp.css": "d68c979b59edc5aa3747d0597236cd5127d06f6a70b12a088ea4ebbe6c15a762",
-    "assets/controls.css": "bc911c019898b9c2619a9efd8121c69e9d627412562b4850c32bca7b05f16628",
+    "assets/controls.css": "2fc97d96910be4f13304086ac90e0c65271d3f9aacda38cb7b99014115621af6",
     "assets/control-state.js": "673fb1ebfd0fed2947193f76d7598852ee590d7a83797fa6c7a111f0c5c183bb",
     "data/finance-mvp.json": "3076dea4af39d08b0015dc5a98430b639cac7c56970d3100e601364f87c72b17"
   },
