@@ -213,7 +213,7 @@
       if(program.card.institution!=='확인 필요')card.append(text('p',program.card.institution,'notice-institution'));
       if(typeof program.card.discovery_reason==='string'&&program.card.discovery_reason.length<=160&&program.card.discovery_reason)card.append(text('p','관련성 · '+program.card.discovery_reason+' · 자격 판정과 별개','match-note'));
       const comparison=text('section','','chat-condition-block');
-      const mismatch=program.comparison?.label==='조건 불일치';
+      const mismatch=program.comparison?.decision?.excluded===true||program.comparison?.label==='조건 불일치';
       const comparisonLabel=program.comparison?.decision?.label||(program.guidance_only?'\uAE30\uBCF8 \uC548\uB0B4 \u00B7 \uC790\uACA9 \uD310\uB2E8 \uBCF4\uB958':mismatch?'확인된 조건 불일치':program.card.group==='elapsed'&&program.comparison?.label==='관련 가능성 있음'?'일부 조건 일치 · 모집기간 경과':program.comparison?.label||'추가 확인 필요');
       comparison.append(text('h4','내 조건과 비교'),text('strong',comparisonLabel,'condition-result '+(mismatch?'mismatch':program.card.group)));
       const reasons=program.comparison?.reasons||[],checks=program.comparison?.checks||[];
@@ -227,10 +227,10 @@
       const f=program.card.facts;
       fact('모집기간',d.periodText);fact('지원 내용',f.support);
       if(f.funding.length)fact('지원 규모·금액',f.funding);
-      card.append(facts);
-      const more=document.createElement('details');more.className='chat-application-details';more.append(text('summary','대상·신청 방법·서류 확인'));const moreFacts=document.createElement('dl');moreFacts.className='chat-notice-facts';
-      const start=facts.childElementCount;
       fact('대상 지역',f.region);fact('신청 대상',f.target);
+      card.append(facts);
+      const more=document.createElement('details');more.className='chat-application-details';more.append(text('summary','신청 방법·서류·세부 조건 확인'));const moreFacts=document.createElement('dl');moreFacts.className='chat-notice-facts';
+      const start=facts.childElementCount;
       if(f.method.length)fact('신청 방법',f.method);
       if(f.documents.length)fact('필요 서류',f.documents);
       const required=program.required_conditions.map(v=>v.replace(/^(신청 대상|지원 지역):\s*/,''))
@@ -239,8 +239,7 @@
       while(facts.children.length>start)moreFacts.append(facts.children[start]);more.append(moreFacts);
       const footer=text('footer','','notice-footer chat-notice-footer');
       const meta=text('div','','chat-notice-meta');meta.append(text('span',checked(program.checked_at)),text('span',program.evidence_level));
-      footer.append(meta,officialLink(program.source_url,'공식 원문'));
-      if(program.application_entry_url===program.source_url)footer.append(officialLink(program.application_entry_url,program.application_entry_kind==='login_unverified'?'신청 절차 확인 · 로그인 필요':'신청 방법·서식 확인'));
+      footer.append(meta,officialLink(program.source_url,program.application_entry_url===program.source_url?(program.application_entry_kind==='login_unverified'?'공식 원문·신청 절차 · 로그인 필요':'공식 원문·신청 방법'):'공식 원문'));
       const detail=text('a','내 조건·신청 준비 보기 ↗');detail.href='#categories?'+new URLSearchParams({category:'support',kind:'supportPublic',key:program.id});
       detail.addEventListener('click',event=>{if(typeof navigateTo!=='function'||typeof publicSupport==='undefined'||!publicSupport?.notices?.some(p=>p.id===program.id))return;
         event.preventDefault();dialog.close();navigateTo('support','',{kind:'supportPublic',key:program.id});});footer.append(detail);card.append(footer);

@@ -1,0 +1,23 @@
+/* Shared readability layer; retains charcoal identity and all visible caveats. */
+.brand-home .discovery-cue{color:#eee;border:1px solid #777;border-radius:8px;padding:13px 20px;gap:14px;line-height:1.6;text-align:center}
+.brand-home .discovery-cue span{display:inline-block;font-size:22px;animation:readable-cue 2.8s ease-in-out 3}
+@keyframes readable-cue{0%,70%,100%{transform:translateY(0)}35%{transform:translateY(5px)}}
+.discovery-card .discovery-example{font-size:14px;line-height:1.75;padding-top:12px;border-top:1px solid #777;color:#ddd;font-weight:400}
+.readable-paragraph{display:block;line-height:1.85;overflow-wrap:anywhere;white-space:pre-line}
+.readable-paragraph+.readable-paragraph{margin-top:9px}
+.notice-card .compact-open>strong,.cultivation-material h3{font-size:21px;line-height:1.5;margin-bottom:5px;letter-spacing:-.02em}
+.notice-card .notice-status{gap:7px;margin:3px 0 9px}.notice-card .notice-status .notice-chip{background:transparent;border-radius:0;padding:2px 0;color:#505050;font-size:12px}
+.notice-card .notice-status .notice-chip+.notice-chip{border-left:1px solid #aaa;padding-left:8px}
+.official-notice .notice-fact{padding:12px 14px;gap:7px}.official-notice .notice-fact-label{font-size:13px;color:#444}.official-notice .notice-fact-value{font-size:15px;line-height:1.85}
+.notice-card .condition-result{font-size:14px;line-height:1.65;border-left:3px solid #777;padding:9px 11px}.notice-card .condition-result.mismatch{border-color:#943f31}
+.notice-card .notice-funding{border-left:3px solid #555;background:#e5e5df}
+.notice-card .notice-meta,.cultivation-material .notice-meta{font-size:13px;line-height:1.8;color:#505050}
+.notice-card .compact-hint{margin-top:9px;padding-top:10px;border-top:1px solid #ccc;font-size:14px}
+.finance-card-terms{display:grid;gap:0;margin:6px 0}.finance-card-terms>div{display:grid;grid-template-columns:100px minmax(0,1fr);gap:12px;padding:12px 0;border-bottom:1px solid #ccc}.finance-card-terms dt{font-size:13px;font-weight:700;color:#555}.finance-card-terms dd{margin:0;font-size:15px;line-height:1.8;overflow-wrap:anywhere}
+.finance-amount-scope,.finance-caution,.detail-caution{border-left:3px solid #9a8252;padding:10px 13px;line-height:1.8}
+.support-preparation-section{margin:22px 0}.support-preparation-section h4{font-size:18px;border-bottom:1px solid #bbb;padding-bottom:9px;margin-bottom:4px}
+.support-detail-list>div{padding:13px 0}.support-detail-list dd{line-height:1.85;font-size:15px;overflow-wrap:anywhere}.more-conditions summary{min-height:44px;padding:11px 0;line-height:1.6}
+.cultivation-material{display:flex;flex-direction:column;gap:12px}.cultivation-material>p{margin:0;line-height:1.8}.cultivation-material>p>b{display:block;font-size:13px;color:#555;margin-bottom:5px}.cultivation-material>p>b+br{display:none}.cultivation-material>.notice-chip{align-self:flex-start;font-size:12px;padding:6px 9px;line-height:1.6}.cultivation-material>.source-action{margin-top:auto;text-align:center;white-space:normal;line-height:1.6}
+.chat-notice .chat-condition-block{border-left:3px solid #777}.chat-notice .chat-notice-facts>div{padding:13px 0}.chat-notice .chat-notice-facts dd{line-height:1.85;font-size:15px}.chat-notice .chat-notice-footer{gap:12px}.chat-notice .chat-notice-footer>a{padding:10px 12px;border:1px solid #aaa;border-radius:5px;font-size:14px}.chat-notice .chat-notice-meta{flex-basis:100%;font-size:12px}.chat-ui .chat-answer-caution{line-height:1.8;border-left:3px solid #9a8252;padding:10px 13px}
+@media(max-width:600px){.discovery-card .discovery-example{font-size:13px}.brand-home .discovery-cue{font-size:13px;padding:10px 14px;max-width:calc(100% - 40px)}.notice-card .compact-open>strong,.cultivation-material h3{font-size:20px}.finance-card-terms>div{grid-template-columns:1fr;gap:5px}.official-notice .notice-fact{padding:11px 12px}.notice-card .notice-status{gap:6px}.chat-notice .chat-notice-footer>a{width:100%;text-align:center}}
+@media(prefers-reduced-motion:reduce){.brand-home .discovery-cue span{animation:none}html{scroll-behavior:auto!important}}
